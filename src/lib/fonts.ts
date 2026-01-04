@@ -1,22 +1,13 @@
-import { Inter, JetBrains_Mono, Kode_Mono } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
 
-export const inter = Inter({
+export const geistSans = Geist({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-sans",
+  variable: "--font-geist-sans",
 });
 
-export const jetBrainsMono = JetBrains_Mono({
+export const geistMono = Geist_Mono({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-mono",
-  style: ["normal"],
-  weight: ["600"],
-});
-
-export const kodeMono = Kode_Mono({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-kode-mono",
-  weight: ["700"],
+  variable: "--font-geist-mono",
 });
