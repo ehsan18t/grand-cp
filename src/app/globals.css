@@ -42,6 +42,28 @@
     --info: oklch(0.6 0.15 240);
     --info-foreground: oklch(0.98 0.01 240);
 
+    /* === Platform Colors (Competitive Programming) === */
+    --leetcode: oklch(0.65 0.2 145);
+    --leetcode-foreground: oklch(0.98 0.01 145);
+    --codeforces: oklch(0.55 0.15 240);
+    --codeforces-foreground: oklch(0.98 0.01 240);
+    --cses: oklch(0.7 0.18 85);
+    --cses-foreground: oklch(0.15 0.02 85);
+    --atcoder: oklch(0.5 0.08 50);
+    --atcoder-foreground: oklch(0.98 0.01 50);
+
+    /* === Problem Status Colors === */
+    --status-untouched: oklch(0.6 0.02 260);
+    --status-untouched-foreground: oklch(0.98 0.01 260);
+    --status-attempting: oklch(0.75 0.18 85);
+    --status-attempting-foreground: oklch(0.15 0.02 85);
+    --status-solved: oklch(0.6 0.18 145);
+    --status-solved-foreground: oklch(0.98 0.01 145);
+    --status-revisit: oklch(0.6 0.15 240);
+    --status-revisit-foreground: oklch(0.98 0.01 240);
+    --status-skipped: oklch(0.55 0.02 260);
+    --status-skipped-foreground: oklch(0.98 0.01 260);
+
     /* === Card & Popover === */
     --card: oklch(0.97 0.003 260);
     --card-foreground: oklch(0.2 0.02 260);
@@ -117,6 +139,28 @@
     --info: oklch(0.65 0.15 240);
     --info-foreground: oklch(0.15 0.01 240);
 
+    /* === Platform Colors (Competitive Programming) === */
+    --leetcode: oklch(0.7 0.18 145);
+    --leetcode-foreground: oklch(0.15 0.02 145);
+    --codeforces: oklch(0.6 0.14 240);
+    --codeforces-foreground: oklch(0.98 0.01 240);
+    --cses: oklch(0.75 0.16 85);
+    --cses-foreground: oklch(0.15 0.02 85);
+    --atcoder: oklch(0.55 0.08 50);
+    --atcoder-foreground: oklch(0.98 0.01 50);
+
+    /* === Problem Status Colors === */
+    --status-untouched: oklch(0.5 0.02 260);
+    --status-untouched-foreground: oklch(0.9 0.01 260);
+    --status-attempting: oklch(0.78 0.18 85);
+    --status-attempting-foreground: oklch(0.15 0.02 85);
+    --status-solved: oklch(0.65 0.18 145);
+    --status-solved-foreground: oklch(0.15 0.02 145);
+    --status-revisit: oklch(0.65 0.15 240);
+    --status-revisit-foreground: oklch(0.15 0.01 240);
+    --status-skipped: oklch(0.45 0.02 260);
+    --status-skipped-foreground: oklch(0.9 0.01 260);
+
     /* === Card & Popover === */
     --card: oklch(0.22 0.02 262);
     --card-foreground: oklch(0.93 0.008 260);
@@ -168,6 +212,28 @@
   --color-warning-foreground: var(--warning-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
+
+  /* === Platform Colors === */
+  --color-leetcode: var(--leetcode);
+  --color-leetcode-foreground: var(--leetcode-foreground);
+  --color-codeforces: var(--codeforces);
+  --color-codeforces-foreground: var(--codeforces-foreground);
+  --color-cses: var(--cses);
+  --color-cses-foreground: var(--cses-foreground);
+  --color-atcoder: var(--atcoder);
+  --color-atcoder-foreground: var(--atcoder-foreground);
+
+  /* === Problem Status Colors === */
+  --color-status-untouched: var(--status-untouched);
+  --color-status-untouched-foreground: var(--status-untouched-foreground);
+  --color-status-attempting: var(--status-attempting);
+  --color-status-attempting-foreground: var(--status-attempting-foreground);
+  --color-status-solved: var(--status-solved);
+  --color-status-solved-foreground: var(--status-solved-foreground);
+  --color-status-revisit: var(--status-revisit);
+  --color-status-revisit-foreground: var(--status-revisit-foreground);
+  --color-status-skipped: var(--status-skipped);
+  --color-status-skipped-foreground: var(--status-skipped-foreground);
 
   /* === Card & Popover === */
   --color-card: var(--card);
