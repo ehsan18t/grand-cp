@@ -126,6 +126,23 @@ export const statusHistory = sqliteTable("status_history", {
   changedAt: int("changed_at", { mode: "timestamp" }).notNull(),
 });
 
+export const userFavorites = sqliteTable(
+  "user_favorites",
+  {
+    id: int("id").primaryKey({ autoIncrement: true }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    problemId: int("problem_id")
+      .notNull()
+      .references(() => problems.id, { onDelete: "cascade" }),
+    createdAt: int("created_at", { mode: "timestamp" }).notNull(),
+  },
+  (table) => [
+    uniqueIndex("user_favorites_user_id_problem_id_unique").on(table.userId, table.problemId),
+  ],
+);
+
 // ============================================================================
 // Relations
 // ============================================================================
@@ -135,6 +152,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   userProblems: many(userProblems),
   statusHistory: many(statusHistory),
+  userFavorites: many(userFavorites),
 }));
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -162,6 +180,7 @@ export const problemsRelations = relations(problems, ({ one, many }) => ({
   }),
   userProblems: many(userProblems),
   statusHistory: many(statusHistory),
+  userFavorites: many(userFavorites),
 }));
 
 export const userProblemsRelations = relations(userProblems, ({ one }) => ({
@@ -186,6 +205,17 @@ export const statusHistoryRelations = relations(statusHistory, ({ one }) => ({
   }),
 }));
 
+export const userFavoritesRelations = relations(userFavorites, ({ one }) => ({
+  user: one(users, {
+    fields: [userFavorites.userId],
+    references: [users.id],
+  }),
+  problem: one(problems, {
+    fields: [userFavorites.problemId],
+    references: [problems.id],
+  }),
+}));
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -202,6 +232,8 @@ export type UserProblem = typeof userProblems.$inferSelect;
 export type NewUserProblem = typeof userProblems.$inferInsert;
 export type StatusHistory = typeof statusHistory.$inferSelect;
 export type NewStatusHistory = typeof statusHistory.$inferInsert;
+export type UserFavorite = typeof userFavorites.$inferSelect;
+export type NewUserFavorite = typeof userFavorites.$inferInsert;
 
 export type ProblemStatus = "untouched" | "attempting" | "solved" | "revisit" | "skipped";
 export type Platform = "leetcode" | "codeforces" | "cses" | "atcoder" | "other";

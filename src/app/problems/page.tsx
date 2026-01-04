@@ -2,10 +2,8 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import Link from "next/link";
-import { phases } from "@/data/phases";
-import { problems } from "@/data/problems";
 import { createDb } from "@/db";
-import { problems as dbProblems, userProblems } from "@/db/schema";
+import { phases as dbPhases, problems as dbProblems, userProblems } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
 
 export const metadata = {
@@ -20,75 +18,80 @@ interface PhaseProgress {
 }
 
 export default async function ProblemsPage() {
-  // Calculate static problem counts per phase
-  const phaseCounts = new Map<number, number>();
-  for (const problem of problems) {
-    phaseCounts.set(problem.phaseId, (phaseCounts.get(problem.phaseId) ?? 0) + 1);
-  }
+  const { env } = await getCloudflareContext();
+  const db = createDb(env.DB);
+  const auth = createAuth(env.DB, env);
+  const requestHeaders = await headers();
+  const session = await auth.api.getSession({ headers: requestHeaders });
 
-  // Try to get user progress from database
+  // Fetch phases from database
+  const phases = await db.select().from(dbPhases).orderBy(dbPhases.id);
+
+  // Calculate problem counts per phase from database
+  const problemCounts = await db
+    .select({
+      phaseId: dbProblems.phaseId,
+      count: sql<number>`count(*)`,
+    })
+    .from(dbProblems)
+    .groupBy(dbProblems.phaseId);
+
+  const phaseCounts = new Map<number, number>(problemCounts.map((p) => [p.phaseId, p.count]));
+
+  // Initialize phase progress
   const phaseProgress = new Map<number, PhaseProgress>();
   for (const phase of phases) {
-    const phaseId = phase.id ?? 0;
-    phaseProgress.set(phaseId, {
-      phaseId,
-      total: phaseCounts.get(phaseId) ?? 0,
+    phaseProgress.set(phase.id, {
+      phaseId: phase.id,
+      total: phaseCounts.get(phase.id) ?? 0,
       solved: 0,
     });
   }
 
-  try {
-    const { env } = getCloudflareContext();
-    const db = createDb(env.DB);
-    const auth = createAuth(env.DB, env);
-    const requestHeaders = await headers();
-    const session = await auth.api.getSession({ headers: requestHeaders });
+  // Get user progress if authenticated
+  if (session?.user?.id) {
+    const solvedByPhase = await db
+      .select({
+        phaseId: dbProblems.phaseId,
+        solved: sql<number>`count(*)`,
+      })
+      .from(userProblems)
+      .innerJoin(dbProblems, eq(userProblems.problemId, dbProblems.id))
+      .where(eq(userProblems.userId, session.user.id))
+      .groupBy(dbProblems.phaseId);
 
-    if (session?.user?.id) {
-      // Get solved count per phase for this user
-      const solvedByPhase = await db
-        .select({
-          phaseId: dbProblems.phaseId,
-          solved: sql<number>`count(*)`,
-        })
-        .from(userProblems)
-        .innerJoin(dbProblems, eq(userProblems.problemId, dbProblems.id))
-        .where(eq(userProblems.userId, session.user.id))
-        .groupBy(dbProblems.phaseId);
-
-      for (const row of solvedByPhase) {
-        const progress = phaseProgress.get(row.phaseId);
-        if (progress) {
-          progress.solved = row.solved;
-        }
+    for (const row of solvedByPhase) {
+      const progress = phaseProgress.get(row.phaseId);
+      if (progress) {
+        progress.solved = row.solved;
       }
     }
-  } catch {
-    // Database not available - use default (0 solved)
   }
+
+  // Calculate total problem count
+  const totalProblems = Array.from(phaseCounts.values()).reduce((a, b) => a + b, 0);
 
   return (
     <main className="container mx-auto px-4 py-8">
       <header className="mb-12 text-center">
         <h1 className="mb-4 font-bold text-4xl">🏆 Competitive Programming Roadmap</h1>
         <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
-          From 800 Codeforces Rating to Candidate Master (2200+). 655+ problems organized in 8
-          phases.
+          From 800 Codeforces Rating to Candidate Master (2200+). {totalProblems}+ problems
+          organized in {phases.length} phases.
         </p>
       </header>
 
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {phases.map((phase) => {
-          const phaseId = phase.id ?? 0;
-          const progress = phaseProgress.get(phaseId);
+          const progress = phaseProgress.get(phase.id);
           const total = progress?.total ?? 0;
           const solved = progress?.solved ?? 0;
           const percentage = total > 0 ? Math.round((solved / total) * 100) : 0;
 
           return (
             <Link
-              key={phaseId}
-              href={`/problems/phase/${phaseId}`}
+              key={phase.id}
+              href={`/problems/phase/${phase.id}`}
               className="group relative overflow-hidden rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:border-primary/50 hover:shadow-lg"
             >
               <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
@@ -96,7 +99,7 @@ export default async function ProblemsPage() {
               <div className="relative">
                 <div className="mb-3 flex items-center justify-between">
                   <span className="font-mono font-semibold text-primary text-sm">
-                    Phase {phaseId}
+                    Phase {phase.id}
                   </span>
                   <span className="rounded-full bg-muted px-2 py-0.5 font-mono text-muted-foreground text-xs">
                     {total} problems

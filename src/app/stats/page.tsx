@@ -1,17 +1,49 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { eq, sql } from "drizzle-orm";
 import { BarChart3, Clock, Target, TrendingUp, Trophy } from "lucide-react";
 import type { Metadata } from "next";
-import { phases } from "@/data/phases";
-import { problems } from "@/data/problems";
+import { headers } from "next/headers";
+import { createDb } from "@/db";
+import {
+  phases as dbPhases,
+  problems as dbProblems,
+  userFavorites,
+  userProblems,
+} from "@/db/schema";
+import { createAuth } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Stats | Grand CP",
   description: "Track your competitive programming progress",
 };
 
-export default function StatsPage() {
-  const totalProblems = problems.length;
+export default async function StatsPage() {
+  const { env } = await getCloudflareContext();
+  const db = createDb(env.DB);
+  const auth = createAuth(env.DB, env);
+  const requestHeaders = await headers();
+  const session = await auth.api.getSession({ headers: requestHeaders });
 
-  // These would come from the database for authenticated users
+  // Fetch phases and problem counts from database
+  const [phases, totalProblemsResult] = await Promise.all([
+    db.select().from(dbPhases).orderBy(dbPhases.id),
+    db.select({ count: sql<number>`count(*)` }).from(dbProblems),
+  ]);
+
+  const totalProblems = totalProblemsResult[0]?.count ?? 0;
+
+  // Fetch problem counts per phase
+  const problemCountsByPhase = await db
+    .select({
+      phaseId: dbProblems.phaseId,
+      count: sql<number>`count(*)`,
+    })
+    .from(dbProblems)
+    .groupBy(dbProblems.phaseId);
+
+  const phaseCountsMap = new Map(problemCountsByPhase.map((p) => [p.phaseId, p.count]));
+
+  // Default stats for unauthenticated users
   const stats = {
     solved: 0,
     attempting: 0,
@@ -19,6 +51,66 @@ export default function StatsPage() {
     skipped: 0,
     untouched: totalProblems,
   };
+
+  let phaseSolvedMap = new Map<number, number>();
+  let _favoritesCount = 0;
+
+  // Fetch user stats if authenticated
+  if (session?.user?.id) {
+    const [statusCounts, solvedByPhase, favoritesResult] = await Promise.all([
+      // Get status counts for this user
+      db
+        .select({
+          status: userProblems.status,
+          count: sql<number>`count(*)`,
+        })
+        .from(userProblems)
+        .where(eq(userProblems.userId, session.user.id))
+        .groupBy(userProblems.status),
+
+      // Get solved count per phase
+      db
+        .select({
+          phaseId: dbProblems.phaseId,
+          count: sql<number>`count(*)`,
+        })
+        .from(userProblems)
+        .innerJoin(dbProblems, eq(userProblems.problemId, dbProblems.id))
+        .where(eq(userProblems.userId, session.user.id))
+        .groupBy(dbProblems.phaseId),
+
+      // Get favorites count
+      db
+        .select({ count: sql<number>`count(*)` })
+        .from(userFavorites)
+        .where(eq(userFavorites.userId, session.user.id)),
+    ]);
+
+    // Map status counts
+    let touched = 0;
+    for (const row of statusCounts) {
+      if (row.status === "solved") {
+        stats.solved = row.count;
+        touched += row.count;
+      } else if (row.status === "attempting") {
+        stats.attempting = row.count;
+        touched += row.count;
+      } else if (row.status === "revisit") {
+        stats.revisit = row.count;
+        touched += row.count;
+      } else if (row.status === "skipped") {
+        stats.skipped = row.count;
+        touched += row.count;
+      }
+    }
+    stats.untouched = totalProblems - touched;
+
+    // Map solved by phase
+    phaseSolvedMap = new Map(solvedByPhase.map((p) => [p.phaseId, p.count]));
+
+    // Favorites count
+    _favoritesCount = favoritesResult[0]?.count ?? 0;
+  }
 
   const progressPercentage =
     totalProblems > 0 ? Math.round((stats.solved / totalProblems) * 100) : 0;
@@ -123,10 +215,9 @@ export default function StatsPage() {
 
         <div className="space-y-4">
           {phases.map((phase) => {
-            const phaseProblems = problems.filter((p) => p.phaseId === phase.id);
-            const phaseSolved = 0; // Would come from DB
-            const phaseProgress =
-              phaseProblems.length > 0 ? Math.round((phaseSolved / phaseProblems.length) * 100) : 0;
+            const phaseTotal = phaseCountsMap.get(phase.id) ?? 0;
+            const phaseSolved = phaseSolvedMap.get(phase.id) ?? 0;
+            const phaseProgress = phaseTotal > 0 ? Math.round((phaseSolved / phaseTotal) * 100) : 0;
 
             return (
               <div key={phase.id} className="rounded-lg border border-border bg-card p-4">
@@ -140,7 +231,7 @@ export default function StatsPage() {
                   <div className="text-right">
                     <div className="font-mono font-semibold">{phaseProgress}%</div>
                     <div className="text-muted-foreground text-sm">
-                      {phaseSolved}/{phaseProblems.length} solved
+                      {phaseSolved}/{phaseTotal} solved
                     </div>
                   </div>
                 </div>

@@ -1,14 +1,17 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { and, eq, inArray, sql } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PhaseProblems } from "@/components/problems";
-import { phases } from "@/data/phases";
-import { problems } from "@/data/problems";
 import { createDb } from "@/db";
-import { problems as dbProblems, userProblems } from "@/db/schema";
+import {
+  phases as dbPhases,
+  problems as dbProblems,
+  userFavorites,
+  userProblems,
+} from "@/db/schema";
 import { createAuth } from "@/lib/auth";
 
 interface PageProps {
@@ -17,73 +20,132 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps) {
   const { phaseId } = await params;
-  const phase = phases.find((p) => p.id === Number.parseInt(phaseId, 10));
-  if (!phase) return { title: "Phase Not Found" };
+  const phaseIdNum = Number.parseInt(phaseId, 10);
 
-  return {
-    title: `Phase ${phase.id}: ${phase.name} | Grand CP`,
-    description: phase.description,
-  };
+  try {
+    const { env } = await getCloudflareContext();
+    const db = createDb(env.DB);
+    const [phase] = await db.select().from(dbPhases).where(eq(dbPhases.id, phaseIdNum)).limit(1);
+
+    if (!phase) return { title: "Phase Not Found" };
+
+    return {
+      title: `Phase ${phase.id}: ${phase.name} | Grand CP`,
+      description: phase.description,
+    };
+  } catch {
+    return { title: "Phase Not Found" };
+  }
 }
 
 export default async function PhasePage({ params }: PageProps) {
   const { phaseId } = await params;
   const phaseIdNum = Number.parseInt(phaseId, 10);
-  const phase = phases.find((p) => p.id === phaseIdNum);
+
+  const { env } = await getCloudflareContext();
+  const db = createDb(env.DB);
+  const auth = createAuth(env.DB, env);
+  const requestHeaders = await headers();
+  const session = await auth.api.getSession({ headers: requestHeaders });
+
+  // Fetch phase from database
+  const [phase] = await db.select().from(dbPhases).where(eq(dbPhases.id, phaseIdNum)).limit(1);
 
   if (!phase) {
     notFound();
   }
 
-  const phaseProblems = problems.filter((p) => p.phaseId === phaseIdNum);
+  // Fetch all phases for navigation
+  const allPhases = await db.select().from(dbPhases).orderBy(dbPhases.id);
+
+  // Fetch problems for this phase from database
+  const problemsFromDb = await db
+    .select()
+    .from(dbProblems)
+    .where(eq(dbProblems.phaseId, phaseIdNum))
+    .orderBy(dbProblems.number);
+
+  // Map to ProblemData format with user status and favorites
+  type ProblemWithUserData = {
+    id: number;
+    number: number;
+    platform: "leetcode" | "codeforces" | "cses" | "atcoder" | "other";
+    name: string;
+    url: string;
+    phaseId: number;
+    topic: string;
+    isStarred: boolean;
+    note: string | null;
+    userStatus: "untouched" | "attempting" | "solved" | "revisit" | "skipped";
+    isFavorite: boolean;
+  };
+
+  let phaseProblems: ProblemWithUserData[] = problemsFromDb.map((p) => ({
+    id: p.id,
+    number: p.number,
+    platform: p.platform,
+    name: p.name,
+    url: p.url,
+    phaseId: p.phaseId,
+    topic: p.topic,
+    isStarred: p.isStarred,
+    note: p.note,
+    userStatus: "untouched" as const,
+    isFavorite: false,
+  }));
 
   // Fetch user stats from database
   const stats = { solved: 0, attempting: 0, skipped: 0 };
-  try {
-    const { env } = await getCloudflareContext();
-    const db = createDb(env.DB);
-    const auth = createAuth(env.DB, env);
-    const requestHeaders = await headers();
-    const session = await auth.api.getSession({ headers: requestHeaders });
 
-    if (session?.user?.id) {
-      // Get problem IDs for this phase from database
-      const dbPhaseProblems = await db
-        .select({ id: dbProblems.id })
-        .from(dbProblems)
-        .where(eq(dbProblems.phaseId, phaseIdNum));
+  if (session?.user?.id && problemsFromDb.length > 0) {
+    const problemIds = problemsFromDb.map((p) => p.id);
 
-      if (dbPhaseProblems.length > 0) {
-        const problemIds = dbPhaseProblems.map((p) => p.id);
+    // Get user statuses for these problems
+    const [userStatusRecords, userFavoriteRecords] = await Promise.all([
+      db
+        .select({
+          problemId: userProblems.problemId,
+          status: userProblems.status,
+        })
+        .from(userProblems)
+        .where(
+          and(
+            eq(userProblems.userId, session.user.id),
+            inArray(userProblems.problemId, problemIds),
+          ),
+        ),
+      db
+        .select({ problemId: userFavorites.problemId })
+        .from(userFavorites)
+        .where(
+          and(
+            eq(userFavorites.userId, session.user.id),
+            inArray(userFavorites.problemId, problemIds),
+          ),
+        ),
+    ]);
 
-        // Get user statuses for these problems
-        const userStatuses = await db
-          .select({
-            status: userProblems.status,
-            count: sql<number>`count(*)`,
-          })
-          .from(userProblems)
-          .where(
-            and(
-              eq(userProblems.userId, session.user.id),
-              inArray(userProblems.problemId, problemIds),
-            ),
-          )
-          .groupBy(userProblems.status);
+    // Create lookup maps
+    const statusMap = new Map(userStatusRecords.map((r) => [r.problemId, r.status]));
+    const favoriteSet = new Set(userFavoriteRecords.map((r) => r.problemId));
 
-        for (const row of userStatuses) {
-          if (row.status === "solved") stats.solved = row.count;
-          else if (row.status === "attempting") stats.attempting = row.count;
-          else if (row.status === "skipped") stats.skipped = row.count;
-        }
-      }
+    // Merge user data into problems (p.id is already the DB ID)
+    phaseProblems = phaseProblems.map((p) => ({
+      ...p,
+      userStatus: statusMap.get(p.id) || "untouched",
+      isFavorite: favoriteSet.has(p.id),
+    }));
+
+    // Calculate stats from status records
+    for (const record of userStatusRecords) {
+      if (record.status === "solved") stats.solved++;
+      else if (record.status === "attempting") stats.attempting++;
+      else if (record.status === "skipped") stats.skipped++;
     }
-  } catch {
-    // Database not available or not authenticated - use default stats
   }
 
-  const prevPhase = phases.find((p) => p.id === phaseIdNum - 1);
-  const nextPhase = phases.find((p) => p.id === phaseIdNum + 1);
+  const prevPhase = allPhases.find((p) => p.id === phaseIdNum - 1);
+  const nextPhase = allPhases.find((p) => p.id === phaseIdNum + 1);
 
   return (
     <main className="container mx-auto px-4 py-8">

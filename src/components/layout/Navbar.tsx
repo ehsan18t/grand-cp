@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, BookOpen, Menu, X } from "lucide-react";
+import { BarChart3, BookOpen, Heart, Menu, X } from "lucide-react";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -13,6 +13,7 @@ import { ThemeSwitcher } from "./ThemeSwitcher";
 
 const navLinks = [
   { href: "/problems", label: "Problems", icon: BookOpen },
+  { href: "/problems/favorites", label: "Favorites", icon: Heart },
   { href: "/stats", label: "Stats", icon: BarChart3 },
 ];
 
@@ -33,7 +34,10 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <div className="hidden items-center gap-1 md:flex">
           {navLinks.map((link) => {
-            const isActive = pathname.startsWith(link.href);
+            const isActive =
+              link.href === "/problems"
+                ? pathname === "/problems" || pathname.startsWith("/problems/phase")
+                : pathname.startsWith(link.href);
             return (
               <Link
                 key={link.href}
@@ -79,7 +83,10 @@ export function Navbar() {
         <div className="border-border border-t bg-background p-4 md:hidden">
           <div className="space-y-2">
             {navLinks.map((link) => {
-              const isActive = pathname.startsWith(link.href);
+              const isActive =
+                link.href === "/problems"
+                  ? pathname === "/problems" || pathname.startsWith("/problems/phase")
+                  : pathname.startsWith(link.href);
               return (
                 <Link
                   key={link.href}

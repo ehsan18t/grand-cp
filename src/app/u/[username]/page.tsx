@@ -1,8 +1,10 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { eq, sql } from "drizzle-orm";
 import { Calendar, Share2, Trophy, User } from "lucide-react";
 import type { Metadata } from "next";
-
-import { phases } from "@/data/phases";
-import { problems } from "@/data/problems";
+import { notFound } from "next/navigation";
+import { createDb } from "@/db";
+import { phases as dbPhases, problems as dbProblems, userProblems, users } from "@/db/schema";
 
 interface PageProps {
   params: Promise<{ username: string }>;
@@ -11,7 +13,6 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
 
-  // In production, fetch user from database
   return {
     title: `${username}'s Profile | Grand CP`,
     description: `View ${username}'s competitive programming progress on Grand CP`,
@@ -21,17 +22,65 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ProfilePage({ params }: PageProps) {
   const { username } = await params;
 
-  // TODO: Fetch user and their stats from database
-  // For now, show a placeholder profile
+  const { env } = await getCloudflareContext();
+  const db = createDb(env.DB);
 
-  const user = {
-    name: username,
-    username,
-    image: null as string | null,
-    joinedAt: new Date(),
-  };
+  // Fetch user from database
+  const [user] = await db
+    .select({
+      id: users.id,
+      name: users.name,
+      username: users.username,
+      image: users.image,
+      createdAt: users.createdAt,
+    })
+    .from(users)
+    .where(eq(users.username, username))
+    .limit(1);
 
-  // Placeholder stats
+  if (!user) {
+    notFound();
+  }
+
+  // Fetch phases, total problems, and problem counts per phase
+  const [phases, totalProblemsResult, problemCountsByPhase] = await Promise.all([
+    db.select().from(dbPhases).orderBy(dbPhases.id),
+    db.select({ count: sql<number>`count(*)` }).from(dbProblems),
+    db
+      .select({
+        phaseId: dbProblems.phaseId,
+        count: sql<number>`count(*)`,
+      })
+      .from(dbProblems)
+      .groupBy(dbProblems.phaseId),
+  ]);
+
+  const totalProblems = totalProblemsResult[0]?.count ?? 0;
+  const phaseCountsMap = new Map(problemCountsByPhase.map((p) => [p.phaseId, p.count]));
+
+  // Fetch user's stats
+  const [statusCounts, solvedByPhase] = await Promise.all([
+    db
+      .select({
+        status: userProblems.status,
+        count: sql<number>`count(*)`,
+      })
+      .from(userProblems)
+      .where(eq(userProblems.userId, user.id))
+      .groupBy(userProblems.status),
+
+    db
+      .select({
+        phaseId: dbProblems.phaseId,
+        count: sql<number>`count(*)`,
+      })
+      .from(userProblems)
+      .innerJoin(dbProblems, eq(userProblems.problemId, dbProblems.id))
+      .where(eq(userProblems.userId, user.id))
+      .groupBy(dbProblems.phaseId),
+  ]);
+
+  // Map status counts
   const stats = {
     solved: 0,
     attempting: 0,
@@ -39,9 +88,30 @@ export default async function ProfilePage({ params }: PageProps) {
     skipped: 0,
   };
 
-  const totalProblems = problems.length;
+  for (const row of statusCounts) {
+    if (row.status === "solved") stats.solved = row.count;
+    else if (row.status === "attempting") stats.attempting = row.count;
+    else if (row.status === "revisit") stats.revisit = row.count;
+    else if (row.status === "skipped") stats.skipped = row.count;
+  }
+
+  const phaseSolvedMap = new Map(solvedByPhase.map((p) => [p.phaseId, p.count]));
+
   const progressPercentage =
     totalProblems > 0 ? Math.round((stats.solved / totalProblems) * 100) : 0;
+
+  // Determine current phase (first incomplete phase)
+  let currentPhase = 0;
+  let targetRating = "1000+";
+  for (const phase of phases) {
+    const phaseTotal = phaseCountsMap.get(phase.id) ?? 0;
+    const phaseSolved = phaseSolvedMap.get(phase.id) ?? 0;
+    if (phaseSolved < phaseTotal) {
+      currentPhase = phase.id;
+      targetRating = `${phase.targetRatingEnd ?? 1000}+`;
+      break;
+    }
+  }
 
   return (
     <main className="container mx-auto px-4 py-8">
@@ -72,7 +142,7 @@ export default async function ProfilePage({ params }: PageProps) {
                 <Calendar className="h-4 w-4" />
                 <span>
                   Joined{" "}
-                  {user.joinedAt.toLocaleDateString("en-US", {
+                  {user.createdAt.toLocaleDateString("en-US", {
                     month: "short",
                     year: "numeric",
                   })}
@@ -112,12 +182,12 @@ export default async function ProfilePage({ params }: PageProps) {
 
           <div className="rounded-lg border border-border bg-card p-4">
             <div className="mb-1 text-muted-foreground text-sm">Current Phase</div>
-            <div className="font-bold font-mono text-2xl">Phase 0</div>
+            <div className="font-bold font-mono text-2xl">Phase {currentPhase}</div>
           </div>
 
           <div className="rounded-lg border border-border bg-card p-4">
             <div className="mb-1 text-muted-foreground text-sm">Target Rating</div>
-            <div className="font-bold font-mono text-2xl">1000+</div>
+            <div className="font-bold font-mono text-2xl">{targetRating}</div>
           </div>
         </div>
       </section>
@@ -128,10 +198,9 @@ export default async function ProfilePage({ params }: PageProps) {
 
         <div className="grid gap-4 sm:grid-cols-2">
           {phases.map((phase) => {
-            const phaseProblems = problems.filter((p) => p.phaseId === phase.id);
-            const phaseSolved = 0; // Would come from DB
-            const phaseProgress =
-              phaseProblems.length > 0 ? Math.round((phaseSolved / phaseProblems.length) * 100) : 0;
+            const phaseTotal = phaseCountsMap.get(phase.id) ?? 0;
+            const phaseSolved = phaseSolvedMap.get(phase.id) ?? 0;
+            const phaseProgress = phaseTotal > 0 ? Math.round((phaseSolved / phaseTotal) * 100) : 0;
 
             return (
               <div key={phase.id} className="rounded-lg border border-border bg-card p-4">
@@ -153,7 +222,7 @@ export default async function ProfilePage({ params }: PageProps) {
                   />
                 </div>
                 <div className="text-muted-foreground text-xs">
-                  {phaseSolved}/{phaseProblems.length} solved
+                  {phaseSolved}/{phaseTotal} solved
                 </div>
               </div>
             );

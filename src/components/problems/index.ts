@@ -1,4 +1,5 @@
-export { PhaseProblems } from "./PhaseProblems";
+export { FavoritesList } from "./FavoritesList";
+export { PhaseProblems, type ProblemWithUserData } from "./PhaseProblems";
 export { PlatformBadge, type PlatformBadgeProps, platformBadgeVariants } from "./PlatformBadge";
 export {
   PlatformFilter,
