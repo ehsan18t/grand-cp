@@ -45,6 +45,7 @@ export function ThemeSwitcher({ className, align = "end" }: ThemeSwitcherProps) 
           "h-10 w-10 justify-center px-0",
           "bg-transparent",
           "hover:border-accent hover:bg-accent",
+          isLoading && "cursor-not-allowed opacity-50",
           className,
         )}
       >
@@ -65,6 +66,4 @@ export function ThemeSwitcher({ className, align = "end" }: ThemeSwitcherProps) 
       </DropdownContent>
     </Dropdown>
   );
-}
-
 }

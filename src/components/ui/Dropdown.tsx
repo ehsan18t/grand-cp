@@ -5,6 +5,7 @@ import { Slot } from "@radix-ui/react-slot";
 import gsap from "gsap";
 import { ChevronDown } from "lucide-react";
 import {
+  type ButtonHTMLAttributes,
   createContext,
   forwardRef,
   type HTMLAttributes,
@@ -114,7 +115,7 @@ export interface DropdownProps extends HTMLAttributes<HTMLDivElement> {
   onOpenChange?: (open: boolean) => void;
 }
 
-export interface DropdownTriggerProps extends HTMLAttributes<HTMLButtonElement> {
+export interface DropdownTriggerProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Whether to show chevron icon */
   showChevron?: boolean;
   /** Render as child element instead of button */
