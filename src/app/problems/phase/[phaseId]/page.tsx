@@ -1,9 +1,15 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ProblemList } from "@/components/problems";
+import { PhaseProblems } from "@/components/problems";
 import { phases } from "@/data/phases";
 import { problems } from "@/data/problems";
+import { createDb } from "@/db";
+import { problems as dbProblems, userProblems } from "@/db/schema";
+import { createAuth } from "@/lib/auth";
 
 interface PageProps {
   params: Promise<{ phaseId: string }>;
@@ -30,7 +36,51 @@ export default async function PhasePage({ params }: PageProps) {
   }
 
   const phaseProblems = problems.filter((p) => p.phaseId === phaseIdNum);
-  const topics = [...new Set(phaseProblems.map((p) => p.topic))];
+
+  // Fetch user stats from database
+  const stats = { solved: 0, attempting: 0, skipped: 0 };
+  try {
+    const { env } = await getCloudflareContext();
+    const db = createDb(env.DB);
+    const auth = createAuth(env.DB, env);
+    const requestHeaders = await headers();
+    const session = await auth.api.getSession({ headers: requestHeaders });
+
+    if (session?.user?.id) {
+      // Get problem IDs for this phase from database
+      const dbPhaseProblems = await db
+        .select({ id: dbProblems.id })
+        .from(dbProblems)
+        .where(eq(dbProblems.phaseId, phaseIdNum));
+
+      if (dbPhaseProblems.length > 0) {
+        const problemIds = dbPhaseProblems.map((p) => p.id);
+
+        // Get user statuses for these problems
+        const userStatuses = await db
+          .select({
+            status: userProblems.status,
+            count: sql<number>`count(*)`,
+          })
+          .from(userProblems)
+          .where(
+            and(
+              eq(userProblems.userId, session.user.id),
+              inArray(userProblems.problemId, problemIds),
+            ),
+          )
+          .groupBy(userProblems.status);
+
+        for (const row of userStatuses) {
+          if (row.status === "solved") stats.solved = row.count;
+          else if (row.status === "attempting") stats.attempting = row.count;
+          else if (row.status === "skipped") stats.skipped = row.count;
+        }
+      }
+    }
+  } catch {
+    // Database not available or not authenticated - use default stats
+  }
 
   const prevPhase = phases.find((p) => p.id === phaseIdNum - 1);
   const nextPhase = phases.find((p) => p.id === phaseIdNum + 1);
@@ -75,9 +125,9 @@ export default async function PhasePage({ params }: PageProps) {
       <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {[
           { label: "Total", value: phaseProblems.length, color: "text-foreground" },
-          { label: "Solved", value: 0, color: "text-status-solved" },
-          { label: "Attempting", value: 0, color: "text-status-attempting" },
-          { label: "Skipped", value: 0, color: "text-status-skipped" },
+          { label: "Solved", value: stats.solved, color: "text-status-solved" },
+          { label: "Attempting", value: stats.attempting, color: "text-status-attempting" },
+          { label: "Skipped", value: stats.skipped, color: "text-status-skipped" },
         ].map((stat) => (
           <div key={stat.label} className="rounded-lg border border-border bg-card p-4">
             <div className="text-muted-foreground text-sm">{stat.label}</div>
@@ -86,13 +136,8 @@ export default async function PhasePage({ params }: PageProps) {
         ))}
       </div>
 
-      {/* Problems by Topic */}
-      <div className="space-y-8">
-        {topics.map((topic) => {
-          const topicProblems = phaseProblems.filter((p) => p.topic === topic);
-          return <ProblemList key={topic} topic={topic} problems={topicProblems} />;
-        })}
-      </div>
+      {/* Problems with Filtering */}
+      <PhaseProblems problems={phaseProblems} />
 
       {/* Navigation */}
       <nav className="mt-12 flex items-center justify-between border-border border-t pt-8">

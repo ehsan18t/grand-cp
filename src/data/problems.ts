@@ -1500,8 +1500,15 @@ const phase1: ProblemData[] = [
 // For now, we have Phase 0 and Phase 1 complete (145 problems)
 // The full dataset of 655 problems will be completed incrementally
 
+import { generatedPhases } from "./generated-problems";
+
 export const problems: ProblemData[] = [
   ...phase0,
   ...phase1,
-  // Phases 2-7 to be added
+  ...generatedPhases.phase2,
+  ...generatedPhases.phase3,
+  ...generatedPhases.phase4,
+  ...generatedPhases.phase5,
+  ...generatedPhases.phase6,
+  ...generatedPhases.phase7,
 ];
