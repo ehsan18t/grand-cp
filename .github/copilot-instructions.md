@@ -27,6 +27,25 @@ This project is a custom component collection for Next.js using TailwindCSS v4, 
 
 ---
 
+## 🧯 Avoid Deprecated APIs (Required)
+
+- Treat any new deprecation warnings as blockers. If you introduce a deprecated API/import, replace it with the recommended alternative (don’t silence it).
+- Always run `bun lint; bun format; bun typecheck` before finishing a task.
+- Prefer stable APIs over “nursery/experimental” patterns unless the repo already uses them.
+
+### Drizzle ORM
+
+- Do **not** use deprecated composite-PK helpers/signatures.
+- Prefer a simple `id` primary key plus a `uniqueIndex(...).on(a, b)` for composite uniqueness unless a true composite primary key is strictly required.
+
+### Next.js
+
+- Prefer `next/image` (`Image`) over raw `<img>`.
+- Prefer `Number.parseInt(value, 10)` when parsing route params.
+
+
+---
+
 ## 🎨 Theming System
 
 ### CSS Variables

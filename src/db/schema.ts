@@ -1,5 +1,5 @@
 import { relations } from "drizzle-orm";
-import { int, primaryKey, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { int, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 // ============================================================================
 // Better Auth Tables
@@ -90,6 +90,7 @@ export const problems = sqliteTable("problems", {
 export const userProblems = sqliteTable(
   "user_problems",
   {
+    id: int("id").primaryKey({ autoIncrement: true }),
     userId: text("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
@@ -103,7 +104,9 @@ export const userProblems = sqliteTable(
       .default("untouched"),
     updatedAt: int("updated_at", { mode: "timestamp" }).notNull(),
   },
-  (table) => [primaryKey({ columns: [table.userId, table.problemId] })],
+  (table) => [
+    uniqueIndex("user_problems_user_id_problem_id_unique").on(table.userId, table.problemId),
+  ],
 );
 
 export const statusHistory = sqliteTable("status_history", {
