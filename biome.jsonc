@@ -1,0 +1,74 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": ["src/**"]
+  },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "auto"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "a11y": {
+        "useButtonType": "off", // Turned off to accommodate custom button components
+        "useSemanticElements": "off", // Turned off to allow non-semantic elements in certain cases
+        "useKeyWithClickEvents": "off", // Turned off to reduce noise in certain scenarios
+        "noStaticElementInteractions": "off" // Turned off to allow certain non-interactive elements to have event handlers
+      },
+      "suspicious": {
+        "noExplicitAny": "off", // Turned off to reduce noise, consider enabling in the future
+        "noArrayIndexKey": "off", // Turned off to allow flexibility in list rendering,
+        "useIterableCallbackReturn": "off" // Turned off due to false positives with certain array methods
+      },
+      "complexity": {
+        "noBannedTypes": "off", // Turned off to allow flexibility in type definitions
+        "noImportantStyles": "off"
+      },
+      "nursery": {
+        "noDeprecatedImports": "error",
+        // Enable auto class sorting to maintain consistent class name ordering
+        // It is analogous to prettier-plugin-tailwindcss.
+        "useSortedClasses": {
+          "fix": "safe",
+          "level": "info",
+          "options": {
+            "attributes": ["className", "class", "classList"],
+            "functions": ["cn", "clsx", "cva", "tw", "tw.*"]
+          }
+        }
+      }
+    },
+    "domains": {
+      "next": "recommended",
+      "react": "recommended"
+    }
+  },
+  "assist": {
+    "enabled": true,
+    "actions": {
+      "source": {
+        // Enable organizeImports on save
+        "organizeImports": "on",
+        // Enable sorting object properties on save
+        "useSortedProperties": "on"
+      }
+    }
+  },
+  "css": {
+    "parser": {
+      // Enable Tailwind CSS directives parsing
+      "tailwindDirectives": true
+    }
+  }
+}

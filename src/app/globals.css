@@ -1,0 +1,410 @@
+/* Tailwind CSS */
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@layer base {
+  :root,
+  [data-theme="light"] {
+    /* === Core Colors === */
+    --primary: oklch(0.6397 0.172 36.4421);
+    --primary-foreground: oklch(0.98 0.005 36);
+    --background: oklch(0.9383 0.0042 236.4993);
+    --foreground: oklch(0.2 0.02 260);
+
+    /* === Focus Ring Colors (for box-shadow) === */
+    --primary-rgb: 217, 119, 87;
+    --destructive-rgb: 220, 60, 60;
+    --success-rgb: 60, 180, 100;
+    --warning-rgb: 220, 180, 50;
+
+    /* === Secondary & Muted === */
+    --secondary: oklch(0.85 0.015 260);
+    --secondary-foreground: oklch(0.25 0.02 260);
+    --muted: oklch(0.92 0.008 260);
+    --muted-foreground: oklch(0.45 0.02 260);
+
+    /* === Accent === */
+    --accent: oklch(0.75 0.12 200);
+    --accent-foreground: oklch(0.15 0.02 200);
+
+    /* === UI Elements === */
+    --border: oklch(0.85 0.01 260);
+    --input: oklch(0.88 0.008 260);
+    --ring: oklch(0.6397 0.172 36.4421);
+
+    /* === Status Colors === */
+    --destructive: oklch(0.55 0.22 27);
+    --destructive-foreground: oklch(0.98 0.01 27);
+    --success: oklch(0.6 0.18 145);
+    --success-foreground: oklch(0.98 0.01 145);
+    --warning: oklch(0.75 0.18 85);
+    --warning-foreground: oklch(0.2 0.02 85);
+    --info: oklch(0.6 0.15 240);
+    --info-foreground: oklch(0.98 0.01 240);
+
+    /* === Card & Popover === */
+    --card: oklch(0.97 0.003 260);
+    --card-foreground: oklch(0.2 0.02 260);
+    --popover: oklch(0.98 0.002 260);
+    --popover-foreground: oklch(0.2 0.02 260);
+
+    /* === Scrollbar === */
+    --scroll-bg: var(--background);
+    --scroll-main: var(--primary);
+
+    /* === Progress === */
+    --progress-color: var(--background);
+
+    /* === Animation Variables === */
+    --animation-duration-fast: 150ms;
+    --animation-duration: 300ms;
+    --animation-duration-slow: 500ms;
+    --animation-timing: cubic-bezier(0.4, 0, 0.2, 1);
+    --animation-timing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --animation-timing-smooth: cubic-bezier(0.25, 0.1, 0.25, 1);
+
+    /* === Radius === */
+    --radius-sm: 0.25rem;
+    --radius: 0.5rem;
+    --radius-md: 0.625rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.5rem;
+    --radius-full: 9999px;
+
+    /* === Shadows === */
+    --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 oklch(0 0 0 / 0.1), 0 1px 2px -1px oklch(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.1), 0 2px 4px -2px oklch(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.1), 0 4px 6px -4px oklch(0 0 0 / 0.1);
+  }
+
+  [data-theme="dark"],
+  .dark {
+    /* === Core Colors === */
+    --primary: oklch(0.7 0.18 36);
+    --primary-foreground: oklch(0.15 0.02 36);
+    --background: oklch(0.18 0.025 262);
+    --foreground: oklch(0.93 0.008 260);
+
+    /* === Focus Ring Colors (for box-shadow) === */
+    --primary-rgb: 230, 140, 110;
+    --destructive-rgb: 240, 80, 80;
+    --success-rgb: 80, 200, 120;
+    --warning-rgb: 240, 200, 70;
+
+    /* === Secondary & Muted === */
+    --secondary: oklch(0.28 0.02 262);
+    --secondary-foreground: oklch(0.9 0.008 260);
+    --muted: oklch(0.25 0.018 262);
+    --muted-foreground: oklch(0.6 0.015 260);
+
+    /* === Accent === */
+    --accent: oklch(0.55 0.12 200);
+    --accent-foreground: oklch(0.95 0.008 200);
+
+    /* === UI Elements === */
+    --border: oklch(0.32 0.02 262);
+    --input: oklch(0.28 0.02 262);
+    --ring: oklch(0.7 0.18 36);
+
+    /* === Status Colors === */
+    --destructive: oklch(0.6 0.22 27);
+    --destructive-foreground: oklch(0.98 0.01 27);
+    --success: oklch(0.65 0.18 145);
+    --success-foreground: oklch(0.15 0.02 145);
+    --warning: oklch(0.78 0.18 85);
+    --warning-foreground: oklch(0.15 0.02 85);
+    --info: oklch(0.65 0.15 240);
+    --info-foreground: oklch(0.15 0.01 240);
+
+    /* === Card & Popover === */
+    --card: oklch(0.22 0.02 262);
+    --card-foreground: oklch(0.93 0.008 260);
+    --popover: oklch(0.24 0.022 262);
+    --popover-foreground: oklch(0.93 0.008 260);
+
+    /* === Shadows (darker for dark mode) === */
+    --shadow-sm: 0 1px 2px 0 oklch(0 0 0 / 0.2);
+    --shadow: 0 1px 3px 0 oklch(0 0 0 / 0.3), 0 1px 2px -1px oklch(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px oklch(0 0 0 / 0.35), 0 2px 4px -2px oklch(0 0 0 / 0.35);
+    --shadow-lg: 0 10px 15px -3px oklch(0 0 0 / 0.4), 0 4px 6px -4px oklch(0 0 0 / 0.4);
+  }
+}
+
+@theme inline {
+  /* === Fonts === */
+  --font-sans: var(--font-sans, Inter, sans-serif);
+  --font-mono: var(--font-mono, "JetBrains Mono", monospace);
+  --font-serif: var(--font-serif, Georgia, serif);
+  --font-Kode-Mono: var(--font-kode-mono, "Kode Mono", monospace);
+
+  /* === Core Colors === */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  /* === Secondary & Muted === */
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  /* === Accent === */
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  /* === UI Elements === */
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  /* === Status Colors === */
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  /* === Card & Popover === */
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* === Radius === */
+  --radius-sm: var(--radius-sm);
+  --radius-DEFAULT: var(--radius);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-full: var(--radius-full);
+
+  /* === Shadows === */
+  --shadow-sm: var(--shadow-sm);
+  --shadow-DEFAULT: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+
+  /* === Animation === */
+  --animate-duration-fast: var(--animation-duration-fast);
+  --animate-duration-DEFAULT: var(--animation-duration);
+  --animate-duration-slow: var(--animation-duration-slow);
+  --animate-timing-DEFAULT: var(--animation-timing);
+  --animate-timing-bounce: var(--animation-timing-bounce);
+  --animate-timing-smooth: var(--animation-timing-smooth);
+}
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant hover (&:hover);
+
+/* Theme transition - smooth color changes when switching themes */
+html {
+  color-scheme: light;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* Respect user preference for reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms;
+  }
+}
+
+/* Custom Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scroll-main) var(--scroll-bg);
+  scroll-behavior: smooth;
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+*::-webkit-scrollbar-track {
+  margin: 4px 0;
+  background: var(--scroll-bg);
+  border-radius: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--scroll-main);
+  border: 3px solid var(--scroll-bg);
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+/* ============================================================================
+ * Custom Component Animation Utilities
+ * Prefixed with "cc-" (custom components) to avoid conflicts
+ * ============================================================================ */
+
+/* === Ripple Effect === */
+@keyframes cc-ripple {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(4);
+    opacity: 0;
+  }
+}
+
+.cc-ripple-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.cc-ripple {
+  position: absolute;
+  pointer-events: none;
+  background: currentColor;
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: cc-ripple 0.6s ease-out forwards;
+}
+
+/* === Shine Effect === */
+@keyframes cc-shine {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+.cc-shine-container {
+  position: relative;
+  overflow: hidden;
+}
+
+.cc-shine-container::before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  width: 50%;
+  height: 100%;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.2), transparent);
+  transform: translateX(-100%) skewX(-15deg);
+}
+
+.cc-shine-container:hover::before {
+  animation: cc-shine 0.75s ease-in-out;
+}
+
+/* === Glow Effect === */
+.cc-glow {
+  transition: box-shadow var(--animation-duration) var(--animation-timing);
+}
+
+.cc-glow:hover {
+  box-shadow: 0 0 20px oklch(from var(--primary) l c h / 0.4);
+}
+
+.cc-glow-focus:focus-visible {
+  box-shadow: 0 0 0 3px oklch(from var(--ring) l c h / 0.3);
+}
+
+/* === Focus Ring Utilities === */
+.cc-focus-ring:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.cc-focus-glow:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px oklch(from var(--ring) l c h / 0.25);
+}
+
+.cc-focus-outline:focus-visible {
+  outline: 2px solid var(--border);
+  outline-offset: 2px;
+}
+
+/* === Pulse Animation === */
+@keyframes cc-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.cc-pulse {
+  animation: cc-pulse 0.3s ease-in-out;
+}
+
+/* === Bounce Animation === */
+@keyframes cc-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  25% {
+    transform: translateY(-4px);
+  }
+  50% {
+    transform: translateY(0);
+  }
+  75% {
+    transform: translateY(-2px);
+  }
+}
+
+.cc-bounce {
+  animation: cc-bounce 0.4s ease-in-out;
+}
+
+/* === Press Animation === */
+@keyframes cc-press {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(0.95);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.cc-press {
+  animation: cc-press 0.2s ease-in-out;
+}
+
+/* === Magnetic Container === */
+.cc-magnetic {
+  transition: transform 0.15s ease-out;
+}
+
+/* === Respect Reduced Motion === */
+@media (prefers-reduced-motion: reduce) {
+  .cc-ripple,
+  .cc-shine-container::before,
+  .cc-pulse,
+  .cc-bounce,
+  .cc-press,
+  .cc-magnetic,
+  .cc-glow {
+    transition: none !important;
+    animation: none !important;
+  }
+}
