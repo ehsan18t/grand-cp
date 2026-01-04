@@ -6,6 +6,7 @@
 		"dev": "next dev --turbopack",
 		"build": "next build",
 		"start": "next start",
+		"generate:problems": "bun scripts/parse-problems.ts",
 		"lint": "biome check --fix .",
 		"format": "biome format --write .",
 		"typecheck": "tsc --noEmit",

@@ -73,6 +73,43 @@ function parseProblemLine(line: string, currentTopic: string): ProblemData | nul
   };
 }
 
+function validateProblems(allProblems: ProblemData[]) {
+  const byNumber = new Map<number, ProblemData[]>();
+  for (const p of allProblems) {
+    const existing = byNumber.get(p.number) ?? [];
+    existing.push(p);
+    byNumber.set(p.number, existing);
+  }
+
+  const duplicates = [...byNumber.entries()].filter(([, list]) => list.length > 1);
+  if (duplicates.length > 0) {
+    const sample = duplicates
+      .slice(0, 10)
+      .map(([num, list]) => `${num} (${list.length}x)`)
+      .join(", ");
+    throw new Error(`Duplicate problem numbers found: ${sample}`);
+  }
+
+  const maxNumber = Math.max(...allProblems.map((p) => p.number));
+  if (maxNumber < 1) {
+    throw new Error("No problems parsed");
+  }
+
+  // Best-effort sanity check: roadmap is intended to be serial.
+  // We don't hard fail on gaps >655+, but we do warn on missing early numbers.
+  const missing: number[] = [];
+  for (let i = 1; i <= Math.min(maxNumber, 655); i++) {
+    if (!byNumber.has(i)) missing.push(i);
+  }
+  if (missing.length > 0) {
+    console.warn(
+      `Warning: missing problem numbers in 1..${Math.min(maxNumber, 655)}: ${missing
+        .slice(0, 25)
+        .join(", ")}${missing.length > 25 ? "…" : ""}`,
+    );
+  }
+}
+
 function main() {
   const mdPath = join(__dirname, "..", "public", "grand-cp-list.md");
   const content = readFileSync(mdPath, "utf-8");
@@ -93,56 +130,41 @@ function main() {
     // Check for problem line (starts with number followed by period)
     if (/^\d+\.\s/.test(line) && line.includes("[") && line.includes("](")) {
       const problem = parseProblemLine(line.trim(), currentTopic);
-      if (problem && problem.number >= 146) {
+      if (problem) {
         problems.push(problem);
       }
     }
   }
 
-  // Group by phase
-  const phases: Record<number, ProblemData[]> = {};
-  for (const p of problems) {
-    if (!phases[p.phaseId]) phases[p.phaseId] = [];
-    phases[p.phaseId].push(p);
-  }
-
-  // Generate TypeScript output
-  let output = "// Auto-generated from grand-cp-list.md\n\n";
-  
-  for (let phaseNum = 2; phaseNum <= 7; phaseNum++) {
-    const phaseProblems = phases[phaseNum] || [];
-    output += `const phase${phaseNum}: ProblemData[] = [\n`;
-    
-    for (const p of phaseProblems) {
-      output += `  {\n`;
-      output += `    number: ${p.number},\n`;
-      output += `    platform: "${p.platform}",\n`;
-      output += `    name: ${JSON.stringify(p.name)},\n`;
-      output += `    url: ${JSON.stringify(p.url)},\n`;
-      output += `    phaseId: ${p.phaseId},\n`;
-      output += `    topic: ${JSON.stringify(p.topic)},\n`;
-      output += `    isStarred: ${p.isStarred},\n`;
-      output += `    note: ${p.note ? JSON.stringify(p.note) : "null"},\n`;
-      output += `  },\n`;
-    }
-    
-    output += `];\n\n`;
-  }
-
-  output += `// Export all phases\n`;
-  output += `export const generatedPhases = {\n`;
-  output += `  phase2,\n`;
-  output += `  phase3,\n`;
-  output += `  phase4,\n`;
-  output += `  phase5,\n`;
-  output += `  phase6,\n`;
-  output += `  phase7,\n`;
-  output += `};\n`;
+  problems.sort((a, b) => a.number - b.number);
+  validateProblems(problems);
 
   const outPath = join(__dirname, "..", "src", "data", "generated-problems.ts");
+
+  // Generate TypeScript output
+  let output = "// Auto-generated from public/grand-cp-list.md\n";
+  output += "// DO NOT EDIT MANUALLY — run `bun run generate:problems`\n\n";
+  output += "import type { ProblemData } from \"./problem-types\";\n\n";
+  output += "export const problems: ProblemData[] = [\n";
+
+  for (const p of problems) {
+    output += "  {\n";
+    output += `    number: ${p.number},\n`;
+    output += `    platform: \"${p.platform}\",\n`;
+    output += `    name: ${JSON.stringify(p.name)},\n`;
+    output += `    url: ${JSON.stringify(p.url)},\n`;
+    output += `    phaseId: ${p.phaseId},\n`;
+    output += `    topic: ${JSON.stringify(p.topic)},\n`;
+    output += `    isStarred: ${p.isStarred},\n`;
+    output += `    note: ${p.note ? JSON.stringify(p.note) : "null"},\n`;
+    output += "  },\n";
+  }
+
+  output += "];\n";
+
   writeFileSync(outPath, output);
-  
-  console.log(`Generated ${problems.length} problems across phases 2-7`);
+
+  console.log(`Generated ${problems.length} problems across phases 0-7`);
   console.log(`Output written to: ${outPath}`);
 }
 
