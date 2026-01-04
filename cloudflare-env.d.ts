@@ -8,6 +8,11 @@ declare namespace Cloudflare {
 		WORKER_SELF_REFERENCE: Fetcher /* grand-cp */;
 		IMAGES: ImagesBinding;
 		ASSETS: Fetcher;
+		// Auth secrets (set via wrangler secret)
+		BETTER_AUTH_SECRET: string;
+		BETTER_AUTH_URL: string;
+		GOOGLE_CLIENT_ID: string;
+		GOOGLE_CLIENT_SECRET: string;
 	}
 }
 interface CloudflareEnv extends Cloudflare.Env {}
