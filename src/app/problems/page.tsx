@@ -24,7 +24,7 @@ export default function ProblemsPage() {
             href={`/problems/phase/${phase.id}`}
             className="group relative overflow-hidden rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:border-primary/50 hover:shadow-lg"
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+            <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
 
             <div className="relative">
               <div className="mb-3 flex items-center justify-between">

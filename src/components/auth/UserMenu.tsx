@@ -77,7 +77,7 @@ export const UserMenu = forwardRef<HTMLDivElement, UserMenuProps>(function UserM
             <User className="h-4 w-4" />
           </div>
         )}
-        <span className="max-w-[120px] truncate font-medium text-sm">{user.name}</span>
+        <span className="max-w-30 truncate font-medium text-sm">{user.name}</span>
         <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
       </button>
 

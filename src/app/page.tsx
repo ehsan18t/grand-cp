@@ -121,7 +121,7 @@ export default function HomePage() {
 
       {/* CTA Section */}
       <section className="py-16">
-        <div className="rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 p-8 text-center md:p-12">
+        <div className="rounded-2xl bg-linear-to-r from-primary/10 to-primary/5 p-8 text-center md:p-12">
           <h2 className="mb-4 font-bold text-2xl md:text-3xl">Ready to Level Up?</h2>
           <p className="mx-auto mb-6 max-w-xl text-muted-foreground">
             Join the journey and start solving problems today. Track your progress and reach your
