@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+
 import { forwardRef, type HTMLAttributes, type ImgHTMLAttributes, useState } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 import { cn } from "@/lib/utils";
@@ -170,12 +170,11 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
         {...props}
       >
         {!showFallback ? (
-          <Image
+          <img
             src={src}
             alt=""
-            fill
             aria-hidden="true"
-            className={styles.image()}
+            className={cn("absolute inset-0", styles.image())}
             onError={() => setImageError(true)}
             {...(imageProps as Omit<typeof imageProps, "src" | "alt">)}
           />

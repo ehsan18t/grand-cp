@@ -1,6 +1,6 @@
 import { Calendar, Share2, Trophy, User } from "lucide-react";
 import type { Metadata } from "next";
-import Image from "next/image";
+
 import { phases } from "@/data/phases";
 import { problems } from "@/data/problems";
 
@@ -51,7 +51,7 @@ export default async function ProfilePage({ params }: PageProps) {
           {/* Avatar */}
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
             {user.image ? (
-              <Image
+              <img
                 src={user.image}
                 alt={user.name}
                 width={80}

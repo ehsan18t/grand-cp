@@ -26,6 +26,9 @@
         "useKeyWithClickEvents": "off", // Turned off to reduce noise in certain scenarios
         "noStaticElementInteractions": "off" // Turned off to allow certain non-interactive elements to have event handlers
       },
+      "performance": {
+        "noImgElement": "off"
+      },
       "suspicious": {
         "noExplicitAny": "off", // Turned off to reduce noise, consider enabling in the future
         "noArrayIndexKey": "off", // Turned off to allow flexibility in list rendering,

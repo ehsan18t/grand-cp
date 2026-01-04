@@ -1,7 +1,7 @@
 "use client";
 
 import { BarChart3, BookOpen, Menu, X } from "lucide-react";
-import Image from "next/image";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -104,7 +104,7 @@ export function Navbar() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {session.user.image ? (
-                    <Image
+                    <img
                       src={session.user.image}
                       alt={session.user.name}
                       width={40}

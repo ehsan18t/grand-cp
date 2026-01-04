@@ -1,7 +1,7 @@
 "use client";
 
 import { BarChart3, ChevronDown, LogOut, Settings, User } from "lucide-react";
-import Image from "next/image";
+
 import Link from "next/link";
 import { forwardRef, useState } from "react";
 import { tv } from "tailwind-variants";
@@ -65,7 +65,7 @@ export const UserMenu = forwardRef<HTMLDivElement, UserMenuProps>(function UserM
     <div ref={ref} className={cn("relative", className)}>
       <button type="button" onClick={() => setIsOpen(!isOpen)} className={styles.trigger()}>
         {user.image ? (
-          <Image
+          <img
             src={user.image}
             alt={user.name}
             width={32}
