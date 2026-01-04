@@ -14,8 +14,27 @@ import {
 } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
 
+// Revalidate phase pages every hour for fresh problem data
+export const revalidate = 3600;
+
 interface PageProps {
   params: Promise<{ phaseId: string }>;
+}
+
+/**
+ * Generate static params for all phases at build time.
+ * This enables ISR (Incremental Static Regeneration) for phase pages.
+ */
+export async function generateStaticParams() {
+  try {
+    const { env } = await getCloudflareContext();
+    const db = createDb(env.DB);
+    const phases = await db.select({ id: dbPhases.id }).from(dbPhases);
+    return phases.map((phase) => ({ phaseId: String(phase.id) }));
+  } catch {
+    // Fallback to phases 1-8 if DB isn't available at build time
+    return Array.from({ length: 8 }, (_, i) => ({ phaseId: String(i + 1) }));
+  }
 }
 
 export async function generateMetadata({ params }: PageProps) {

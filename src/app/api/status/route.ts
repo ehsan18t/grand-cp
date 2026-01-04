@@ -4,6 +4,8 @@ import { createDb } from "@/db";
 import { problems, statusHistory, userProblems } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
 
+export const runtime = "edge";
+
 type StatusValue = "untouched" | "attempting" | "solved" | "revisit" | "skipped";
 
 interface StatusUpdateBody {

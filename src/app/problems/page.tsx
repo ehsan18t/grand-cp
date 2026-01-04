@@ -6,6 +6,9 @@ import { createDb } from "@/db";
 import { phases as dbPhases, problems as dbProblems, userProblems } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
 
+// Revalidate every hour for fresh data while maintaining cache
+export const revalidate = 3600;
+
 export const metadata = {
   title: "Problems | Grand CP",
   description: "Track your competitive programming progress with 655+ curated problems",

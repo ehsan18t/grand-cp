@@ -4,6 +4,8 @@ import { createDb } from "@/db";
 import { problems, userFavorites } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
 
+export const runtime = "edge";
+
 // Get user's favorites
 export async function GET(request: Request) {
   try {

@@ -1,11 +1,33 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { sql } from "drizzle-orm";
 import { ArrowRight, BarChart3, BookOpen, Target, Trophy, Users } from "lucide-react";
 import Link from "next/link";
-import { phases } from "@/data/phases";
-import { problems } from "@/data/problems";
+import { createDb } from "@/db";
+import { phases as dbPhases, problems as dbProblems } from "@/db/schema";
 
-export default function HomePage() {
-  const totalProblems = problems.length;
+// Cache home page for 1 hour - static content with dynamic data
+export const revalidate = 3600;
+
+export default async function HomePage() {
+  const { env } = await getCloudflareContext();
+  const db = createDb(env.DB);
+
+  // Fetch phases and problem counts from database
+  const [phases, totalProblemsResult, problemCountsByPhase] = await Promise.all([
+    db.select().from(dbPhases).orderBy(dbPhases.id),
+    db.select({ count: sql<number>`count(*)` }).from(dbProblems),
+    db
+      .select({
+        phaseId: dbProblems.phaseId,
+        count: sql<number>`count(*)`,
+      })
+      .from(dbProblems)
+      .groupBy(dbProblems.phaseId),
+  ]);
+
+  const totalProblems = totalProblemsResult[0]?.count ?? 0;
   const totalPhases = phases.length;
+  const phaseCountsMap = new Map(problemCountsByPhase.map((p) => [p.phaseId, p.count]));
 
   return (
     <main className="container mx-auto px-4">
@@ -67,7 +89,7 @@ export default function HomePage() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {phases.map((phase) => {
-            const phaseProblems = problems.filter((p) => p.phaseId === phase.id);
+            const phaseProblemsCount = phaseCountsMap.get(phase.id) ?? 0;
             return (
               <Link
                 key={phase.id}
@@ -80,7 +102,7 @@ export default function HomePage() {
                   {phase.description}
                 </p>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">{phaseProblems.length} problems</span>
+                  <span className="text-muted-foreground">{phaseProblemsCount} problems</span>
                   <span className="font-mono">
                     {phase.targetRatingStart}→{phase.targetRatingEnd}
                   </span>

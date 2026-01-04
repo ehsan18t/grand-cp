@@ -4,6 +4,8 @@ import { createDb } from "@/db";
 import { problems, userFavorites, userProblems } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
 
+export const runtime = "edge";
+
 export async function GET(request: Request) {
   try {
     const { env } = await getCloudflareContext();

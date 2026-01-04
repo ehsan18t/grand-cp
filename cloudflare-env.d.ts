@@ -4,6 +4,7 @@
 declare namespace Cloudflare {
 	interface Env {
 		NEXTJS_ENV: string;
+		SITE_URL: string;
 		DB: D1Database;
 		WORKER_SELF_REFERENCE: Fetcher /* grand-cp */;
 		IMAGES: ImagesBinding;
@@ -20,7 +21,9 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "NEXTJS_ENV">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "NEXTJS_ENV">> {
+		NEXT_PUBLIC_SITE_URL: string;
+	}
 }
 
 // Begin runtime types

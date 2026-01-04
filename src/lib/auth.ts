@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { createDb } from "@/db";
 import * as schema from "@/db/schema";
+import { getSiteUrlFromEnv } from "@/lib/site";
 
 export function createAuth(d1: D1Database, env: CloudflareEnv) {
   const db = createDb(d1);
@@ -16,7 +17,7 @@ export function createAuth(d1: D1Database, env: CloudflareEnv) {
         verification: schema.verifications,
       },
     }),
-    baseURL: env.BETTER_AUTH_URL ?? "http://localhost:3000",
+    baseURL: getSiteUrlFromEnv(env),
     secret: env.BETTER_AUTH_SECRET,
     emailAndPassword: {
       enabled: false,

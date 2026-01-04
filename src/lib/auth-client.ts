@@ -2,8 +2,13 @@
 
 import { createAuthClient } from "better-auth/react";
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+if (!siteUrl) {
+  throw new Error("NEXT_PUBLIC_SITE_URL environment variable is required");
+}
+
 export const authClient = createAuthClient({
-  baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL ?? "http://localhost:3000",
+  baseURL: siteUrl,
 });
 
 export const { signIn, signUp, signOut, useSession } = authClient;

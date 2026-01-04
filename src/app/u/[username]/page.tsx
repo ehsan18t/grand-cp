@@ -8,6 +8,7 @@ import { ProfileActions } from "@/components/profile";
 import { createDb } from "@/db";
 import { phases as dbPhases, problems as dbProblems, userProblems, users } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
+import { getSiteUrlFromEnv } from "@/lib/site";
 
 interface PageProps {
   params: Promise<{ username: string }>;
@@ -115,10 +116,9 @@ export default async function ProfilePage({ params }: PageProps) {
   // Check if current user is viewing their own profile
   const isOwner = session?.user?.id === user.id;
 
-  // Build profile URL from headers
-  const host = headersList.get("host") ?? "grandcp.com";
-  const protocol = host.includes("localhost") ? "http" : "https";
-  const profileUrl = `${protocol}://${host}/u/${user.username ?? user.id}`;
+  // Build profile URL from environment
+  const siteUrl = getSiteUrlFromEnv(env);
+  const profileUrl = `${siteUrl}/u/${user.username ?? user.id}`;
 
   // Determine current phase (first incomplete phase)
   let currentPhase = 0;

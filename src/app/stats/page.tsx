@@ -12,6 +12,7 @@ import {
   userProblems,
 } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
+import { getSiteUrlFromEnv } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Stats | Grand CP",
@@ -116,11 +117,10 @@ export default async function StatsPage() {
   const progressPercentage =
     totalProblems > 0 ? Math.round((stats.solved / totalProblems) * 100) : 0;
 
-  // Build profile URL for sharing (if user is authenticated and has username)
-  const requestHost = requestHeaders.get("host") ?? "grandcp.com";
-  const protocol = requestHost.includes("localhost") ? "http" : "https";
+  // Build profile URL for sharing (if user is authenticated)
+  const siteUrl = getSiteUrlFromEnv(env);
   const username = session?.user?.username ?? session?.user?.id;
-  const profileUrl = username ? `${protocol}://${requestHost}/u/${username}` : null;
+  const profileUrl = username ? `${siteUrl}/u/${username}` : null;
 
   return (
     <main className="container mx-auto px-4 py-8">
