@@ -9,6 +9,7 @@ import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { LoginButton } from "../auth/LoginButton";
 import { UserMenu } from "../auth/UserMenu";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 
 const navLinks = [
   { href: "/problems", label: "Problems", icon: BookOpen },
@@ -53,6 +54,7 @@ export function Navbar() {
 
         {/* Auth Section */}
         <div className="hidden items-center gap-4 md:flex">
+          <ThemeSwitcher />
           {isPending ? (
             <div className="h-10 w-24 animate-pulse rounded-lg bg-muted" />
           ) : session?.user ? (
@@ -95,6 +97,11 @@ export function Navbar() {
                 </Link>
               );
             })}
+          </div>
+
+          <div className="mt-4 flex items-center justify-between border-border border-t pt-4">
+            <div className="text-muted-foreground text-xs">Theme</div>
+            <ThemeSwitcher />
           </div>
 
           <div className="mt-4 border-border border-t pt-4">
