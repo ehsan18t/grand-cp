@@ -3,6 +3,7 @@ import { eq, sql } from "drizzle-orm";
 import { BarChart3, Clock, Target, TrendingUp, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import { ShareButton } from "@/components/ui";
 import { createDb } from "@/db";
 import {
   phases as dbPhases,
@@ -115,12 +116,27 @@ export default async function StatsPage() {
   const progressPercentage =
     totalProblems > 0 ? Math.round((stats.solved / totalProblems) * 100) : 0;
 
+  // Build profile URL for sharing (if user is authenticated and has username)
+  const requestHost = requestHeaders.get("host") ?? "grandcp.com";
+  const protocol = requestHost.includes("localhost") ? "http" : "https";
+  const username = session?.user?.username ?? session?.user?.id;
+  const profileUrl = username ? `${protocol}://${requestHost}/u/${username}` : null;
+
   return (
     <main className="container mx-auto px-4 py-8">
       {/* Header */}
-      <header className="mb-8">
-        <h1 className="mb-2 font-bold text-3xl">Your Progress</h1>
-        <p className="text-muted-foreground">Track your competitive programming journey</p>
+      <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="mb-2 font-bold text-3xl">Your Progress</h1>
+          <p className="text-muted-foreground">Track your competitive programming journey</p>
+        </div>
+        {profileUrl && (
+          <ShareButton
+            title="My Grand CP Progress"
+            text={`I've solved ${stats.solved} problems (${progressPercentage}%) on Grand CP! Check out my profile:`}
+            url={profileUrl}
+          />
+        )}
       </header>
 
       {/* Overview Cards */}

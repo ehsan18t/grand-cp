@@ -1,10 +1,13 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { eq, sql } from "drizzle-orm";
-import { Calendar, Share2, Trophy, User } from "lucide-react";
+import { eq, or, sql } from "drizzle-orm";
+import { Calendar, Trophy, User } from "lucide-react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { headers } from "next/headers";
+import { notFound, redirect } from "next/navigation";
+import { ProfileActions } from "@/components/profile";
 import { createDb } from "@/db";
 import { phases as dbPhases, problems as dbProblems, userProblems, users } from "@/db/schema";
+import { createAuth } from "@/lib/auth";
 
 interface PageProps {
   params: Promise<{ username: string }>;
@@ -24,6 +27,11 @@ export default async function ProfilePage({ params }: PageProps) {
 
   const { env } = await getCloudflareContext();
   const db = createDb(env.DB);
+  const auth = createAuth(env.DB, env);
+
+  // Get current session to check if viewer is the profile owner
+  const headersList = await headers();
+  const session = await auth.api.getSession({ headers: headersList });
 
   // Fetch user from database
   const [user] = await db
@@ -35,11 +43,15 @@ export default async function ProfilePage({ params }: PageProps) {
       createdAt: users.createdAt,
     })
     .from(users)
-    .where(eq(users.username, username))
+    .where(or(eq(users.username, username), eq(users.id, username)))
     .limit(1);
 
   if (!user) {
     notFound();
+  }
+
+  if (user.username && username !== user.username) {
+    redirect(`/u/${user.username}`);
   }
 
   // Fetch phases, total problems, and problem counts per phase
@@ -100,6 +112,14 @@ export default async function ProfilePage({ params }: PageProps) {
   const progressPercentage =
     totalProblems > 0 ? Math.round((stats.solved / totalProblems) * 100) : 0;
 
+  // Check if current user is viewing their own profile
+  const isOwner = session?.user?.id === user.id;
+
+  // Build profile URL from headers
+  const host = headersList.get("host") ?? "grandcp.com";
+  const protocol = host.includes("localhost") ? "http" : "https";
+  const profileUrl = `${protocol}://${host}/u/${user.username ?? user.id}`;
+
   // Determine current phase (first incomplete phase)
   let currentPhase = 0;
   let targetRating = "1000+";
@@ -136,7 +156,7 @@ export default async function ProfilePage({ params }: PageProps) {
           {/* Info */}
           <div className="flex-1">
             <h1 className="font-bold text-2xl">{user.name}</h1>
-            <p className="text-muted-foreground">@{user.username}</p>
+            <p className="text-muted-foreground">@{user.username ?? user.id}</p>
             <div className="mt-2 flex items-center gap-4 text-muted-foreground text-sm">
               <div className="flex items-center gap-1">
                 <Calendar className="h-4 w-4" />
@@ -151,14 +171,12 @@ export default async function ProfilePage({ params }: PageProps) {
             </div>
           </div>
 
-          {/* Share Button */}
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2 text-sm transition-colors hover:bg-accent"
-          >
-            <Share2 className="h-4 w-4" />
-            Share Profile
-          </button>
+          {/* Profile Actions (Edit Username + Share) */}
+          <ProfileActions
+            isOwner={isOwner}
+            username={user.username ?? user.id}
+            profileUrl={profileUrl}
+          />
         </div>
       </header>
 

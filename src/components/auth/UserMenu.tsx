@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, ChevronDown, LogOut, Settings, User } from "lucide-react";
+import { BarChart3, ChevronDown, LogOut, User } from "lucide-react";
 
 import Link from "next/link";
 import { forwardRef, useState } from "react";
@@ -109,11 +109,6 @@ export const UserMenu = forwardRef<HTMLDivElement, UserMenuProps>(function UserM
             <Link href="/stats" onClick={() => setIsOpen(false)} className={styles.menuItem()}>
               <BarChart3 className="h-4 w-4" />
               Your Stats
-            </Link>
-
-            <Link href="/settings" onClick={() => setIsOpen(false)} className={styles.menuItem()}>
-              <Settings className="h-4 w-4" />
-              Settings
             </Link>
 
             <div className={styles.separator()} />

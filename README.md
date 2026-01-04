@@ -8,6 +8,17 @@ Read the documentation at https://opennext.js.org/cloudflare.
 
 ## Develop
 
+This project runs API routes on the Cloudflare/OpenNext runtime in development.
+That means runtime environment variables are read from `.dev.vars` (not only `.env`).
+
+1) Create your local runtime env file:
+
+```bash
+cp .dev.vars.example .dev.vars
+```
+
+2) Fill in `BETTER_AUTH_*` and (if using Google sign-in) `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
+
 Run the Next.js development server:
 
 ```bash

@@ -1,0 +1,12 @@
+# OpenNext/Cloudflare local dev runtime variables
+# Copy to .dev.vars (this file is gitignored) and fill values.
+
+NEXTJS_ENV=development
+
+# Better Auth
+BETTER_AUTH_URL=http://localhost:3000
+BETTER_AUTH_SECRET=your-32-char-secret-key-here
+
+# Google OAuth (required for social sign-in)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=

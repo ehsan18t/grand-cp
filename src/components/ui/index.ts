@@ -42,6 +42,7 @@ export type { InputProps } from "./Input";
 export { Input, inputVariants } from "./Input";
 export type { ModalProps } from "./Modal";
 export { Modal, modalVariants } from "./Modal";
+export { ShareButton } from "./ShareButton";
 export type { SkeletonAvatarProps, SkeletonCardProps, SkeletonProps } from "./Skeleton";
 export { Skeleton, SkeletonAvatar, SkeletonCard, skeletonVariants } from "./Skeleton";
 export type { TextareaProps } from "./Textarea";
