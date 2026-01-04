@@ -353,7 +353,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {leftIcon && (
             <div
               className={cn(
-                "-translate-y-1/2 pointer-events-none absolute top-1/2 left-4 z-10 flex items-center justify-center",
+                "pointer-events-none absolute top-1/2 left-4 z-10 flex -translate-y-1/2 items-center justify-center",
                 "transition-colors duration-200",
                 isFocused ? "text-primary" : "text-muted-foreground",
                 derivedState === "error" && "text-destructive",
@@ -368,7 +368,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {prefix && (
             <span
               className={cn(
-                "-translate-y-1/2 pointer-events-none absolute top-1/2 left-4 z-10 select-none",
+                "pointer-events-none absolute top-1/2 left-4 z-10 -translate-y-1/2 select-none",
                 "text-muted-foreground text-sm transition-opacity duration-200",
                 shouldFloat ? "opacity-100" : "opacity-0",
               )}
@@ -409,7 +409,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               ref={labelRef}
               htmlFor={inputId}
               className={cn(
-                "-translate-y-1/2 pointer-events-none absolute top-1/2 origin-left",
+                "pointer-events-none absolute top-1/2 origin-left -translate-y-1/2",
                 leftIcon ? "left-11" : "left-4",
                 "text-sm",
                 "will-change-transform",
@@ -426,7 +426,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           {suffix && (
             <span
               className={cn(
-                "-translate-y-1/2 pointer-events-none absolute top-1/2 right-4 z-10 select-none",
+                "pointer-events-none absolute top-1/2 right-4 z-10 -translate-y-1/2 select-none",
                 "text-muted-foreground text-sm transition-opacity duration-200",
                 shouldFloat ? "opacity-100" : "opacity-0",
               )}
@@ -437,7 +437,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
           {/* Right side elements */}
           {hasRightElements && (
-            <div className="-translate-y-1/2 absolute top-1/2 right-4 flex items-center gap-2">
+            <div className="absolute top-1/2 right-4 flex -translate-y-1/2 items-center gap-2">
               {/* Clear button */}
               {clearable && hasValue && !disabled && (
                 <button

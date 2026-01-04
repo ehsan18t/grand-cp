@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
+import { Navbar } from "@/components/layout";
 import { ToastProvider } from "@/components/ui";
 import { ThemeProvider, themeScript } from "@/context";
 import "./globals.css";
@@ -33,6 +34,7 @@ export default async function RootLayout({
         />
         <ThemeProvider defaultTheme="system" enableSystem>
           <ToastProvider position="bottom-right" showProgress pauseOnHover>
+            <Navbar />
             {children}
           </ToastProvider>
         </ThemeProvider>

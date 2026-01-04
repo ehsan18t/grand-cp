@@ -289,15 +289,15 @@ export const Tooltip = forwardRef<HTMLDivElement, TooltipProps>(
       const arrowBase = "absolute w-2 h-2 bg-foreground rotate-45";
       switch (s) {
         case "top":
-          return cn(arrowBase, "-translate-x-1/2 -bottom-1 left-1/2");
+          return cn(arrowBase, "-bottom-1 left-1/2 -translate-x-1/2");
         case "bottom":
-          return cn(arrowBase, "-translate-x-1/2 -top-1 left-1/2");
+          return cn(arrowBase, "-top-1 left-1/2 -translate-x-1/2");
         case "left":
-          return cn(arrowBase, "-translate-y-1/2 -right-1 top-1/2");
+          return cn(arrowBase, "top-1/2 -right-1 -translate-y-1/2");
         case "right":
-          return cn(arrowBase, "-translate-y-1/2 -left-1 top-1/2");
+          return cn(arrowBase, "top-1/2 -left-1 -translate-y-1/2");
         default:
-          return cn(arrowBase, "-translate-x-1/2 -bottom-1 left-1/2");
+          return cn(arrowBase, "-bottom-1 left-1/2 -translate-x-1/2");
       }
     };
 
