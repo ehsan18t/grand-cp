@@ -48,5 +48,9 @@ next-env.d.ts
 .wrangler
 .dev.vars*
 
+# generated seed SQL
+/scripts/seed.sql
+/src/scripts/seed.sql
+
 
 !.dev.vars.example
