@@ -43,9 +43,9 @@
 		}
 	],
 	"vars": {
-		"BETTER_AUTH_URL": "http://localhost:3000",
-		"NEXT_PUBLIC_SITE_URL": "http://localhost:3000",
-		"SITE_URL": "http://localhost:3000"
+		"BETTER_AUTH_URL": "https://grand-cp.ahsan-khan.workers.dev",
+		"NEXT_PUBLIC_SITE_URL": "https://grand-cp.ahsan-khan.workers.dev",
+		"SITE_URL": "https://grand-cp.ahsan-khan.workers.dev"
 	}
 	/**
 	 * Smart Placement
