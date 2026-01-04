@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ProfilePage({ params }: PageProps) {
   const { username } = await params;
 
-  const { env } = await getCloudflareContext();
+  const { env } = await getCloudflareContext({ async: true });
   const db = createDb(env.DB);
   const auth = createAuth(env.DB, env);
 

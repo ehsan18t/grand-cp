@@ -4,11 +4,9 @@ import { createDb } from "@/db";
 import { users } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
 
-export const runtime = "edge";
-
 // Update username
 export async function PATCH(request: Request) {
-  const { env } = getCloudflareContext();
+  const { env } = await getCloudflareContext({ async: true });
   const db = createDb(env.DB);
   const auth = createAuth(env.DB, env);
 
@@ -62,7 +60,7 @@ export async function PATCH(request: Request) {
 
 // Get current user info
 export async function GET(request: Request) {
-  const { env } = await getCloudflareContext();
+  const { env } = await getCloudflareContext({ async: true });
   const db = createDb(env.DB);
   const auth = createAuth(env.DB, env);
 

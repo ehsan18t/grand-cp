@@ -9,7 +9,7 @@ import { phases as dbPhases, problems as dbProblems } from "@/db/schema";
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const { env } = await getCloudflareContext();
+  const { env } = await getCloudflareContext({ async: true });
   const db = createDb(env.DB);
 
   // Fetch phases and problem counts from database

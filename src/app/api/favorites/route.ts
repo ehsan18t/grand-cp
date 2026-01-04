@@ -4,12 +4,10 @@ import { createDb } from "@/db";
 import { problems, userFavorites } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
 
-export const runtime = "edge";
-
 // Get user's favorites
 export async function GET(request: Request) {
   try {
-    const { env } = await getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
     const db = createDb(env.DB);
     const auth = createAuth(env.DB, env);
     const session = await auth.api.getSession({ headers: request.headers });
@@ -47,7 +45,7 @@ export async function GET(request: Request) {
 // Add a problem to favorites
 export async function POST(request: Request) {
   try {
-    const { env } = await getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
     const db = createDb(env.DB);
     const auth = createAuth(env.DB, env);
     const session = await auth.api.getSession({ headers: request.headers });
@@ -98,7 +96,7 @@ export async function POST(request: Request) {
 // Remove a problem from favorites
 export async function DELETE(request: Request) {
   try {
-    const { env } = await getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
     const db = createDb(env.DB);
     const auth = createAuth(env.DB, env);
     const session = await auth.api.getSession({ headers: request.headers });

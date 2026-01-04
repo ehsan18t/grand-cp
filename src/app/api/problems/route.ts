@@ -4,8 +4,6 @@ import { createDb } from "@/db";
 import { problems, userFavorites, userProblems } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
 
-export const runtime = "edge";
-
 const varyCookieHeaders = {
   Vary: "Cookie",
 } as const;
@@ -22,7 +20,7 @@ const privateApiNoStoreHeaders = {
 
 export async function GET(request: Request) {
   try {
-    const { env } = await getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
     const db = createDb(env.DB);
     const auth = createAuth(env.DB, env);
     const session = await auth.api.getSession({ headers: request.headers });

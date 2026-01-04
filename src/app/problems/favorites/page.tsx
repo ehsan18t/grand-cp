@@ -32,7 +32,7 @@ export default async function FavoritesPage() {
   let isAuthenticated = false;
 
   try {
-    const { env } = await getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
     const db = createDb(env.DB);
     const auth = createAuth(env.DB, env);
     const requestHeaders = await headers();

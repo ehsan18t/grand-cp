@@ -10,7 +10,7 @@ import { getSiteUrlFromEnv } from "@/lib/site";
  * @see https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { env } = await getCloudflareContext();
+  const { env } = await getCloudflareContext({ async: true });
   const db = createDb(env.DB);
   const siteUrl = getSiteUrlFromEnv(env);
 

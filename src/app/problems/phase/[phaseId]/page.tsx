@@ -27,7 +27,7 @@ interface PageProps {
  */
 export async function generateStaticParams() {
   try {
-    const { env } = await getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
     const db = createDb(env.DB);
     const phases = await db.select({ id: dbPhases.id }).from(dbPhases);
     return phases.map((phase) => ({ phaseId: String(phase.id) }));
@@ -42,7 +42,7 @@ export async function generateMetadata({ params }: PageProps) {
   const phaseIdNum = Number.parseInt(phaseId, 10);
 
   try {
-    const { env } = await getCloudflareContext();
+    const { env } = await getCloudflareContext({ async: true });
     const db = createDb(env.DB);
     const [phase] = await db.select().from(dbPhases).where(eq(dbPhases.id, phaseIdNum)).limit(1);
 
@@ -61,7 +61,7 @@ export default async function PhasePage({ params }: PageProps) {
   const { phaseId } = await params;
   const phaseIdNum = Number.parseInt(phaseId, 10);
 
-  const { env } = await getCloudflareContext();
+  const { env } = await getCloudflareContext({ async: true });
   const db = createDb(env.DB);
   const auth = createAuth(env.DB, env);
   const requestHeaders = await headers();
