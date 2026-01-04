@@ -6,6 +6,20 @@ import { createAuth } from "@/lib/auth";
 
 export const runtime = "edge";
 
+const varyCookieHeaders = {
+  Vary: "Cookie",
+} as const;
+
+const publicApiCacheHeaders = {
+  ...varyCookieHeaders,
+  "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
+} as const;
+
+const privateApiNoStoreHeaders = {
+  ...varyCookieHeaders,
+  "Cache-Control": "private, no-store",
+} as const;
+
 type StatusValue = "untouched" | "attempting" | "solved" | "revisit" | "skipped";
 
 interface StatusUpdateBody {
@@ -21,7 +35,10 @@ export async function POST(request: Request) {
     const session = await auth.api.getSession({ headers: request.headers });
 
     if (!session?.user?.id) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
+      return Response.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: privateApiNoStoreHeaders },
+      );
     }
 
     const body = (await request.json()) as StatusUpdateBody;
@@ -36,7 +53,10 @@ export async function POST(request: Request) {
       "skipped",
     ];
     if (!validStatuses.includes(status)) {
-      return Response.json({ error: "Invalid status" }, { status: 400 });
+      return Response.json(
+        { error: "Invalid status" },
+        { status: 400, headers: privateApiNoStoreHeaders },
+      );
     }
 
     // Get problem by number
@@ -47,7 +67,10 @@ export async function POST(request: Request) {
       .get();
 
     if (!problem) {
-      return Response.json({ error: "Problem not found" }, { status: 404 });
+      return Response.json(
+        { error: "Problem not found" },
+        { status: 404, headers: privateApiNoStoreHeaders },
+      );
     }
 
     const now = new Date();
@@ -65,7 +88,10 @@ export async function POST(request: Request) {
 
     // Only update if status actually changed
     if (fromStatus === status) {
-      return Response.json({ message: "Status unchanged", status });
+      return Response.json(
+        { message: "Status unchanged", status },
+        { headers: privateApiNoStoreHeaders },
+      );
     }
 
     // Upsert user problem status
@@ -92,15 +118,21 @@ export async function POST(request: Request) {
       changedAt: now,
     });
 
-    return Response.json({
-      message: "Status updated",
-      problemNumber,
-      status,
-      previousStatus: fromStatus ?? "untouched",
-    });
+    return Response.json(
+      {
+        message: "Status updated",
+        problemNumber,
+        status,
+        previousStatus: fromStatus ?? "untouched",
+      },
+      { headers: privateApiNoStoreHeaders },
+    );
   } catch (error) {
     console.error("Status update error:", error);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    return Response.json(
+      { error: "Internal server error" },
+      { status: 500, headers: privateApiNoStoreHeaders },
+    );
   }
 }
 
@@ -127,24 +159,29 @@ export async function GET(request: Request) {
         .where(eq(userProblems.userId, session.user.id));
 
       if (phaseId) {
-        const _phaseIdNum = Number.parseInt(phaseId, 10);
         const results = await query.all();
-        return Response.json({
-          statuses: results.filter((_r) => {
-            // Filter by phase would need a join - simplified here
-            return true;
-          }),
-        });
+        return Response.json(
+          {
+            statuses: results.filter((_r) => {
+              // Filter by phase would need a join - simplified here
+              return true;
+            }),
+          },
+          { headers: privateApiNoStoreHeaders },
+        );
       }
 
       const results = await query.all();
-      return Response.json({ statuses: results });
+      return Response.json({ statuses: results }, { headers: privateApiNoStoreHeaders });
     }
 
     // For guests, return empty (they can only view, not track)
-    return Response.json({ statuses: [] });
+    return Response.json({ statuses: [] }, { headers: publicApiCacheHeaders });
   } catch (error) {
     console.error("Status fetch error:", error);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    return Response.json(
+      { error: "Internal server error" },
+      { status: 500, headers: privateApiNoStoreHeaders },
+    );
   }
 }

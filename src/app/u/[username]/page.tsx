@@ -3,6 +3,7 @@ import { eq, or, sql } from "drizzle-orm";
 import { Calendar, Trophy, User } from "lucide-react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
+import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { ProfileActions } from "@/components/profile";
 import { createDb } from "@/db";
@@ -141,11 +142,12 @@ export default async function ProfilePage({ params }: PageProps) {
           {/* Avatar */}
           <div className="flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
             {user.image ? (
-              <img
+              <Image
                 src={user.image}
                 alt={user.name}
                 width={80}
                 height={80}
+                sizes="80px"
                 className="h-20 w-20 rounded-full object-cover"
               />
             ) : (

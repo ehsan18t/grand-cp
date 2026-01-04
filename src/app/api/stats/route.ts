@@ -6,6 +6,16 @@ import { createAuth } from "@/lib/auth";
 
 export const runtime = "edge";
 
+const publicApiCacheHeaders = {
+  Vary: "Cookie",
+  "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
+} as const;
+
+const privateApiNoStoreHeaders = {
+  Vary: "Cookie",
+  "Cache-Control": "private, no-store",
+} as const;
+
 export async function GET(request: Request) {
   try {
     const { env } = await getCloudflareContext();
@@ -29,11 +39,14 @@ export async function GET(request: Request) {
 
     // For guests, return only totals
     if (!session?.user?.id) {
-      return Response.json({
-        totalProblems,
-        phaseCounts,
-        userStats: null,
-      });
+      return Response.json(
+        {
+          totalProblems,
+          phaseCounts,
+          userStats: null,
+        },
+        { headers: publicApiCacheHeaders },
+      );
     }
 
     const userId = session.user.id;
@@ -96,17 +109,23 @@ export async function GET(request: Request) {
       .get();
     const favoritesCount = favoritesResult?.count ?? 0;
 
-    return Response.json({
-      totalProblems,
-      phaseCounts,
-      userStats: {
-        ...stats,
-        favoritesCount,
-        phaseStats,
+    return Response.json(
+      {
+        totalProblems,
+        phaseCounts,
+        userStats: {
+          ...stats,
+          favoritesCount,
+          phaseStats,
+        },
       },
-    });
+      { headers: privateApiNoStoreHeaders },
+    );
   } catch (error) {
     console.error("Stats fetch error:", error);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+    return Response.json(
+      { error: "Internal server error" },
+      { status: 500, headers: privateApiNoStoreHeaders },
+    );
   }
 }

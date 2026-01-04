@@ -35,6 +35,20 @@ export function getSiteUrlFromEnv(env: CloudflareEnv): string {
 }
 
 /**
+ * Get site URL from Node.js process.env (server-side).
+ *
+ * Required for environments where Cloudflare bindings are not available
+ * (e.g. static metadata evaluation).
+ */
+export function getSiteUrlFromProcessEnv(): string {
+  const url = process.env.SITE_URL;
+  if (!url) {
+    throw new Error("SITE_URL environment variable is required");
+  }
+  return url;
+}
+
+/**
  * Site metadata constants
  */
 export const siteConfig = {

@@ -2,10 +2,10 @@
 # Copy to .dev.vars (this file is gitignored) and fill values.
 
 NEXTJS_ENV=development
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
 SITE_URL=http://localhost:3000
 
 # Better Auth
-BETTER_AUTH_URL=http://localhost:3000
 BETTER_AUTH_SECRET=your-32-char-secret-key-here
 
 # Google OAuth (required for social sign-in)

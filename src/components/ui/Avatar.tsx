@@ -1,6 +1,7 @@
 "use client";
 
-import { forwardRef, type HTMLAttributes, type ImgHTMLAttributes, useState } from "react";
+import Image, { type ImageProps } from "next/image";
+import { forwardRef, type HTMLAttributes, useState } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 import { cn } from "@/lib/utils";
 
@@ -107,7 +108,7 @@ export interface AvatarProps
   /** Show status indicator */
   showStatus?: boolean;
   /** Image props */
-  imageProps?: ImgHTMLAttributes<HTMLImageElement>;
+  imageProps?: Omit<ImageProps, "alt" | "height" | "src" | "width">;
 }
 
 // ============================================================================
@@ -157,8 +158,25 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
     // Accessibility label
     const ariaLabel = alt || name || "User avatar";
 
+    const resolvedSize = size ?? "md";
+    const pixelSizeByVariant = {
+      xs: 24,
+      sm: 32,
+      md: 40,
+      lg: 48,
+      xl: 64,
+      "2xl": 80,
+    } as const;
+    const pixelSize = pixelSizeByVariant[resolvedSize];
+
     // Show fallback if no src or image failed to load
     const showFallback = !src || imageError;
+
+    const {
+      className: imagePropsClassName,
+      onError: imagePropsOnError,
+      ...restImageProps
+    } = imageProps ?? {};
 
     return (
       <div
@@ -169,13 +187,18 @@ export const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
         {...props}
       >
         {!showFallback ? (
-          <img
+          <Image
             src={src}
             alt=""
             aria-hidden="true"
-            className={cn("absolute inset-0", styles.image())}
-            onError={() => setImageError(true)}
-            {...(imageProps as Omit<typeof imageProps, "src" | "alt">)}
+            width={pixelSize}
+            height={pixelSize}
+            className={cn("absolute inset-0", styles.image(), imagePropsClassName)}
+            onError={(event) => {
+              imagePropsOnError?.(event);
+              setImageError(true);
+            }}
+            {...restImageProps}
           />
         ) : (
           <span className={styles.fallback()} aria-hidden="true">

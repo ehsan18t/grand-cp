@@ -2,6 +2,7 @@
 
 import { BarChart3, ChevronDown, LogOut, User } from "lucide-react";
 
+import Image from "next/image";
 import Link from "next/link";
 import { forwardRef, useState } from "react";
 import { tv } from "tailwind-variants";
@@ -65,11 +66,12 @@ export const UserMenu = forwardRef<HTMLDivElement, UserMenuProps>(function UserM
     <div ref={ref} className={cn("relative", className)}>
       <button type="button" onClick={() => setIsOpen(!isOpen)} className={styles.trigger()}>
         {user.image ? (
-          <img
+          <Image
             src={user.image}
             alt={user.name}
             width={32}
             height={32}
+            sizes="32px"
             className={styles.avatarImage()}
           />
         ) : (

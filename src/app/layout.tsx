@@ -4,13 +4,10 @@ import { Navbar } from "@/components/layout";
 import { ToastProvider } from "@/components/ui";
 import { ThemeProvider, themeScript } from "@/context";
 import { geistMono, geistSans } from "@/lib/fonts";
-import { siteConfig } from "@/lib/site";
+import { getSiteUrlFromProcessEnv, siteConfig } from "@/lib/site";
 import "./globals.css";
 
-const siteUrl = process.env.SITE_URL ?? process.env.NEXT_PUBLIC_SITE_URL;
-if (!siteUrl) {
-  throw new Error("SITE_URL or NEXT_PUBLIC_SITE_URL environment variable is required");
-}
+const siteUrl = getSiteUrlFromProcessEnv();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
