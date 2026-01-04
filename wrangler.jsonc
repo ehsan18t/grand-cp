@@ -41,7 +41,12 @@
 			"database_name": "grand-cp-db",
 			"database_id": "f1bac650-569d-4d8c-86b0-636ff1fd06e6"
 		}
-	]
+	],
+	"vars": {
+		"BETTER_AUTH_URL": "http://localhost:3000",
+		"NEXT_PUBLIC_SITE_URL": "http://localhost:3000",
+		"SITE_URL": "http://localhost:3000"
+	}
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
