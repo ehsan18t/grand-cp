@@ -5,6 +5,11 @@ NEXTJS_ENV=development
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 SITE_URL=http://localhost:3000
 
+# Cloudflare D1 (for drizzle-kit migrations)
+CLOUDFLARE_ACCOUNT_ID=your_account_id
+CLOUDFLARE_DATABASE_ID=your_database_id
+CLOUDFLARE_D1_TOKEN=your_api_token
+
 # Better Auth
 BETTER_AUTH_SECRET=your-32-char-secret-key-here
 
