@@ -1,28 +1,18 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { sql } from "drizzle-orm";
 import { ArrowRight, BarChart3, BookOpen, Target, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 import { phases as phasesData } from "@/data/phases";
 import { problems as problemsData } from "@/data/problems";
 import { createDb } from "@/db";
-import { phases as dbPhases, problems as dbProblems } from "@/db/schema";
+import { createServices } from "@/lib/service-factory";
+import type { Phase } from "@/types/domain";
 
 // Cache home page for 1 hour - static content with dynamic data
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  type PhaseForHome = {
-    id: number;
-    name: string;
-    description: string | null;
-    targetRatingStart: number | null;
-    targetRatingEnd: number | null;
-    focus: string | null;
-    problemStart: number;
-    problemEnd: number;
-  };
-
-  const staticPhases: PhaseForHome[] = phasesData
+  // Static data fallback for build-time
+  const staticPhases: Phase[] = phasesData
     .filter((phase): phase is typeof phase & { id: number } => typeof phase.id === "number")
     .map((phase) => ({
       id: phase.id,
@@ -35,7 +25,7 @@ export default async function HomePage() {
       problemEnd: phase.problemEnd,
     }));
 
-  let phases: PhaseForHome[] = staticPhases;
+  let phases: Phase[] = staticPhases;
   let totalProblems = problemsData.length;
   let phaseCountsMap = new Map<number, number>();
 
@@ -46,23 +36,13 @@ export default async function HomePage() {
   try {
     const { env } = await getCloudflareContext({ async: true });
     const db = createDb(env.DB);
+    const { phaseService } = createServices(db);
 
-    // Fetch phases and problem counts from database
-    const [phasesFromDb, totalProblemsResult, problemCountsByPhase] = await Promise.all([
-      db.select().from(dbPhases).orderBy(dbPhases.id),
-      db.select({ count: sql<number>`count(*)` }).from(dbProblems),
-      db
-        .select({
-          phaseId: dbProblems.phaseId,
-          count: sql<number>`count(*)`,
-        })
-        .from(dbProblems)
-        .groupBy(dbProblems.phaseId),
-    ]);
-
-    phases = phasesFromDb;
-    totalProblems = totalProblemsResult[0]?.count ?? 0;
-    phaseCountsMap = new Map(problemCountsByPhase.map((p) => [p.phaseId, p.count]));
+    // Fetch phases and problem counts from service
+    const summary = await phaseService.getPhaseSummary();
+    phases = summary.phases;
+    totalProblems = summary.totalProblems;
+    phaseCountsMap = summary.phaseCountsMap;
   } catch {
     // Build-time / local D1 may not have migrations applied yet.
     // Fall back to static content so builds always succeed.

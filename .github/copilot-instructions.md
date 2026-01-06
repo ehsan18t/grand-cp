@@ -224,4 +224,116 @@ export type { ButtonProps };
 
 ---
 
-*Last updated: December 2024*
+## 🏗️ Architecture: Separation of Concerns (MANDATORY)
+
+This codebase follows a **layered architecture** with strict separation of concerns.
+
+### Layer Structure
+
+```
+┌─────────────────────────────────────────┐
+│  Pages / API Routes (Presentation)     │  ← Only handles HTTP, rendering, auth
+│    ↓ uses                               │
+├─────────────────────────────────────────┤
+│  Services (Business Logic)              │  ← Contains all business logic
+│    ↓ uses                               │
+├─────────────────────────────────────────┤
+│  Repositories (Data Access)             │  ← Pure database queries only
+│    ↓ uses                               │
+├─────────────────────────────────────────┤
+│  Database (Drizzle ORM)                 │
+└─────────────────────────────────────────┘
+```
+
+### Rules
+
+1. **Pages/Components (src/app/, src/components/)**
+   - ❌ NEVER contain database queries (no `db.select()`, `db.insert()`, etc.)
+   - ❌ NEVER import from `@/db/schema` directly
+   - ❌ NEVER contain complex business logic
+   - ✅ DO use `createServices(db)` from `@/lib/service-factory`
+   - ✅ DO call service methods for all data operations
+   - ✅ DO handle rendering and UI logic only
+
+2. **Services (src/services/)**
+   - ❌ NEVER contain raw database queries
+   - ❌ NEVER import Drizzle operators (`eq`, `and`, `sql`, etc.)
+   - ✅ DO contain business logic and validation
+   - ✅ DO use repositories for data access
+   - ✅ DO return domain types from `@/types/domain`
+
+3. **Repositories (src/repositories/)**
+   - ❌ NEVER contain business logic
+   - ✅ DO contain pure database queries
+   - ✅ DO use Drizzle ORM for queries
+   - ✅ DO return raw data or simple DTOs
+
+4. **Domain Types (src/types/domain.ts)**
+   - ✅ DO define all shared business types here
+   - ✅ DO use these types across layers
+
+### How to Add New Features
+
+```tsx
+// 1. Add domain type in src/types/domain.ts
+export interface NewFeature {
+  id: number;
+  name: string;
+}
+
+// 2. Add repository in src/repositories/
+export class NewFeatureRepository {
+  constructor(private db: Database) {}
+  
+  async findAll(): Promise<NewFeature[]> {
+    return this.db.select().from(newFeatures).all();
+  }
+}
+
+// 3. Add service in src/services/
+export class NewFeatureService {
+  constructor(private repo: NewFeatureRepository) {}
+  
+  async getActiveFeatures(): Promise<NewFeature[]> {
+    const all = await this.repo.findAll();
+    return all.filter(f => f.isActive); // Business logic here
+  }
+}
+
+// 4. Register in src/lib/service-factory.ts
+const newFeatureRepo = new NewFeatureRepository(db);
+const newFeatureService = new NewFeatureService(newFeatureRepo);
+
+// 5. Use in page
+const { newFeatureService } = createServices(db);
+const features = await newFeatureService.getActiveFeatures();
+```
+
+### Anti-Patterns to AVOID
+
+```tsx
+// ❌ WRONG: Database query in page
+export default async function Page() {
+  const db = createDb(env.DB);
+  const data = await db.select().from(users).where(eq(users.id, id)); // NO!
+}
+
+// ❌ WRONG: Business logic in page
+export default async function Page() {
+  const data = await getUsers();
+  const activeUsers = data.filter(u => u.isActive && u.score > 100); // NO!
+}
+
+// ❌ WRONG: Drizzle imports in service
+import { eq, and, sql } from "drizzle-orm"; // NO! Only in repositories
+
+// ✅ CORRECT: Use service layer
+export default async function Page() {
+  const { userService } = createServices(db);
+  const activeUsers = await userService.getActiveUsers(); // YES!
+}
+```
+
+---
+
+*Last updated: January 2025*

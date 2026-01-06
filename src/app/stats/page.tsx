@@ -1,17 +1,11 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { and, eq, sql } from "drizzle-orm";
 import { BarChart3, Clock, Target, TrendingUp, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { ShareButton } from "@/components/ui";
 import { createDb } from "@/db";
-import {
-  phases as dbPhases,
-  problems as dbProblems,
-  userFavorites,
-  userProblems,
-} from "@/db/schema";
 import { createAuth } from "@/lib/auth";
+import { createServices } from "@/lib/service-factory";
 import { getSiteUrlFromEnv } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -26,92 +20,25 @@ export default async function StatsPage() {
   const requestHeaders = await headers();
   const session = await auth.api.getSession({ headers: requestHeaders });
 
-  // Fetch phases and problem counts from database
-  const [phases, totalProblemsResult] = await Promise.all([
-    db.select().from(dbPhases).orderBy(dbPhases.id),
-    db.select({ count: sql<number>`count(*)` }).from(dbProblems),
-  ]);
+  const { phaseService, statsService } = createServices(db);
 
-  const totalProblems = totalProblemsResult[0]?.count ?? 0;
+  // Get phase summary
+  const { phases, totalProblems, phaseCountsMap } = await phaseService.getPhaseSummary();
 
-  // Fetch problem counts per phase
-  const problemCountsByPhase = await db
-    .select({
-      phaseId: dbProblems.phaseId,
-      count: sql<number>`count(*)`,
-    })
-    .from(dbProblems)
-    .groupBy(dbProblems.phaseId);
-
-  const phaseCountsMap = new Map(problemCountsByPhase.map((p) => [p.phaseId, p.count]));
-
-  // Default stats for unauthenticated users
-  const stats = {
-    solved: 0,
-    attempting: 0,
-    revisit: 0,
-    skipped: 0,
-    untouched: totalProblems,
-  };
-
+  // Get user stats if authenticated
+  let stats = statsService.createDefaultStats(totalProblems);
   let phaseSolvedMap = new Map<number, number>();
-  let _favoritesCount = 0;
 
-  // Fetch user stats if authenticated
   if (session?.user?.id) {
-    const [statusCounts, solvedByPhase, favoritesResult] = await Promise.all([
-      // Get status counts for this user
-      db
-        .select({
-          status: userProblems.status,
-          count: sql<number>`count(*)`,
-        })
-        .from(userProblems)
-        .where(eq(userProblems.userId, session.user.id))
-        .groupBy(userProblems.status),
-
-      // Get solved count per phase
-      db
-        .select({
-          phaseId: dbProblems.phaseId,
-          count: sql<number>`count(*)`,
-        })
-        .from(userProblems)
-        .innerJoin(dbProblems, eq(userProblems.problemId, dbProblems.id))
-        .where(and(eq(userProblems.userId, session.user.id), eq(userProblems.status, "solved")))
-        .groupBy(dbProblems.phaseId),
-
-      // Get favorites count
-      db
-        .select({ count: sql<number>`count(*)` })
-        .from(userFavorites)
-        .where(eq(userFavorites.userId, session.user.id)),
-    ]);
-
-    // Map status counts
-    let touched = 0;
-    for (const row of statusCounts) {
-      if (row.status === "solved") {
-        stats.solved = row.count;
-        touched += row.count;
-      } else if (row.status === "attempting") {
-        stats.attempting = row.count;
-        touched += row.count;
-      } else if (row.status === "revisit") {
-        stats.revisit = row.count;
-        touched += row.count;
-      } else if (row.status === "skipped") {
-        stats.skipped = row.count;
-        touched += row.count;
-      }
-    }
-    stats.untouched = totalProblems - touched;
-
-    // Map solved by phase
-    phaseSolvedMap = new Map(solvedByPhase.map((p) => [p.phaseId, p.count]));
-
-    // Favorites count
-    _favoritesCount = favoritesResult[0]?.count ?? 0;
+    const userStats = await statsService.getUserStats(session.user.id, totalProblems);
+    stats = {
+      solved: userStats.solved,
+      attempting: userStats.attempting,
+      revisit: userStats.revisit,
+      skipped: userStats.skipped,
+      untouched: userStats.untouched,
+    };
+    phaseSolvedMap = userStats.phaseSolvedMap;
   }
 
   const progressPercentage =

@@ -1,8 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { and, eq } from "drizzle-orm";
 import { createDb } from "@/db";
-import { problems, userFavorites } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
+import { createServices } from "@/lib/service-factory";
 
 // Get user's favorites
 export async function GET(request: Request) {
@@ -16,24 +15,8 @@ export async function GET(request: Request) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const favorites = await db
-      .select({
-        id: problems.id,
-        number: problems.number,
-        platform: problems.platform,
-        name: problems.name,
-        url: problems.url,
-        phaseId: problems.phaseId,
-        topic: problems.topic,
-        isStarred: problems.isStarred,
-        note: problems.note,
-        favoritedAt: userFavorites.createdAt,
-      })
-      .from(userFavorites)
-      .innerJoin(problems, eq(userFavorites.problemId, problems.id))
-      .where(eq(userFavorites.userId, session.user.id))
-      .orderBy(userFavorites.createdAt)
-      .all();
+    const { favoriteService } = createServices(db);
+    const favorites = await favoriteService.getFavorites(session.user.id);
 
     return Response.json({ favorites });
   } catch (error) {
@@ -61,30 +44,12 @@ export async function POST(request: Request) {
       return Response.json({ error: "problemId is required" }, { status: 400 });
     }
 
-    // Check if problem exists
-    const problem = await db.select().from(problems).where(eq(problems.id, problemId)).get();
+    const { favoriteService } = createServices(db);
+    const result = await favoriteService.addFavorite(session.user.id, problemId);
 
-    if (!problem) {
-      return Response.json({ error: "Problem not found" }, { status: 404 });
+    if ("error" in result) {
+      return Response.json({ error: result.error }, { status: result.code });
     }
-
-    // Check if already favorited
-    const existing = await db
-      .select()
-      .from(userFavorites)
-      .where(and(eq(userFavorites.userId, session.user.id), eq(userFavorites.problemId, problemId)))
-      .get();
-
-    if (existing) {
-      return Response.json({ message: "Already favorited", problemId });
-    }
-
-    // Add to favorites
-    await db.insert(userFavorites).values({
-      userId: session.user.id,
-      problemId,
-      createdAt: new Date(),
-    });
 
     return Response.json({ message: "Added to favorites", problemId });
   } catch (error) {
@@ -113,12 +78,8 @@ export async function DELETE(request: Request) {
     }
 
     const problemIdNum = Number.parseInt(problemId, 10);
-
-    await db
-      .delete(userFavorites)
-      .where(
-        and(eq(userFavorites.userId, session.user.id), eq(userFavorites.problemId, problemIdNum)),
-      );
+    const { favoriteService } = createServices(db);
+    await favoriteService.removeFavorite(session.user.id, problemIdNum);
 
     return Response.json({ message: "Removed from favorites", problemId: problemIdNum });
   } catch (error) {

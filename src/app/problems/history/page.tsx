@@ -1,14 +1,13 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { desc, eq } from "drizzle-orm";
 import { Clock } from "lucide-react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
-import type { HistoryEntry } from "@/components/problems/HistoryItem";
 import { HistoryList } from "@/components/problems/HistoryList";
 import { createDb } from "@/db";
-import { problems, statusHistory } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
+import { createServices } from "@/lib/service-factory";
+import type { HistoryEntry } from "@/types/domain";
 
 export const metadata: Metadata = {
   title: "History | Grand CP",
@@ -28,38 +27,8 @@ export default async function HistoryPage() {
 
     if (session?.user?.id) {
       isAuthenticated = true;
-
-      // Fetch status history with problem details
-      const results = await db
-        .select({
-          id: statusHistory.id,
-          problemId: statusHistory.problemId,
-          fromStatus: statusHistory.fromStatus,
-          toStatus: statusHistory.toStatus,
-          changedAt: statusHistory.changedAt,
-          problemNumber: problems.number,
-          problemName: problems.name,
-          problemUrl: problems.url,
-          platform: problems.platform,
-        })
-        .from(statusHistory)
-        .innerJoin(problems, eq(statusHistory.problemId, problems.id))
-        .where(eq(statusHistory.userId, session.user.id))
-        .orderBy(desc(statusHistory.changedAt))
-        .limit(500) // Limit to last 500 entries for performance
-        .all();
-
-      history = results.map((r) => ({
-        id: r.id,
-        problemId: r.problemId,
-        problemNumber: r.problemNumber,
-        problemName: r.problemName,
-        problemUrl: r.problemUrl,
-        platform: r.platform,
-        fromStatus: r.fromStatus as HistoryEntry["fromStatus"],
-        toStatus: r.toStatus as HistoryEntry["toStatus"],
-        changedAt: r.changedAt,
-      }));
+      const { historyService } = createServices(db);
+      history = await historyService.getHistory(session.user.id);
     }
   } catch {
     // Database not available

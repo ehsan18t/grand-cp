@@ -1,8 +1,7 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { eq } from "drizzle-orm";
 import { createDb } from "@/db";
-import { users } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
+import { createServices } from "@/lib/service-factory";
 
 // Update username
 export async function PATCH(request: Request) {
@@ -23,39 +22,14 @@ export async function PATCH(request: Request) {
     return Response.json({ error: "Username is required" }, { status: 400 });
   }
 
-  // Validate username format (alphanumeric, underscores, 3-20 chars)
-  const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
-  if (!usernameRegex.test(username)) {
-    return Response.json(
-      {
-        error:
-          "Username must be 3-20 characters and contain only letters, numbers, and underscores",
-      },
-      { status: 400 },
-    );
+  const { userService } = createServices(db);
+  const result = await userService.updateUsername(session.user.id, username);
+
+  if ("error" in result) {
+    return Response.json({ error: result.error }, { status: result.code });
   }
 
-  // Check if username is already taken
-  const [existing] = await db
-    .select({ id: users.id })
-    .from(users)
-    .where(eq(users.username, username))
-    .limit(1);
-
-  if (existing && existing.id !== session.user.id) {
-    return Response.json({ error: "Username is already taken" }, { status: 409 });
-  }
-
-  // Update username
-  await db
-    .update(users)
-    .set({
-      username,
-      updatedAt: new Date(),
-    })
-    .where(eq(users.id, session.user.id));
-
-  return Response.json({ success: true, username });
+  return Response.json({ success: true, username: result.username });
 }
 
 // Get current user info
@@ -69,18 +43,8 @@ export async function GET(request: Request) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const [user] = await db
-    .select({
-      id: users.id,
-      name: users.name,
-      email: users.email,
-      username: users.username,
-      image: users.image,
-      createdAt: users.createdAt,
-    })
-    .from(users)
-    .where(eq(users.id, session.user.id))
-    .limit(1);
+  const { userService } = createServices(db);
+  const user = await userService.getUserById(session.user.id);
 
   if (!user) {
     return Response.json({ error: "User not found" }, { status: 404 });
