@@ -51,7 +51,7 @@ export function PlatformFilter({ value, onChange, className }: PlatformFilterPro
         <Filter className="h-4 w-4" />
         Platform
       </span>
-      <div className={styles.buttonGroup()}>
+      <div className={styles.buttonGroup()} style={{ scrollbarWidth: "none" }}>
         {PLATFORM_OPTIONS.map((option) => (
           <button
             key={option.value}
