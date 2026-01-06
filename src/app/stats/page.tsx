@@ -1,11 +1,7 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { BarChart3, Clock, Target, TrendingUp, Trophy } from "lucide-react";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import { ShareButton } from "@/components/ui";
-import { createDb } from "@/db";
-import { createAuth } from "@/lib/auth";
-import { createServices } from "@/lib/service-factory";
+import { getRequestContext } from "@/lib/request-context";
 import { getSiteUrlFromEnv } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -14,13 +10,8 @@ export const metadata: Metadata = {
 };
 
 export default async function StatsPage() {
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.DB);
-  const auth = createAuth(env.DB, env);
-  const requestHeaders = await headers();
-  const session = await auth.api.getSession({ headers: requestHeaders });
-
-  const { phaseService, statsService } = createServices(db);
+  const { services, userId, env, session } = await getRequestContext();
+  const { phaseService, statsService } = services;
 
   // Get phase summary
   const { phases, totalProblems, phaseCountsMap } = await phaseService.getPhaseSummary();
@@ -29,8 +20,8 @@ export default async function StatsPage() {
   let stats = statsService.createDefaultStats(totalProblems);
   let phaseSolvedMap = new Map<number, number>();
 
-  if (session?.user?.id) {
-    const userStats = await statsService.getUserStats(session.user.id, totalProblems);
+  if (userId) {
+    const userStats = await statsService.getUserStats(userId, totalProblems);
     stats = {
       solved: userStats.solved,
       attempting: userStats.attempting,

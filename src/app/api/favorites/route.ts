@@ -1,22 +1,16 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { createDb } from "@/db";
-import { createAuth } from "@/lib/auth";
-import { createServices } from "@/lib/service-factory";
+import { getApiContext } from "@/lib/request-context";
 
 // Get user's favorites
 export async function GET(request: Request) {
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const auth = createAuth(env.DB, env);
+    const { auth, services } = await getApiContext();
     const session = await auth.api.getSession({ headers: request.headers });
 
     if (!session?.user?.id) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { favoriteService } = createServices(db);
-    const favorites = await favoriteService.getFavorites(session.user.id);
+    const favorites = await services.favoriteService.getFavorites(session.user.id);
 
     return Response.json({ favorites });
   } catch (error) {
@@ -28,9 +22,7 @@ export async function GET(request: Request) {
 // Add a problem to favorites
 export async function POST(request: Request) {
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const auth = createAuth(env.DB, env);
+    const { auth, services } = await getApiContext();
     const session = await auth.api.getSession({ headers: request.headers });
 
     if (!session?.user?.id) {
@@ -44,8 +36,7 @@ export async function POST(request: Request) {
       return Response.json({ error: "problemId is required" }, { status: 400 });
     }
 
-    const { favoriteService } = createServices(db);
-    const result = await favoriteService.addFavorite(session.user.id, problemId);
+    const result = await services.favoriteService.addFavorite(session.user.id, problemId);
 
     if ("error" in result) {
       return Response.json({ error: result.error }, { status: result.code });
@@ -61,9 +52,7 @@ export async function POST(request: Request) {
 // Remove a problem from favorites
 export async function DELETE(request: Request) {
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const auth = createAuth(env.DB, env);
+    const { auth, services } = await getApiContext();
     const session = await auth.api.getSession({ headers: request.headers });
 
     if (!session?.user?.id) {
@@ -78,8 +67,7 @@ export async function DELETE(request: Request) {
     }
 
     const problemIdNum = Number.parseInt(problemId, 10);
-    const { favoriteService } = createServices(db);
-    await favoriteService.removeFavorite(session.user.id, problemIdNum);
+    await services.favoriteService.removeFavorite(session.user.id, problemIdNum);
 
     return Response.json({ message: "Removed from favorites", problemId: problemIdNum });
   } catch (error) {

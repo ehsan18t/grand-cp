@@ -1,10 +1,8 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { ArrowRight, BarChart3, BookOpen, Target, Trophy, Users } from "lucide-react";
 import Link from "next/link";
 import { phases as phasesData } from "@/data/phases";
 import { problems as problemsData } from "@/data/problems";
-import { createDb } from "@/db";
-import { createServices } from "@/lib/service-factory";
+import { getServicesOnly } from "@/lib/request-context";
 import type { Phase } from "@/types/domain";
 
 // Cache home page for 1 hour - static content with dynamic data
@@ -34,12 +32,10 @@ export default async function HomePage() {
   }
 
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const { phaseService } = createServices(db);
+    const services = await getServicesOnly();
 
     // Fetch phases and problem counts from service
-    const summary = await phaseService.getPhaseSummary();
+    const summary = await services.phaseService.getPhaseSummary();
     phases = summary.phases;
     totalProblems = summary.totalProblems;
     phaseCountsMap = summary.phaseCountsMap;

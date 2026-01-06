@@ -1,8 +1,4 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { eq } from "drizzle-orm";
-import { createDb } from "@/db";
-import { problems, userFavorites, userProblems } from "@/db/schema";
-import { createAuth } from "@/lib/auth";
+import { getApiContext } from "@/lib/request-context";
 
 const varyCookieHeaders = {
   Vary: "Cookie",
@@ -20,63 +16,28 @@ const privateApiNoStoreHeaders = {
 
 export async function GET(request: Request) {
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const auth = createAuth(env.DB, env);
+    const { auth, services } = await getApiContext();
     const session = await auth.api.getSession({ headers: request.headers });
 
     const url = new URL(request.url);
     const phaseId = url.searchParams.get("phaseId");
 
-    // Fetch problems from database
+    // Fetch problems from service
     const phaseIdNum = phaseId ? Number.parseInt(phaseId, 10) : null;
-    const dbProblems = phaseIdNum
-      ? await db.select().from(problems).where(eq(problems.phaseId, phaseIdNum)).all()
-      : await db.select().from(problems).all();
+    const problems = phaseIdNum
+      ? await services.problemService.getProblemsByPhaseId(phaseIdNum)
+      : await services.problemService.getAllProblems();
 
-    // If user is authenticated, include their statuses and favorites
-    if (session?.user?.id) {
-      const userId = session.user.id;
+    // Enrich with user data
+    const userId = session?.user?.id ?? null;
+    const problemsWithUserData = await services.problemService.getProblemsWithUserData(
+      problems,
+      userId,
+    );
 
-      // Get user statuses for these problems
-      const statuses = await db
-        .select({
-          problemId: userProblems.problemId,
-          status: userProblems.status,
-        })
-        .from(userProblems)
-        .where(eq(userProblems.userId, userId))
-        .all();
+    const cacheHeaders = session?.user?.id ? privateApiNoStoreHeaders : publicApiCacheHeaders;
 
-      const favorites = await db
-        .select({ problemId: userFavorites.problemId })
-        .from(userFavorites)
-        .where(eq(userFavorites.userId, userId))
-        .all();
-
-      const statusMap = new Map(statuses.map((s) => [s.problemId, s.status]));
-      const favoriteSet = new Set(favorites.map((f) => f.problemId));
-
-      const problemsWithUserData = dbProblems.map((p) => ({
-        ...p,
-        userStatus: statusMap.get(p.id) ?? "untouched",
-        isFavorite: favoriteSet.has(p.id),
-      }));
-
-      return Response.json(
-        { problems: problemsWithUserData },
-        { headers: privateApiNoStoreHeaders },
-      );
-    }
-
-    // For guests, return problems without user data
-    const problemsWithDefaults = dbProblems.map((p) => ({
-      ...p,
-      userStatus: "untouched",
-      isFavorite: false,
-    }));
-
-    return Response.json({ problems: problemsWithDefaults }, { headers: publicApiCacheHeaders });
+    return Response.json({ problems: problemsWithUserData }, { headers: cacheHeaders });
   } catch (error) {
     console.error("Problems fetch error:", error);
     return Response.json(

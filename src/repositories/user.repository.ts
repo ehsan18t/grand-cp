@@ -95,4 +95,20 @@ export class UserRepository {
     if (excludeUserId && existing.id === excludeUserId) return false;
     return true;
   }
+
+  /**
+   * Get all users with usernames (for sitemap).
+   */
+  async findAllWithUsernames(limit = 1000): Promise<Array<{ username: string; updatedAt: Date }>> {
+    const results = await this.db
+      .select({
+        username: users.username,
+        updatedAt: users.updatedAt,
+      })
+      .from(users)
+      .limit(limit);
+
+    // Filter out null usernames and cast
+    return results.filter((u): u is { username: string; updatedAt: Date } => u.username !== null);
+  }
 }

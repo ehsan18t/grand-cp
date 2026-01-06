@@ -2,7 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { MetadataRoute } from "next";
 import { phases as phasesData } from "@/data/phases";
 import { createDb } from "@/db";
-import { phases as dbPhases, users } from "@/db/schema";
+import { createServices } from "@/lib/service-factory";
 import { getSiteUrlFromEnv, getSiteUrlFromProcessEnv } from "@/lib/site";
 
 /**
@@ -21,6 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const siteUrl = env ? getSiteUrlFromEnv(env) : getSiteUrlFromProcessEnv();
   const db = env ? createDb(env.DB) : undefined;
+  const services = db ? createServices(db) : undefined;
 
   // Static pages
   const staticPages: MetadataRoute.Sitemap = [
@@ -47,8 +48,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Phase pages
   let phaseIds = phasesData.map((p) => p.id);
   try {
-    if (db) {
-      const phases = await db.select({ id: dbPhases.id }).from(dbPhases);
+    if (services) {
+      const phases = await services.phaseService.getAllPhases();
       phaseIds = phases.map((p) => p.id);
     }
   } catch {
@@ -66,20 +67,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Public user profiles (only users with usernames)
   let userPages: MetadataRoute.Sitemap = [];
   try {
-    if (db) {
-      const usersWithUsernames = await db
-        .select({ username: users.username, updatedAt: users.updatedAt })
-        .from(users)
-        .limit(1000); // Limit to prevent huge sitemaps
+    if (services) {
+      const usersWithUsernames = await services.userService.getAllUsersWithUsernames();
 
-      userPages = usersWithUsernames
-        .filter((u) => u.username)
-        .map((user) => ({
-          url: `${siteUrl}/u/${user.username}`,
-          lastModified: user.updatedAt,
-          changeFrequency: "weekly" as const,
-          priority: 0.5,
-        }));
+      userPages = usersWithUsernames.map((user) => ({
+        url: `${siteUrl}/u/${user.username}`,
+        lastModified: user.updatedAt,
+        changeFrequency: "weekly" as const,
+        priority: 0.5,
+      }));
     }
   } catch {
     userPages = [];

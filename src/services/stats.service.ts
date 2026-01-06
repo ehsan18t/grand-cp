@@ -88,6 +88,13 @@ export class StatsService {
   }
 
   /**
+   * Get favorites count for a user.
+   */
+  async getFavoritesCount(userId: string): Promise<number> {
+    return this.favoriteRepo.getCountForUser(userId);
+  }
+
+  /**
    * Create default stats for unauthenticated users.
    */
   createDefaultStats(totalProblems: number): StatusCounts {

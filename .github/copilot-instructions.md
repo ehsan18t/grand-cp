@@ -251,26 +251,57 @@ This codebase follows a **layered architecture** with strict separation of conce
    - ❌ NEVER contain database queries (no `db.select()`, `db.insert()`, etc.)
    - ❌ NEVER import from `@/db/schema` directly
    - ❌ NEVER contain complex business logic
-   - ✅ DO use `createServices(db)` from `@/lib/service-factory`
+   - ❌ NEVER call `getCloudflareContext` directly (use request context helpers)
+   - ✅ DO use `getRequestContext()` from `@/lib/request-context`
+   - ✅ DO use `getServicesOnly()` when you don't need auth
    - ✅ DO call service methods for all data operations
    - ✅ DO handle rendering and UI logic only
 
-2. **Services (src/services/)**
+2. **API Routes (src/app/api/)**
+   - ❌ NEVER call `getCloudflareContext`, `createDb`, or `createServices` directly
+   - ✅ DO use `getApiContext()` from `@/lib/request-context`
+   - ✅ DO use `auth.api.getSession({ headers: request.headers })` for auth
+
+3. **Services (src/services/)**
    - ❌ NEVER contain raw database queries
    - ❌ NEVER import Drizzle operators (`eq`, `and`, `sql`, etc.)
    - ✅ DO contain business logic and validation
    - ✅ DO use repositories for data access
    - ✅ DO return domain types from `@/types/domain`
 
-3. **Repositories (src/repositories/)**
+4. **Repositories (src/repositories/)**
    - ❌ NEVER contain business logic
    - ✅ DO contain pure database queries
    - ✅ DO use Drizzle ORM for queries
    - ✅ DO return raw data or simple DTOs
 
-4. **Domain Types (src/types/domain.ts)**
+5. **Domain Types (src/types/domain.ts)**
    - ✅ DO define all shared business types here
    - ✅ DO use these types across layers
+
+6. **Client State (src/stores/)**
+   - ✅ DO use Zustand stores for client-side state
+   - ✅ DO implement optimistic updates for mutations
+   - ✅ DO use `persist` middleware with `sessionStorage` for navigation
+   - ✅ DO use selector hooks (`useStatus`, `useFavorite`) for performance
+
+### Request Context Helpers
+
+```tsx
+// For Server Components (pages):
+import { getRequestContext, getServicesOnly } from "@/lib/request-context";
+
+// Full context with auth:
+const { services, userId, session, env } = await getRequestContext();
+
+// Services only (no auth overhead):
+const services = await getServicesOnly();
+
+// For API Routes:
+import { getApiContext } from "@/lib/request-context";
+const { auth, services } = await getApiContext();
+const session = await auth.api.getSession({ headers: request.headers });
+```
 
 ### How to Add New Features
 
@@ -304,17 +335,23 @@ export class NewFeatureService {
 const newFeatureRepo = new NewFeatureRepository(db);
 const newFeatureService = new NewFeatureService(newFeatureRepo);
 
-// 5. Use in page
-const { newFeatureService } = createServices(db);
-const features = await newFeatureService.getActiveFeatures();
+// 5. Use in page (use request context!)
+const { services } = await getRequestContext();
+const features = await services.newFeatureService.getActiveFeatures();
 ```
 
 ### Anti-Patterns to AVOID
 
 ```tsx
+// ❌ WRONG: Direct context/db/services creation
+export default async function Page() {
+  const { env } = await getCloudflareContext({ async: true }); // NO!
+  const db = createDb(env.DB); // NO!
+  const { userService } = createServices(db); // NO!
+}
+
 // ❌ WRONG: Database query in page
 export default async function Page() {
-  const db = createDb(env.DB);
   const data = await db.select().from(users).where(eq(users.id, id)); // NO!
 }
 
@@ -327,10 +364,21 @@ export default async function Page() {
 // ❌ WRONG: Drizzle imports in service
 import { eq, and, sql } from "drizzle-orm"; // NO! Only in repositories
 
-// ✅ CORRECT: Use service layer
+// ✅ CORRECT: Use request context
 export default async function Page() {
-  const { userService } = createServices(db);
-  const activeUsers = await userService.getActiveUsers(); // YES!
+  const { services, userId } = await getRequestContext();
+  const activeUsers = await services.userService.getActiveUsers();
+}
+
+// ✅ CORRECT: API Route pattern
+export async function GET(request: Request) {
+  const { auth, services } = await getApiContext();
+  const session = await auth.api.getSession({ headers: request.headers });
+  if (!session?.user?.id) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const data = await services.someService.getData(session.user.id);
+  return Response.json(data);
 }
 ```
 

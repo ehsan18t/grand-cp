@@ -1,12 +1,8 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PhaseProblems } from "@/components/problems";
-import { createDb } from "@/db";
-import { createAuth } from "@/lib/auth";
-import { createServices } from "@/lib/service-factory";
+import { getRequestContext, getServicesOnly } from "@/lib/request-context";
 
 // Revalidate phase pages every hour for fresh problem data
 export const revalidate = 3600;
@@ -21,10 +17,8 @@ interface PageProps {
  */
 export async function generateStaticParams() {
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const { phaseService } = createServices(db);
-    const phases = await phaseService.getAllPhases();
+    const services = await getServicesOnly();
+    const phases = await services.phaseService.getAllPhases();
     return phases.map((phase) => ({ phaseId: String(phase.id) }));
   } catch {
     // Fallback to phases 1-8 if DB isn't available at build time
@@ -37,10 +31,8 @@ export async function generateMetadata({ params }: PageProps) {
   const phaseIdNum = Number.parseInt(phaseId, 10);
 
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const { phaseService } = createServices(db);
-    const phase = await phaseService.getPhaseById(phaseIdNum);
+    const services = await getServicesOnly();
+    const phase = await services.phaseService.getPhaseById(phaseIdNum);
 
     if (!phase) return { title: "Phase Not Found" };
 
@@ -57,13 +49,8 @@ export default async function PhasePage({ params }: PageProps) {
   const { phaseId } = await params;
   const phaseIdNum = Number.parseInt(phaseId, 10);
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.DB);
-  const auth = createAuth(env.DB, env);
-  const requestHeaders = await headers();
-  const session = await auth.api.getSession({ headers: requestHeaders });
-
-  const { phaseService, problemService } = createServices(db);
+  const { services, userId } = await getRequestContext();
+  const { phaseService, problemService } = services;
 
   // Fetch phase from database
   const phase = await phaseService.getPhaseById(phaseIdNum);
@@ -77,10 +64,7 @@ export default async function PhasePage({ params }: PageProps) {
 
   // Fetch problems for this phase and enrich with user data
   const problemsFromDb = await problemService.getProblemsByPhaseId(phaseIdNum);
-  const phaseProblems = await problemService.getProblemsWithUserData(
-    problemsFromDb,
-    session?.user?.id ?? null,
-  );
+  const phaseProblems = await problemService.getProblemsWithUserData(problemsFromDb, userId);
 
   // Calculate stats from enriched problems
   const stats = problemService.calculateStats(phaseProblems);

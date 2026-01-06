@@ -1,13 +1,9 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { Calendar, Trophy, User } from "lucide-react";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { ProfileActions } from "@/components/profile";
-import { createDb } from "@/db";
-import { createAuth } from "@/lib/auth";
-import { createServices } from "@/lib/service-factory";
+import { getRequestContext } from "@/lib/request-context";
 import { getSiteUrlFromEnv } from "@/lib/site";
 
 interface PageProps {
@@ -26,15 +22,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ProfilePage({ params }: PageProps) {
   const { username } = await params;
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.DB);
-  const auth = createAuth(env.DB, env);
-
-  // Get current session to check if viewer is the profile owner
-  const headersList = await headers();
-  const session = await auth.api.getSession({ headers: headersList });
-
-  const { userService, phaseService, statsService } = createServices(db);
+  const { services, session, env } = await getRequestContext();
+  const { userService, phaseService, statsService } = services;
 
   // Fetch user from database
   const user = await userService.getUserByUsernameOrId(username);

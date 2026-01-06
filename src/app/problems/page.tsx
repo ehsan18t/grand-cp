@@ -1,9 +1,5 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { headers } from "next/headers";
 import Link from "next/link";
-import { createDb } from "@/db";
-import { createAuth } from "@/lib/auth";
-import { createServices } from "@/lib/service-factory";
+import { getRequestContext } from "@/lib/request-context";
 import type { PhaseWithProgress } from "@/types/domain";
 
 // Revalidate every hour for fresh data while maintaining cache
@@ -15,21 +11,16 @@ export const metadata = {
 };
 
 export default async function ProblemsPage() {
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.DB);
-  const auth = createAuth(env.DB, env);
-  const requestHeaders = await headers();
-  const session = await auth.api.getSession({ headers: requestHeaders });
-
-  const { phaseService, statsService } = createServices(db);
+  const { services, userId } = await getRequestContext();
+  const { phaseService, statsService } = services;
 
   // Get phase summary (phases + problem counts)
   const { phases, totalProblems, phaseCountsMap } = await phaseService.getPhaseSummary();
 
   // Get user progress if authenticated
   let phaseSolvedMap = new Map<number, number>();
-  if (session?.user?.id) {
-    phaseSolvedMap = await statsService.getSolvedByPhase(session.user.id);
+  if (userId) {
+    phaseSolvedMap = await statsService.getSolvedByPhase(userId);
   }
 
   // Calculate phases with progress

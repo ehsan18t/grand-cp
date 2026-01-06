@@ -25,6 +25,13 @@ export class UserService {
   }
 
   /**
+   * Get all users with usernames (for sitemap).
+   */
+  async getAllUsersWithUsernames(): Promise<Array<{ username: string; updatedAt: Date }>> {
+    return this.userRepo.findAllWithUsernames();
+  }
+
+  /**
    * Update a user's username.
    */
   async updateUsername(

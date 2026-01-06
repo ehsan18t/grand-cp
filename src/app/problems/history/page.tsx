@@ -1,12 +1,8 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { Clock } from "lucide-react";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import Link from "next/link";
 import { HistoryList } from "@/components/problems/HistoryList";
-import { createDb } from "@/db";
-import { createAuth } from "@/lib/auth";
-import { createServices } from "@/lib/service-factory";
+import { getRequestContext } from "@/lib/request-context";
 import type { HistoryEntry } from "@/types/domain";
 
 export const metadata: Metadata = {
@@ -19,16 +15,11 @@ export default async function HistoryPage() {
   let isAuthenticated = false;
 
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const auth = createAuth(env.DB, env);
-    const requestHeaders = await headers();
-    const session = await auth.api.getSession({ headers: requestHeaders });
+    const { services, userId } = await getRequestContext();
 
-    if (session?.user?.id) {
+    if (userId) {
       isAuthenticated = true;
-      const { historyService } = createServices(db);
-      history = await historyService.getHistory(session.user.id);
+      history = await services.historyService.getHistory(userId);
     }
   } catch {
     // Database not available

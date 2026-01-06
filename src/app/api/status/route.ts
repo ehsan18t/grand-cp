@@ -1,7 +1,4 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { createDb } from "@/db";
-import { createAuth } from "@/lib/auth";
-import { createServices } from "@/lib/service-factory";
+import { getApiContext } from "@/lib/request-context";
 import type { ProblemStatus } from "@/types/domain";
 
 const varyCookieHeaders = {
@@ -25,9 +22,7 @@ interface StatusUpdateBody {
 
 export async function POST(request: Request) {
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const auth = createAuth(env.DB, env);
+    const { auth, services } = await getApiContext();
     const session = await auth.api.getSession({ headers: request.headers });
 
     if (!session?.user?.id) {
@@ -40,8 +35,11 @@ export async function POST(request: Request) {
     const body = (await request.json()) as StatusUpdateBody;
     const { problemNumber, status } = body;
 
-    const { statusService } = createServices(db);
-    const result = await statusService.updateStatus(session.user.id, problemNumber, status);
+    const result = await services.statusService.updateStatus(
+      session.user.id,
+      problemNumber,
+      status,
+    );
 
     if ("error" in result) {
       return Response.json(
@@ -70,15 +68,12 @@ export async function POST(request: Request) {
 
 export async function GET(request: Request) {
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const auth = createAuth(env.DB, env);
+    const { auth, services } = await getApiContext();
     const session = await auth.api.getSession({ headers: request.headers });
 
     // For authenticated users, get their personal status
     if (session?.user?.id) {
-      const { statusService } = createServices(db);
-      const statuses = await statusService.getAllStatuses(session.user.id);
+      const statuses = await services.statusService.getAllStatuses(session.user.id);
       return Response.json({ statuses }, { headers: privateApiNoStoreHeaders });
     }
 

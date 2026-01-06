@@ -1,12 +1,8 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { Heart } from "lucide-react";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import Link from "next/link";
 import { FavoritesList } from "@/components/problems/FavoritesList";
-import { createDb } from "@/db";
-import { createAuth } from "@/lib/auth";
-import { createServices } from "@/lib/service-factory";
+import { getRequestContext } from "@/lib/request-context";
 import type { FavoriteProblem } from "@/types/domain";
 
 export const metadata: Metadata = {
@@ -19,16 +15,11 @@ export default async function FavoritesPage() {
   let isAuthenticated = false;
 
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const auth = createAuth(env.DB, env);
-    const requestHeaders = await headers();
-    const session = await auth.api.getSession({ headers: requestHeaders });
+    const { services, userId } = await getRequestContext();
 
-    if (session?.user?.id) {
+    if (userId) {
       isAuthenticated = true;
-      const { favoriteService } = createServices(db);
-      favorites = await favoriteService.getFavorites(session.user.id);
+      favorites = await services.favoriteService.getFavorites(userId);
     }
   } catch {
     // Database not available
