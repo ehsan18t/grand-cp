@@ -9,17 +9,27 @@ Read the documentation at https://opennext.js.org/cloudflare.
 ## Develop
 
 This project runs API routes on the Cloudflare/OpenNext runtime in development.
-This project uses a single local env file: `.dev.vars`.
-
-Next.js and drizzle-kit are configured to read from `.dev.vars` so you don't need a separate `.env`.
+This project uses a local dev env file: `.env.dev` (gitignored).
 
 1) Create your local runtime env file:
 
 ```bash
-cp .dev.vars.example .dev.vars
+cp .env.example .env.dev
 ```
 
 2) Fill in `BETTER_AUTH_*` and (if using Google sign-in) `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
+
+3) Initialize your local D1 database tables (this is also run automatically before `bun dev`):
+
+```bash
+bun db:init:local
+```
+
+If you want a full reset + seed (problems/phases), run:
+
+```bash
+bun db:reset:local
+```
 
 Run the Next.js development server:
 
