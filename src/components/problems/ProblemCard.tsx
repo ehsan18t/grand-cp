@@ -18,8 +18,8 @@ const problemCardVariants = tv({
       "sm:flex-row sm:items-center sm:gap-4",
     ],
     // Top row (mobile) contains number + platform + content
-    topRow: "flex min-w-0 flex-1 items-center gap-4",
-    number: "w-12 shrink-0 font-mono font-medium text-muted-foreground text-sm",
+    topRow: "flex min-w-0 flex-1 items-center gap-2.5",
+    number: "w-fit shrink-0 font-mono font-medium text-muted-foreground text-sm",
     platformWrapper: "shrink-0",
     content: "min-w-0 flex-1",
     title: "flex items-center gap-2",
