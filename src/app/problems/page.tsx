@@ -1,5 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { createDb } from "@/db";
@@ -60,7 +60,7 @@ export default async function ProblemsPage() {
       })
       .from(userProblems)
       .innerJoin(dbProblems, eq(userProblems.problemId, dbProblems.id))
-      .where(eq(userProblems.userId, session.user.id))
+      .where(and(eq(userProblems.userId, session.user.id), eq(userProblems.status, "solved")))
       .groupBy(dbProblems.phaseId);
 
     for (const row of solvedByPhase) {

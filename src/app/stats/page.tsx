@@ -1,5 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { BarChart3, Clock, Target, TrendingUp, Trophy } from "lucide-react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
@@ -78,7 +78,7 @@ export default async function StatsPage() {
         })
         .from(userProblems)
         .innerJoin(dbProblems, eq(userProblems.problemId, dbProblems.id))
-        .where(eq(userProblems.userId, session.user.id))
+        .where(and(eq(userProblems.userId, session.user.id), eq(userProblems.status, "solved")))
         .groupBy(dbProblems.phaseId),
 
       // Get favorites count

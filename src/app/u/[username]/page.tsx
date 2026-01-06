@@ -1,5 +1,5 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { eq, or, sql } from "drizzle-orm";
+import { and, eq, or, sql } from "drizzle-orm";
 import { Calendar, Trophy, User } from "lucide-react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
@@ -90,7 +90,7 @@ export default async function ProfilePage({ params }: PageProps) {
       })
       .from(userProblems)
       .innerJoin(dbProblems, eq(userProblems.problemId, dbProblems.id))
-      .where(eq(userProblems.userId, user.id))
+      .where(and(eq(userProblems.userId, user.id), eq(userProblems.status, "solved")))
       .groupBy(dbProblems.phaseId),
   ]);
 
