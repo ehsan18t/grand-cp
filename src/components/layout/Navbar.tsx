@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, BookOpen, Heart, Menu, X } from "lucide-react";
+import { BarChart3, BookOpen, Clock, Heart, Menu, X } from "lucide-react";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -16,6 +16,7 @@ const navLinks = [
   { href: "/problems", label: "Problems", icon: BookOpen },
   { href: "/problems/favorites", label: "Favorites", icon: Heart },
   { href: "/stats", label: "Stats", icon: BarChart3 },
+  { href: "/problems/history", label: "History", icon: Clock },
 ];
 
 export function Navbar() {

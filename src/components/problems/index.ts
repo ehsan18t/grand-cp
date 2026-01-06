@@ -1,4 +1,6 @@
 export { FavoritesList } from "./FavoritesList";
+export { type HistoryEntry, HistoryItem } from "./HistoryItem";
+export { HistoryList } from "./HistoryList";
 export { PhaseProblems, type ProblemWithUserData } from "./PhaseProblems";
 export { PlatformBadge, type PlatformBadgeProps, platformBadgeVariants } from "./PlatformBadge";
 export {
