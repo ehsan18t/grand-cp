@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Heart, Star } from "lucide-react";
+import { Heart, Star } from "lucide-react";
 import { forwardRef, useCallback, useState } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 import type { ProblemData } from "@/data/problems";
@@ -11,46 +11,36 @@ import { StatusSelect, type StatusValue } from "./StatusSelect";
 const problemCardVariants = tv({
   slots: {
     root: [
+      // Keep the original desktop look; only stack on mobile
       "group flex flex-col gap-3 rounded-lg border border-border bg-card p-4",
       "transition-all duration-200",
       "hover:border-primary/30 hover:shadow-sm",
-      // Desktop: horizontal layout
       "sm:flex-row sm:items-center sm:gap-4",
     ],
-    // Mobile: top row with number, platform, and name
-    topRow: "flex items-center gap-3 min-w-0",
-    number: "shrink-0 font-mono font-medium text-muted-foreground text-sm",
+    // Top row (mobile) contains number + platform + content
+    topRow: "flex min-w-0 items-center gap-4",
+    number: "w-12 shrink-0 font-mono font-medium text-muted-foreground text-sm",
     platformWrapper: "shrink-0",
     content: "min-w-0 flex-1",
-    title: "flex items-start gap-2 sm:items-center",
-    // Allow text to wrap on mobile, truncate on desktop
-    titleText: "font-medium break-words sm:truncate",
+    title: "flex items-center gap-2",
+    // Mobile: allow wrapping so it doesn't crop; Desktop: keep truncation
+    titleText: "min-w-0 font-medium break-words sm:truncate",
     starIcon: "h-4 w-4 shrink-0 fill-warning text-warning",
-    note: "text-muted-foreground text-sm line-clamp-2 sm:truncate",
-    // Mobile: actions row at bottom; Desktop: inline
-    actions: [
-      "flex shrink-0 items-center gap-3",
-      "border-t border-border pt-3 sm:border-0 sm:pt-0",
-    ],
+    note: "truncate text-muted-foreground text-sm",
+    // Actions: same visual style as before; just flow to a second row on mobile
+    actions: "flex shrink-0 items-center gap-3 sm:self-auto",
     favoriteButton: [
       "flex h-8 w-8 items-center justify-center rounded-md",
       "text-muted-foreground transition-all",
       "hover:bg-destructive/10 hover:text-destructive",
     ],
     favoriteButtonActive: "text-destructive",
-    externalLink: [
-      "flex h-8 w-8 items-center justify-center rounded-md",
-      "text-muted-foreground transition-all",
-      "hover:bg-muted hover:text-primary",
-      // Always visible on mobile, fade-in on desktop hover
-      "sm:opacity-0 sm:group-hover:opacity-100",
-    ],
   },
   variants: {
     compact: {
       true: {
         root: "p-3 gap-2 sm:gap-3",
-        number: "text-xs",
+        number: "w-10 text-xs",
         content: "",
         note: "hidden",
       },
@@ -172,7 +162,20 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
         {/* Problem content */}
         <div className={styles.content()}>
           <div className={styles.title()}>
-            <span className={styles.titleText()}>{problem.name}</span>
+            <a
+              href={problem.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                styles.titleText(),
+                "hover:text-primary hover:underline",
+                // Keep link text from stretching the row on small screens
+                "block",
+              )}
+              aria-label={`Open ${problem.name} on ${problem.platform}`}
+            >
+              {problem.name}
+            </a>
             {problem.isStarred && <Star className={styles.starIcon()} />}
           </div>
           {problem.note && !compact && <div className={styles.note()}>{problem.note}</div>}
@@ -194,16 +197,6 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
             <Heart className={cn("h-4 w-4", isFavorite && "fill-current")} />
           </button>
         )}
-
-        <a
-          href={problem.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={styles.externalLink()}
-          aria-label={`Open ${problem.name} on ${problem.platform}`}
-        >
-          <ExternalLink className="h-4 w-4" />
-        </a>
       </div>
     </div>
   );

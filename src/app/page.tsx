@@ -22,16 +22,18 @@ export default async function HomePage() {
     problemEnd: number;
   };
 
-  const staticPhases: PhaseForHome[] = phasesData.map((phase) => ({
-    id: phase.id!,
-    name: phase.name,
-    description: phase.description ?? null,
-    targetRatingStart: phase.targetRatingStart ?? null,
-    targetRatingEnd: phase.targetRatingEnd ?? null,
-    focus: phase.focus ?? null,
-    problemStart: phase.problemStart,
-    problemEnd: phase.problemEnd,
-  }));
+  const staticPhases: PhaseForHome[] = phasesData
+    .filter((phase): phase is typeof phase & { id: number } => typeof phase.id === "number")
+    .map((phase) => ({
+      id: phase.id,
+      name: phase.name,
+      description: phase.description ?? null,
+      targetRatingStart: phase.targetRatingStart ?? null,
+      targetRatingEnd: phase.targetRatingEnd ?? null,
+      focus: phase.focus ?? null,
+      problemStart: phase.problemStart,
+      problemEnd: phase.problemEnd,
+    }));
 
   let phases: PhaseForHome[] = staticPhases;
   let totalProblems = problemsData.length;

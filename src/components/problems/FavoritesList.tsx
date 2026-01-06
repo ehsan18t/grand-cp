@@ -1,8 +1,9 @@
 "use client";
 
-import { Heart, Trash2 } from "lucide-react";
+import { Heart } from "lucide-react";
 import { useState } from "react";
-import { PlatformBadge } from "./PlatformBadge";
+import { ProblemCard } from "./ProblemCard";
+import type { StatusValue } from "./StatusSelect";
 
 interface FavoriteProblem {
   id: number;
@@ -15,6 +16,7 @@ interface FavoriteProblem {
   isStarred: boolean;
   note: string | null;
   favoritedAt: Date;
+  userStatus: StatusValue;
 }
 
 interface FavoritesListProps {
@@ -23,23 +25,10 @@ interface FavoritesListProps {
 
 export function FavoritesList({ favorites: initialFavorites }: FavoritesListProps) {
   const [favorites, setFavorites] = useState(initialFavorites);
-  const [removingId, setRemovingId] = useState<number | null>(null);
 
-  const handleRemove = async (problemId: number) => {
-    setRemovingId(problemId);
-
-    try {
-      const res = await fetch(`/api/favorites?problemId=${problemId}`, {
-        method: "DELETE",
-      });
-
-      if (res.ok) {
-        setFavorites((prev) => prev.filter((f) => f.id !== problemId));
-      }
-    } catch (error) {
-      console.error("Failed to remove favorite:", error);
-    } finally {
-      setRemovingId(null);
+  const handleFavoriteChange = (problemId: number, isFavorite: boolean) => {
+    if (!isFavorite) {
+      setFavorites((prev) => prev.filter((f) => f.id !== problemId));
     }
   };
 
@@ -71,44 +60,15 @@ export function FavoritesList({ favorites: initialFavorites }: FavoritesListProp
             <h2 className="mb-3 font-semibold text-lg text-muted-foreground">Phase {phaseId}</h2>
             <div className="space-y-2">
               {phaseProblems.map((problem) => (
-                <div
+                <ProblemCard
                   key={problem.id}
-                  className="group flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30 sm:flex-row sm:items-center sm:gap-4"
-                >
-                  {/* Top row: number, platform, content */}
-                  <div className="flex min-w-0 items-center gap-3">
-                    <div className="shrink-0 font-medium font-mono text-muted-foreground text-sm">
-                      #{problem.number}
-                    </div>
-
-                    <PlatformBadge platform={problem.platform} size="md" />
-
-                    <div className="min-w-0 flex-1">
-                      <a
-                        href={problem.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="block break-words font-medium hover:text-primary hover:underline sm:truncate"
-                      >
-                        {problem.name}
-                      </a>
-                      <div className="text-muted-foreground text-sm">{problem.topic}</div>
-                    </div>
-                  </div>
-
-                  {/* Actions row */}
-                  <div className="flex shrink-0 items-center gap-3 border-border border-t pt-3 sm:border-0 sm:pt-0">
-                    <button
-                      type="button"
-                      onClick={() => handleRemove(problem.id)}
-                      disabled={removingId === problem.id}
-                      className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100"
-                      aria-label="Remove from favorites"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
+                  problem={problem}
+                  initialStatus={problem.userStatus}
+                  initialFavorite
+                  onFavoriteChange={handleFavoriteChange}
+                  showStatus
+                  showFavorite
+                />
               ))}
             </div>
           </div>

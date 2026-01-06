@@ -1,12 +1,12 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { Heart } from "lucide-react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { FavoritesList } from "@/components/problems/FavoritesList";
 import { createDb } from "@/db";
-import { problems, userFavorites } from "@/db/schema";
+import { problems, userFavorites, userProblems } from "@/db/schema";
 import { createAuth } from "@/lib/auth";
 
 export const metadata: Metadata = {
@@ -25,6 +25,7 @@ interface FavoriteProblem {
   isStarred: boolean;
   note: string | null;
   favoritedAt: Date;
+  userStatus: "untouched" | "attempting" | "solved" | "revisit" | "skipped";
 }
 
 export default async function FavoritesPage() {
@@ -60,7 +61,29 @@ export default async function FavoritesPage() {
         .orderBy(userFavorites.createdAt)
         .all();
 
-      favorites = results as FavoriteProblem[];
+      const problemIds = results.map((r) => r.id);
+      const statusRecords =
+        problemIds.length > 0
+          ? await db
+              .select({
+                problemId: userProblems.problemId,
+                status: userProblems.status,
+              })
+              .from(userProblems)
+              .where(
+                and(
+                  eq(userProblems.userId, session.user.id),
+                  inArray(userProblems.problemId, problemIds),
+                ),
+              )
+          : [];
+
+      const statusMap = new Map(statusRecords.map((r) => [r.problemId, r.status]));
+
+      favorites = results.map((r) => ({
+        ...(r as Omit<FavoriteProblem, "userStatus">),
+        userStatus: (statusMap.get(r.id) ?? "untouched") as FavoriteProblem["userStatus"],
+      }));
     }
   } catch {
     // Database not available
