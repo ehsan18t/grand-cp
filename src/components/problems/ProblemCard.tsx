@@ -184,7 +184,11 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
         </div>
       </div>
 
-      {compact && <div className={styles.divider()} aria-hidden="true" />}
+      {compact ? (
+        <div className={styles.divider()} aria-hidden="true" />
+      ) : (
+        <div className="h-px w-full bg-border sm:hidden" aria-hidden="true" />
+      )}
 
       {/* Actions */}
       <div className={styles.actions()}>
