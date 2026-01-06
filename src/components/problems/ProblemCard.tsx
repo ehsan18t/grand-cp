@@ -18,7 +18,7 @@ const problemCardVariants = tv({
       "sm:flex-row sm:items-center sm:gap-4",
     ],
     // Top row (mobile) contains number + platform + content
-    topRow: "flex min-w-0 items-center gap-4",
+    topRow: "flex min-w-0 flex-1 items-center gap-4",
     number: "w-12 shrink-0 font-mono font-medium text-muted-foreground text-sm",
     platformWrapper: "shrink-0",
     content: "min-w-0 flex-1",
@@ -28,7 +28,7 @@ const problemCardVariants = tv({
     starIcon: "h-4 w-4 shrink-0 fill-warning text-warning",
     note: "truncate text-muted-foreground text-sm",
     // Actions: same visual style as before; just flow to a second row on mobile
-    actions: "flex shrink-0 items-center gap-3 sm:self-auto",
+    actions: "flex shrink-0 items-center gap-3",
     favoriteButton: [
       "flex h-8 w-8 items-center justify-center rounded-md",
       "text-muted-foreground transition-all",
