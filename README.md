@@ -9,12 +9,14 @@ Read the documentation at https://opennext.js.org/cloudflare.
 ## Develop
 
 This project runs API routes on the Cloudflare/OpenNext runtime in development.
-This project uses a local dev env file: `.env.dev` (gitignored).
+Next.js automatically loads `.env` and `.env.local` for `next dev`.
+
+For local development, use `.env` (or `.env.local`) with localhost values.
 
 1) Create your local runtime env file:
 
 ```bash
-cp .env.example .env.dev
+cp .env.example .env
 ```
 
 2) Fill in `BETTER_AUTH_*` and (if using Google sign-in) `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET`.
