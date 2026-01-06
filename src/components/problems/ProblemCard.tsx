@@ -27,8 +27,9 @@ const problemCardVariants = tv({
     titleText: "min-w-0 font-medium break-words sm:truncate",
     starIcon: "h-4 w-4 shrink-0 fill-warning text-warning",
     note: "truncate text-muted-foreground text-sm",
+    divider: "hidden",
     // Actions: same visual style as before; just flow to a second row on mobile
-    actions: "flex shrink-0 items-center gap-3",
+    actions: "flex shrink-0 items-center gap-3 justify-between",
     favoriteButton: [
       "flex h-8 w-8 items-center justify-center rounded-md",
       "text-muted-foreground transition-all",
@@ -43,6 +44,7 @@ const problemCardVariants = tv({
         number: "w-10 text-xs",
         content: "",
         note: "hidden",
+        divider: "block h-px w-full bg-border sm:h-auto sm:w-px sm:self-stretch",
       },
     },
   },
@@ -181,6 +183,8 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
           {problem.note && !compact && <div className={styles.note()}>{problem.note}</div>}
         </div>
       </div>
+
+      {compact && <div className={styles.divider()} aria-hidden="true" />}
 
       {/* Actions */}
       <div className={styles.actions()}>
