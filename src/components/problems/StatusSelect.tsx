@@ -50,20 +50,26 @@ const statusOptions: StatusOption[] = [
 const selectVariants = tv({
   slots: {
     trigger: [
-      "inline-flex items-center justify-between gap-2",
-      "rounded-full px-3 py-1.5 text-xs font-medium",
+      "inline-flex items-center justify-between gap-1.5",
+      "rounded-full px-2.5 py-1.5 text-xs font-medium",
       "cursor-pointer transition-all duration-200",
       "hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+      // Slightly larger tap target on mobile
+      "min-h-[32px] sm:min-h-0 sm:gap-2 sm:px-3",
     ],
     menu: [
       "absolute right-0 top-full z-50 mt-1",
       "min-w-[140px] rounded-lg border border-border bg-popover p-1",
       "shadow-lg shadow-black/10 dark:shadow-black/30",
+      // Ensure menu doesn't overflow viewport on mobile
+      "max-w-[calc(100vw-2rem)]",
     ],
     option: [
       "flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm",
       "cursor-pointer transition-colors",
       "hover:bg-accent",
+      // Larger touch target on mobile
+      "min-h-[40px] sm:min-h-0",
     ],
   },
 });

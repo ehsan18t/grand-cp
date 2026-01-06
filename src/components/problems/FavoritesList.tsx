@@ -73,35 +73,41 @@ export function FavoritesList({ favorites: initialFavorites }: FavoritesListProp
               {phaseProblems.map((problem) => (
                 <div
                   key={problem.id}
-                  className="group flex items-center gap-4 rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30"
+                  className="group flex flex-col gap-3 rounded-lg border border-border bg-card p-4 transition-all hover:border-primary/30 sm:flex-row sm:items-center sm:gap-4"
                 >
-                  <div className="w-12 shrink-0 font-medium font-mono text-muted-foreground text-sm">
-                    #{problem.number}
+                  {/* Top row: number, platform, content */}
+                  <div className="flex min-w-0 items-center gap-3">
+                    <div className="shrink-0 font-medium font-mono text-muted-foreground text-sm">
+                      #{problem.number}
+                    </div>
+
+                    <PlatformBadge platform={problem.platform} size="md" />
+
+                    <div className="min-w-0 flex-1">
+                      <a
+                        href={problem.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block break-words font-medium hover:text-primary hover:underline sm:truncate"
+                      >
+                        {problem.name}
+                      </a>
+                      <div className="text-muted-foreground text-sm">{problem.topic}</div>
+                    </div>
                   </div>
 
-                  <PlatformBadge platform={problem.platform} size="md" />
-
-                  <div className="min-w-0 flex-1">
-                    <a
-                      href={problem.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium hover:text-primary hover:underline"
+                  {/* Actions row */}
+                  <div className="flex shrink-0 items-center gap-3 border-border border-t pt-3 sm:border-0 sm:pt-0">
+                    <button
+                      type="button"
+                      onClick={() => handleRemove(problem.id)}
+                      disabled={removingId === problem.id}
+                      className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-all hover:bg-destructive/10 hover:text-destructive disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100"
+                      aria-label="Remove from favorites"
                     >
-                      {problem.name}
-                    </a>
-                    <div className="text-muted-foreground text-sm">{problem.topic}</div>
+                      <Trash2 className="h-4 w-4" />
+                    </button>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleRemove(problem.id)}
-                    disabled={removingId === problem.id}
-                    className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive disabled:opacity-50 group-hover:opacity-100"
-                    aria-label="Remove from favorites"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
                 </div>
               ))}
             </div>

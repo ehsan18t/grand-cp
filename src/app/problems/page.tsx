@@ -76,15 +76,15 @@ export default async function ProblemsPage() {
 
   return (
     <main className="container mx-auto px-4 py-8">
-      <header className="mb-12 text-center">
-        <h1 className="mb-4 font-bold text-4xl">🏆 Competitive Programming Roadmap</h1>
-        <p className="mx-auto max-w-2xl text-lg text-muted-foreground">
+      <header className="mb-8 text-center sm:mb-12">
+        <h1 className="mb-4 font-bold text-2xl sm:text-4xl">🏆 Competitive Programming Roadmap</h1>
+        <p className="mx-auto max-w-2xl text-base text-muted-foreground sm:text-lg">
           From 800 Codeforces Rating to Candidate Master (2200+). {totalProblems}+ problems
           organized in {phases.length} phases.
         </p>
       </header>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
         {phases.map((phase) => {
           const progress = phaseProgress.get(phase.id);
           const total = progress?.total ?? 0;
@@ -95,7 +95,7 @@ export default async function ProblemsPage() {
             <Link
               key={phase.id}
               href={`/problems/phase/${phase.id}`}
-              className="group relative overflow-hidden rounded-xl border border-border bg-card p-6 shadow-sm transition-all duration-300 hover:border-primary/50 hover:shadow-lg"
+              className="group relative overflow-hidden rounded-xl border border-border bg-card p-4 shadow-sm transition-all duration-300 hover:border-primary/50 hover:shadow-lg sm:p-6"
             >
               <div className="absolute inset-0 bg-linear-to-br from-primary/5 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
 
@@ -139,8 +139,8 @@ export default async function ProblemsPage() {
         })}
       </div>
 
-      <section className="mt-16 rounded-xl border border-border bg-card p-8">
-        <h2 className="mb-4 font-bold text-2xl">📚 How to Practice</h2>
+      <section className="mt-12 rounded-xl border border-border bg-card p-4 sm:mt-16 sm:p-8">
+        <h2 className="mb-4 font-bold text-xl sm:text-2xl">📚 How to Practice</h2>
         <div className="grid gap-6 md:grid-cols-2">
           <div>
             <h3 className="mb-2 font-semibold text-lg">Golden Rules</h3>

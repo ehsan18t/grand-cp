@@ -178,23 +178,25 @@ export default async function PhasePage({ params }: PageProps) {
           <span className="text-foreground">Phase {phase.id}</span>
         </div>
 
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
+        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+          <div className="min-w-0 flex-1">
             <div className="mb-1 font-mono text-primary text-sm">Phase {phase.id}</div>
-            <h1 className="mb-2 font-bold text-3xl">{phase.name}</h1>
-            <p className="max-w-2xl text-muted-foreground">{phase.description}</p>
+            <h1 className="mb-2 font-bold text-2xl sm:text-3xl">{phase.name}</h1>
+            <p className="max-w-2xl text-muted-foreground text-sm sm:text-base">
+              {phase.description}
+            </p>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <div className="text-muted-foreground text-sm">Target Rating</div>
-              <div className="font-mono font-semibold text-lg">
+          <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-3 sm:border-0 sm:bg-transparent sm:p-0">
+            <div className="text-center sm:text-right">
+              <div className="text-muted-foreground text-xs sm:text-sm">Target Rating</div>
+              <div className="font-mono font-semibold text-base sm:text-lg">
                 {phase.targetRatingStart} → {phase.targetRatingEnd}
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-muted-foreground text-sm">Problems</div>
-              <div className="font-mono font-semibold text-lg">
+            <div className="text-center sm:text-right">
+              <div className="text-muted-foreground text-xs sm:text-sm">Problems</div>
+              <div className="font-mono font-semibold text-base sm:text-lg">
                 {phase.problemStart}-{phase.problemEnd}
               </div>
             </div>
@@ -221,16 +223,16 @@ export default async function PhasePage({ params }: PageProps) {
       <PhaseProblems problems={phaseProblems} />
 
       {/* Navigation */}
-      <nav className="mt-12 flex items-center justify-between border-border border-t pt-8">
+      <nav className="mt-12 flex flex-col gap-4 border-border border-t pt-8 sm:flex-row sm:items-center sm:justify-between">
         {prevPhase ? (
           <Link
             href={`/problems/phase/${prevPhase.id}`}
-            className="flex items-center gap-2 text-muted-foreground transition-colors hover:text-primary"
+            className="flex items-center gap-2 rounded-lg border border-border bg-card p-3 text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary sm:border-0 sm:bg-transparent sm:p-0"
           >
-            <ChevronLeft className="h-5 w-5" />
-            <div>
-              <div className="text-sm">Previous Phase</div>
-              <div className="font-medium text-foreground">{prevPhase.name}</div>
+            <ChevronLeft className="h-5 w-5 shrink-0" />
+            <div className="min-w-0">
+              <div className="text-xs sm:text-sm">Previous Phase</div>
+              <div className="truncate font-medium text-foreground">{prevPhase.name}</div>
             </div>
           </Link>
         ) : (
@@ -240,13 +242,13 @@ export default async function PhasePage({ params }: PageProps) {
         {nextPhase ? (
           <Link
             href={`/problems/phase/${nextPhase.id}`}
-            className="flex items-center gap-2 text-right text-muted-foreground transition-colors hover:text-primary"
+            className="flex items-center gap-2 rounded-lg border border-border bg-card p-3 text-right text-muted-foreground transition-colors hover:border-primary/30 hover:text-primary sm:border-0 sm:bg-transparent sm:p-0"
           >
-            <div>
-              <div className="text-sm">Next Phase</div>
-              <div className="font-medium text-foreground">{nextPhase.name}</div>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs sm:text-sm">Next Phase</div>
+              <div className="truncate font-medium text-foreground">{nextPhase.name}</div>
             </div>
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-5 w-5 shrink-0" />
           </Link>
         ) : (
           <div />

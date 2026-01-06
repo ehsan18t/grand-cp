@@ -204,7 +204,7 @@ export default async function StatsPage() {
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             <StatusLegend label="Solved" value={stats.solved} colorClass="bg-status-solved" />
             <StatusLegend
               label="Attempting"
@@ -317,9 +317,9 @@ interface StatusLegendProps {
 
 function StatusLegend({ label, value, colorClass }: StatusLegendProps) {
   return (
-    <div className="flex items-center gap-2">
-      <div className={`h-3 w-3 rounded-full ${colorClass}`} />
-      <span className="text-muted-foreground text-sm">{label}</span>
+    <div className="flex items-center gap-2 rounded-md bg-muted/50 px-2 py-1.5 sm:bg-transparent sm:p-0">
+      <div className={`h-3 w-3 shrink-0 rounded-full ${colorClass}`} />
+      <span className="truncate text-muted-foreground text-sm">{label}</span>
       <span className="font-medium font-mono">{value}</span>
     </div>
   );

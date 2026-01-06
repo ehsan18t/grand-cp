@@ -7,13 +7,20 @@ import { cn } from "@/lib/utils";
 
 const filterVariants = tv({
   slots: {
-    root: "flex flex-wrap items-center gap-2",
+    root: "flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center",
     label: "flex items-center gap-1.5 text-muted-foreground text-sm",
-    buttonGroup: "flex flex-wrap gap-1",
+    // Horizontal scroll on mobile to prevent awkward wrapping
+    buttonGroup: [
+      "flex gap-1 overflow-x-auto pb-1 sm:flex-wrap sm:overflow-visible sm:pb-0",
+      // Hide scrollbar but keep functionality
+      "scrollbar-none",
+    ],
     button: [
-      "rounded-md border border-border px-3 py-1.5 font-medium text-sm",
+      "shrink-0 rounded-md border border-border px-3 py-1.5 font-medium text-sm",
       "transition-colors duration-150",
       "hover:border-primary/50 hover:bg-primary/5",
+      // Larger touch target on mobile
+      "min-h-[36px] sm:min-h-0",
     ],
     buttonActive: "border-primary bg-primary/10 text-primary",
   },

@@ -11,18 +11,27 @@ import { StatusSelect, type StatusValue } from "./StatusSelect";
 const problemCardVariants = tv({
   slots: {
     root: [
-      "group flex items-center gap-4 rounded-lg border border-border bg-card p-4",
+      "group flex flex-col gap-3 rounded-lg border border-border bg-card p-4",
       "transition-all duration-200",
       "hover:border-primary/30 hover:shadow-sm",
+      // Desktop: horizontal layout
+      "sm:flex-row sm:items-center sm:gap-4",
     ],
-    number: "w-12 shrink-0 font-mono font-medium text-muted-foreground text-sm",
+    // Mobile: top row with number, platform, and name
+    topRow: "flex items-center gap-3 min-w-0",
+    number: "shrink-0 font-mono font-medium text-muted-foreground text-sm",
     platformWrapper: "shrink-0",
     content: "min-w-0 flex-1",
-    title: "flex items-center gap-2",
-    titleText: "truncate font-medium",
+    title: "flex items-start gap-2 sm:items-center",
+    // Allow text to wrap on mobile, truncate on desktop
+    titleText: "font-medium break-words sm:truncate",
     starIcon: "h-4 w-4 shrink-0 fill-warning text-warning",
-    note: "truncate text-muted-foreground text-sm",
-    actions: "flex shrink-0 items-center gap-3",
+    note: "text-muted-foreground text-sm line-clamp-2 sm:truncate",
+    // Mobile: actions row at bottom; Desktop: inline
+    actions: [
+      "flex shrink-0 items-center gap-3",
+      "border-t border-border pt-3 sm:border-0 sm:pt-0",
+    ],
     favoriteButton: [
       "flex h-8 w-8 items-center justify-center rounded-md",
       "text-muted-foreground transition-all",
@@ -31,16 +40,17 @@ const problemCardVariants = tv({
     favoriteButtonActive: "text-destructive",
     externalLink: [
       "flex h-8 w-8 items-center justify-center rounded-md",
-      "text-muted-foreground opacity-0 transition-all",
+      "text-muted-foreground transition-all",
       "hover:bg-muted hover:text-primary",
-      "group-hover:opacity-100",
+      // Always visible on mobile, fade-in on desktop hover
+      "sm:opacity-0 sm:group-hover:opacity-100",
     ],
   },
   variants: {
     compact: {
       true: {
-        root: "p-3 gap-3",
-        number: "w-10 text-xs",
+        root: "p-3 gap-2 sm:gap-3",
+        number: "text-xs",
         content: "",
         note: "hidden",
       },
@@ -149,21 +159,24 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
 
   return (
     <div ref={ref} className={cn(styles.root(), className)}>
-      {/* Problem number */}
-      <div className={styles.number()}>#{problem.number}</div>
+      {/* Top row: number, platform, content */}
+      <div className={styles.topRow()}>
+        {/* Problem number */}
+        <div className={styles.number()}>#{problem.number}</div>
 
-      {/* Platform badge */}
-      <div className={styles.platformWrapper()}>
-        <PlatformBadge platform={problem.platform} size={compact ? "sm" : "md"} />
-      </div>
-
-      {/* Problem content */}
-      <div className={styles.content()}>
-        <div className={styles.title()}>
-          <span className={styles.titleText()}>{problem.name}</span>
-          {problem.isStarred && <Star className={styles.starIcon()} />}
+        {/* Platform badge */}
+        <div className={styles.platformWrapper()}>
+          <PlatformBadge platform={problem.platform} size={compact ? "sm" : "md"} />
         </div>
-        {problem.note && !compact && <div className={styles.note()}>{problem.note}</div>}
+
+        {/* Problem content */}
+        <div className={styles.content()}>
+          <div className={styles.title()}>
+            <span className={styles.titleText()}>{problem.name}</span>
+            {problem.isStarred && <Star className={styles.starIcon()} />}
+          </div>
+          {problem.note && !compact && <div className={styles.note()}>{problem.note}</div>}
+        </div>
       </div>
 
       {/* Actions */}
