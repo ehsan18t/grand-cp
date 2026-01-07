@@ -13,6 +13,7 @@ export class StatusService {
 
   /**
    * Update a problem's status for a user.
+   * Atomically updates the status and logs to history.
    */
   async updateStatus(
     userId: string,
@@ -45,11 +46,14 @@ export class StatusService {
 
     const now = new Date();
 
-    // Update status
-    await this.statusRepo.upsertStatus(userId, problem.id, status, now);
-
-    // Log status change
-    await this.statusRepo.logStatusChange(userId, problem.id, currentStatus ?? null, status, now);
+    // Atomically update status and log to history
+    await this.statusRepo.updateStatusWithHistory(
+      userId,
+      problem.id,
+      currentStatus ?? null,
+      status,
+      now,
+    );
 
     return {
       success: true,

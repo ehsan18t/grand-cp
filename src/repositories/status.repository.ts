@@ -69,52 +69,56 @@ export class StatusRepository {
   }
 
   /**
-   * Upsert user problem status.
+   * Atomically update status and log to history.
+   * Uses batch to ensure both operations succeed or fail together.
    */
-  async upsertStatus(
+  async updateStatusWithHistory(
     userId: string,
     problemId: number,
-    status: ProblemStatus,
+    fromStatus: ProblemStatus | null,
+    toStatus: ProblemStatus,
     now: Date,
   ): Promise<void> {
+    // Check if record exists
     const existing = await this.db
-      .select()
+      .select({ id: userProblems.id })
       .from(userProblems)
       .where(and(eq(userProblems.userId, userId), eq(userProblems.problemId, problemId)))
       .get();
 
     if (existing) {
-      await this.db
-        .update(userProblems)
-        .set({ status, updatedAt: now })
-        .where(and(eq(userProblems.userId, userId), eq(userProblems.problemId, problemId)));
+      // Update existing + insert history in batch
+      await this.db.batch([
+        this.db
+          .update(userProblems)
+          .set({ status: toStatus, updatedAt: now })
+          .where(and(eq(userProblems.userId, userId), eq(userProblems.problemId, problemId))),
+        this.db.insert(statusHistory).values({
+          userId,
+          problemId,
+          fromStatus,
+          toStatus,
+          changedAt: now,
+        }),
+      ]);
     } else {
-      await this.db.insert(userProblems).values({
-        userId,
-        problemId,
-        status,
-        updatedAt: now,
-      });
+      // Insert new + insert history in batch
+      await this.db.batch([
+        this.db.insert(userProblems).values({
+          userId,
+          problemId,
+          status: toStatus,
+          updatedAt: now,
+        }),
+        this.db.insert(statusHistory).values({
+          userId,
+          problemId,
+          fromStatus,
+          toStatus,
+          changedAt: now,
+        }),
+      ]);
     }
-  }
-
-  /**
-   * Log a status change to history.
-   */
-  async logStatusChange(
-    userId: string,
-    problemId: number,
-    fromStatus: ProblemStatus | null,
-    toStatus: ProblemStatus,
-    changedAt: Date,
-  ): Promise<void> {
-    await this.db.insert(statusHistory).values({
-      userId,
-      problemId,
-      fromStatus,
-      toStatus,
-      changedAt,
-    });
   }
 
   /**
