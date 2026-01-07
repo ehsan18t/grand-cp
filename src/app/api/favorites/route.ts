@@ -38,13 +38,12 @@ export async function POST(request: Request) {
 
     const result = await services.favoriteService.addFavorite(session.user.id, problemId);
 
-    if ("error" in result) {
-      return Response.json({ error: result.error }, { status: result.code });
-    }
-
     return Response.json({ message: "Added to favorites", problemId });
   } catch (error) {
     console.error("Favorite add error:", error);
+    if (error instanceof Error && error.message === "Problem not found") {
+      return Response.json({ error: "Problem not found" }, { status: 404 });
+    }
     return Response.json({ error: "Internal server error" }, { status: 500 });
   }
 }

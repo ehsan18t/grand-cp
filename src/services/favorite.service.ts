@@ -31,11 +31,11 @@ export class FavoriteService {
   async addFavorite(
     userId: string,
     problemId: number,
-  ): Promise<FavoriteToggleResult | { error: string; code: number }> {
+  ): Promise<FavoriteToggleResult> {
     // Check if problem exists
     const problem = await this.problemRepo.findById(problemId);
     if (!problem) {
-      return { error: "Problem not found", code: 404 };
+      throw new Error("Problem not found");
     }
 
     // Check if already favorited
