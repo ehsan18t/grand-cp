@@ -49,7 +49,7 @@ export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps)
   // We include topic/platform for finding results, but only highlight matches in title + note.
   const getSearchableText = useCallback(
     (problem: ProblemWithUserData) =>
-      `${problem.name}\n${problem.note || ""}\n${problem.topic || ""}\n${problem.platform}`.toLowerCase(),
+      `${problem.platform}\n${problem.name}\n${problem.note || ""}\n${problem.topic || ""}`.toLowerCase(),
     [],
   );
 
@@ -68,8 +68,11 @@ export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps)
 
     // First apply fuzzy search (carrying match ranges along).
     let result: ResultRow[] = fuzzySearchWithMatches(trimmedSearch).map(({ item, ranges }) => {
-      const titleStart = 0;
-      const titleEnd = item.name.length;
+      const platformEnd = item.platform.length;
+
+      const titleStart = platformEnd + 1;
+      const titleEnd = titleStart + item.name.length;
+
       const noteStart = titleEnd + 1;
       const noteEnd = noteStart + (item.note?.length ?? 0);
 
