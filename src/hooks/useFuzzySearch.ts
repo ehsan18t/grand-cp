@@ -28,19 +28,10 @@ interface UseFuzzySearchResult<T> {
   }>;
 }
 
-// Create ufuzzy instance with good defaults for problem names
-const uf = new uFuzzy({
-  // IntraMode: allows chars between matches (typo tolerance)
-  intraMode: 1,
-  // IntraSub/Ins/Trans/Del: typo tolerance settings
-  intraSub: 1, // substitutions
-  intraIns: 1, // insertions
-  intraTrn: 1, // transpositions
-  intraDel: 1, // deletions
-  // InterLft/Rgt: word boundary settings
-  interLft: 2, // allow matches anywhere
-  interRgt: 2,
-});
+// Use default uFuzzy configuration.
+// Our previous custom options were overly strict and caused common queries (e.g. "pat")
+// to return zero matches.
+const uf = new uFuzzy();
 
 export function useFuzzySearch<T>({
   items,
