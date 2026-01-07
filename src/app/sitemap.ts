@@ -37,12 +37,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.9,
     },
-    {
-      url: `${siteUrl}/stats`,
-      lastModified: new Date(),
-      changeFrequency: "daily",
-      priority: 0.7,
-    },
   ];
 
   // Phase pages
@@ -64,22 +58,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  // Public user profiles (only users with usernames)
-  let userPages: MetadataRoute.Sitemap = [];
-  try {
-    if (services) {
-      const usersWithUsernames = await services.userService.getAllUsersWithUsernames();
-
-      userPages = usersWithUsernames.map((user) => ({
-        url: `${siteUrl}/u/${user.username}`,
-        lastModified: user.updatedAt,
-        changeFrequency: "weekly" as const,
-        priority: 0.5,
-      }));
-    }
-  } catch {
-    userPages = [];
-  }
-
-  return [...staticPages, ...phasePages, ...userPages];
+  return [...staticPages, ...phasePages];
 }
