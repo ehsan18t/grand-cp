@@ -83,7 +83,7 @@ export const UserMenu = forwardRef<HTMLDivElement, UserMenuProps>(function UserM
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} aria-hidden="true" />
 
           {/* Menu */}
           <div className={styles.menu()}>
