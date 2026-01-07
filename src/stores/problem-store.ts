@@ -245,7 +245,11 @@ export const useProblemStore = create<ProblemStore>()(
       }),
       // Handle hydration
       onRehydrateStorage: () => (state) => {
-        state?.setHydrated(true);
+        if (!state) {
+          console.error("Hydration failed: state is undefined");
+          return;
+        }
+        state.setHydrated(true);
       },
     },
   ),
