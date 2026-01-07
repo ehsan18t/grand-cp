@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { Logo } from "@/components/brand";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
+import { useAppStore } from "@/stores/app-store";
 import { LoginButton } from "../auth/LoginButton";
 import { UserMenu } from "../auth/UserMenu";
 import { ThemeSwitcher } from "./ThemeSwitcher";
@@ -21,7 +22,9 @@ const navLinks = [
 
 export function Navbar() {
   const pathname = usePathname();
-  const { data: session, isPending } = authClient.useSession();
+  const user = useAppStore((s) => s.user);
+  const isAuthenticated = useAppStore((s) => s.isAuthenticated);
+  const isInitialized = useAppStore((s) => s.isInitialized);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Close mobile menu on route change
@@ -102,10 +105,10 @@ export function Navbar() {
             </div>
 
             {/* Auth */}
-            {isPending ? (
+            {!isInitialized ? (
               <div className="h-9 w-24 animate-pulse rounded-full bg-muted" />
-            ) : session?.user ? (
-              <UserMenu session={session} />
+            ) : user ? (
+              <UserMenu user={user} />
             ) : (
               <LoginButton size="sm" />
             )}
@@ -206,15 +209,15 @@ export function Navbar() {
 
           {/* User Section */}
           <div className="border-border border-t p-4">
-            {isPending ? (
+            {!isInitialized ? (
               <div className="h-12 w-full animate-pulse rounded-lg bg-muted" />
-            ) : session?.user ? (
+            ) : user ? (
               <div className="space-y-3">
                 <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
-                  {session.user.image ? (
+                  {user.image ? (
                     <Image
-                      src={session.user.image}
-                      alt={session.user.name}
+                      src={user.image}
+                      alt={user.name}
                       width={40}
                       height={40}
                       sizes="40px"
@@ -222,18 +225,18 @@ export function Navbar() {
                     />
                   ) : (
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary ring-2 ring-primary/20">
-                      {session.user.name.charAt(0)}
+                      {user.name.charAt(0)}
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <div className="truncate font-medium text-sm">{session.user.name}</div>
+                    <div className="truncate font-medium text-sm">{user.name}</div>
                     <div className="truncate text-muted-foreground text-xs">
-                      {session.user.email}
+                      {user.email}
                     </div>
                   </div>
                 </div>
                 <Link
-                  href={`/u/${session.user.id}`}
+                  href={`/u/${user.username ?? user.id}`}
                   className="flex w-full items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm transition-colors hover:bg-muted"
                 >
                   View Profile

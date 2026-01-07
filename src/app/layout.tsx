@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { AppStoreInitializer } from "@/components/AppStoreInitializer";
 import { Navbar } from "@/components/layout";
 import { ToastProvider } from "@/components/ui";
 import { ThemeProvider, themeScript } from "@/context";
@@ -120,8 +121,10 @@ export default async function RootLayout({
         <ThemeProvider defaultTheme="system" enableSystem>
           <ProgressProvider>
             <ToastProvider position="bottom-right" showProgress pauseOnHover>
-              <Navbar />
-              {children}
+              <AppStoreInitializer>
+                <Navbar />
+                {children}
+              </AppStoreInitializer>
             </ToastProvider>
           </ProgressProvider>
         </ThemeProvider>

@@ -6,6 +6,8 @@ import { tv, type VariantProps } from "tailwind-variants";
 import { LoginPrompt } from "@/components/auth";
 import type { ProblemData } from "@/data/problems";
 import { cn } from "@/lib/utils";
+import { useAppStore, useStatus, useIsFavorite, useIsPending } from "@/stores/app-store";
+import { useToast } from "@/components/ui";
 import type { ProblemStatus } from "@/types/domain";
 import { PlatformBadge } from "./PlatformBadge";
 import { StatusSelect } from "./StatusSelect";
@@ -95,10 +97,23 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
   },
   ref,
 ) {
-  const [currentStatus, setCurrentStatus] = useState<ProblemStatus>(initialStatus);
-  const [isFavorite, setIsFavorite] = useState(initialFavorite);
-  const [isUpdating, setIsUpdating] = useState(false);
+  // Use store state for status and favorite
+  const storeStatus = useStatus(problem.number);
+  const storeIsFavorite = useIsFavorite(problem.id ?? 0);
+  const isStatusPending = useIsPending(`status-${problem.number}`);
+  const isFavoritePending = useIsPending(`favorite-${problem.id}`);
+  
+  // Use store state if available, fall back to initial props
+  const isAuthenticated = useAppStore((s) => s.isAuthenticated);
+  const currentStatus = isAuthenticated ? storeStatus : initialStatus;
+  const isFavorite = isAuthenticated ? storeIsFavorite : initialFavorite;
+  
+  // Store actions
+  const storeSetStatus = useAppStore((s) => s.setStatus);
+  const storeToggleFavorite = useAppStore((s) => s.toggleFavorite);
+  
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const { addToast } = useToast();
   const styles = problemCardVariants({ compact });
 
   const renderHighlightedText = useCallback((text: string, ranges?: Array<[number, number]>) => {
@@ -153,71 +168,36 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
     return nodes;
   }, []);
 
+  const showToast = useCallback((message: string, type: "error" | "success") => {
+    addToast({
+      title: type === "error" ? "Error" : "Success",
+      description: message,
+      variant: type === "error" ? "destructive" : "default",
+    });
+  }, [addToast]);
+
   const handleStatusChange = useCallback(
     async (newStatus: ProblemStatus) => {
-      const previousStatus = currentStatus;
-      setCurrentStatus(newStatus);
-
-      try {
-        const res = await fetch("/api/status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            problemNumber: problem.number,
-            status: newStatus,
-          }),
-        });
-
-        if (!res.ok) {
-          // Revert on failure
-          setCurrentStatus(previousStatus);
-        } else {
-          onStatusChange?.(problem.number, newStatus);
-        }
-      } catch {
-        setCurrentStatus(previousStatus);
+      if (!problem.id) return;
+      
+      // Use store action which handles optimistic update and rollback
+      const success = await storeSetStatus(problem.number, problem.id, newStatus, showToast);
+      if (success) {
+        onStatusChange?.(problem.number, newStatus);
       }
     },
-    [currentStatus, problem.number, onStatusChange],
+    [problem.number, problem.id, storeSetStatus, showToast, onStatusChange],
   );
 
   const handleFavoriteToggle = useCallback(async () => {
-    if (!problem.id || isUpdating) return;
+    if (!problem.id || isFavoritePending) return;
 
-    setIsUpdating(true);
-    const waseFavorite = isFavorite;
-    setIsFavorite(!isFavorite);
-
-    try {
-      if (waseFavorite) {
-        // Remove from favorites
-        const res = await fetch(`/api/favorites?problemId=${problem.id}`, {
-          method: "DELETE",
-        });
-        if (!res.ok) {
-          setIsFavorite(waseFavorite);
-        } else {
-          onFavoriteChange?.(problem.id, false);
-        }
-      } else {
-        // Add to favorites
-        const res = await fetch("/api/favorites", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ problemId: problem.id }),
-        });
-        if (!res.ok) {
-          setIsFavorite(waseFavorite);
-        } else {
-          onFavoriteChange?.(problem.id, true);
-        }
-      }
-    } catch {
-      setIsFavorite(waseFavorite);
-    } finally {
-      setIsUpdating(false);
+    // Use store action which handles optimistic update and rollback
+    const success = await storeToggleFavorite(problem.id, showToast);
+    if (success) {
+      onFavoriteChange?.(problem.id, !isFavorite);
     }
-  }, [problem.id, isFavorite, isUpdating, onFavoriteChange]);
+  }, [problem.id, isFavorite, isFavoritePending, storeToggleFavorite, showToast, onFavoriteChange]);
 
   const handleGuestFavoriteClick = () => {
     setShowLoginPrompt(true);
@@ -291,7 +271,7 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
               <button
                 type="button"
                 onClick={handleFavoriteToggle}
-                disabled={isUpdating}
+                disabled={isFavoritePending}
                 className={cn(styles.favoriteButton(), isFavorite && styles.favoriteButtonActive())}
                 aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
               >
