@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Logo } from "@/components/brand";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { LoginButton } from "../auth/LoginButton";
@@ -50,10 +51,10 @@ export function Navbar() {
           {/* Logo */}
           <Link
             href="/"
-            className="flex shrink-0 items-center gap-1.5 font-bold text-lg transition-opacity hover:opacity-80 sm:text-xl"
+            className="flex shrink-0 items-center transition-opacity hover:opacity-80"
+            aria-label="GrandCP Home"
           >
-            <span className="text-primary">Grand</span>
-            <span>CP</span>
+            <Logo size="md" />
           </Link>
 
           {/* Desktop Navigation */}
