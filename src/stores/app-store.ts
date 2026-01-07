@@ -131,7 +131,12 @@ const mapSerializer = {
   },
   reviver: (_key: string, value: unknown) => {
     if (value && typeof value === "object" && "__type" in value) {
-      const typed = value as { __type: string; entries?: unknown[]; values?: unknown[]; value?: string };
+      const typed = value as {
+        __type: string;
+        entries?: unknown[];
+        values?: unknown[];
+        value?: string;
+      };
       if (typed.__type === "Map" && typed.entries) {
         return new Map(typed.entries as [unknown, unknown][]);
       }
@@ -198,7 +203,9 @@ export const useAppStore = create<AppStore>()(
       // ========================================
 
       initialize: (data) => {
-        const phaseCountsMap = new Map(Object.entries(data.phaseCountsMap).map(([k, v]) => [Number(k), v]));
+        const phaseCountsMap = new Map(
+          Object.entries(data.phaseCountsMap).map(([k, v]) => [Number(k), v]),
+        );
 
         // Build status maps
         const statuses = new Map<number, ProblemStatus>();
@@ -269,7 +276,13 @@ export const useAppStore = create<AppStore>()(
           favorites: new Set(),
           favoritedAtMap: new Map(),
           history: [],
-          statusCounts: { solved: 0, attempting: 0, revisit: 0, skipped: 0, untouched: get().totalProblems },
+          statusCounts: {
+            solved: 0,
+            attempting: 0,
+            revisit: 0,
+            skipped: 0,
+            untouched: get().totalProblems,
+          },
           phaseSolvedMap: new Map(),
         });
       },
@@ -533,7 +546,8 @@ export const useAppStore = create<AppStore>()(
         return state.phases.map((phase) => {
           const totalProblems = state.phaseCountsMap.get(phase.id) ?? 0;
           const solvedCount = state.phaseSolvedMap.get(phase.id) ?? 0;
-          const progressPercentage = totalProblems > 0 ? Math.round((solvedCount / totalProblems) * 100) : 0;
+          const progressPercentage =
+            totalProblems > 0 ? Math.round((solvedCount / totalProblems) * 100) : 0;
 
           return {
             ...phase,
@@ -583,15 +597,15 @@ export const useAppStore = create<AppStore>()(
       // Handle hydration of complex types that JSON reviver misses (like Dates in arrays)
       merge: (persistedState, currentState) => {
         const state = persistedState as AppState;
-        
+
         // Deep merge with date restoration for history
         return {
           ...currentState,
           ...state,
-          history: Array.isArray(state.history) 
-            ? state.history.map(h => ({
+          history: Array.isArray(state.history)
+            ? state.history.map((h) => ({
                 ...h,
-                changedAt: new Date(h.changedAt)
+                changedAt: new Date(h.changedAt),
               }))
             : [],
         };

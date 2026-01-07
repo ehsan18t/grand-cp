@@ -2,9 +2,8 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { GuestBanner } from "@/components/auth";
-import type { ProblemData } from "@/data/problems";
 import { useFuzzySearch } from "@/hooks";
-import type { ProblemStatus } from "@/types/domain";
+import type { ProblemWithUserData } from "@/types/domain";
 import {
   type FavoriteFilter,
   type PlatformFilter,
@@ -12,12 +11,6 @@ import {
   ProblemList,
   type StatusFilter,
 } from ".";
-
-export interface ProblemWithUserData extends ProblemData {
-  id: number;
-  userStatus: ProblemStatus;
-  isFavorite: boolean;
-}
 
 interface PhaseProblemsProps {
   problems: ProblemWithUserData[];

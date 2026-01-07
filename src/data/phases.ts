@@ -1,6 +1,10 @@
-import type { NewPhase } from "@/db/schema";
+import type { Phase } from "@/types/domain";
 
-export const phases: NewPhase[] = [
+/**
+ * Static phase data for build-time fallback and seeding.
+ * Uses the same Phase interface as the rest of the application.
+ */
+export const phases: Phase[] = [
   {
     id: 0,
     name: "Fundamentals & Warm-up",

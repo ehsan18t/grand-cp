@@ -8,8 +8,14 @@
 import { ApiResponse, CACHE_HEADERS, withOptionalAuth } from "@/lib/api-utils";
 
 export const GET = withOptionalAuth(async (request, { services, userId, auth }) => {
-  const { phaseService, problemService, statusService, favoriteService, historyService, statsService } =
-    services;
+  const {
+    phaseService,
+    problemService,
+    statusService,
+    favoriteService,
+    historyService,
+    statsService,
+  } = services;
 
   // Get session for user info
   const session = await auth.api.getSession({ headers: request.headers });

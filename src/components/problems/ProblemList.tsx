@@ -1,6 +1,6 @@
 "use client";
 
-import type { ProblemWithUserData } from "./PhaseProblems";
+import type { ProblemWithUserData } from "@/types/domain";
 import { ProblemCard } from "./ProblemCard";
 
 interface ProblemListProps {

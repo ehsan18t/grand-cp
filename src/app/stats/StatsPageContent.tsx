@@ -161,8 +161,7 @@ export function StatsPageContent() {
           {phases.map((phase) => {
             const phaseTotal = phaseCountsMap.get(phase.id) ?? 0;
             const phaseSolved = phaseSolvedMap.get(phase.id) ?? 0;
-            const phaseProgress =
-              phaseTotal > 0 ? Math.round((phaseSolved / phaseTotal) * 100) : 0;
+            const phaseProgress = phaseTotal > 0 ? Math.round((phaseSolved / phaseTotal) * 100) : 0;
 
             return (
               <div key={phase.id} className="rounded-lg border border-border bg-card p-4">

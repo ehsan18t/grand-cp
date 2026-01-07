@@ -23,8 +23,7 @@ export default function SearchPage() {
           Search All Problems
         </h1>
         <p className="text-muted-foreground">
-          Search across all problems from every phase. Uses fuzzy matching for
-          typo-tolerant search.
+          Search across all problems from every phase. Uses fuzzy matching for typo-tolerant search.
         </p>
       </header>
 

@@ -23,7 +23,6 @@ const navLinks = [
 export function Navbar() {
   const pathname = usePathname();
   const user = useAppStore((s) => s.user);
-  const isAuthenticated = useAppStore((s) => s.isAuthenticated);
   const isInitialized = useAppStore((s) => s.isInitialized);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -230,9 +229,7 @@ export function Navbar() {
                   )}
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-medium text-sm">{user.name}</div>
-                    <div className="truncate text-muted-foreground text-xs">
-                      {user.email}
-                    </div>
+                    <div className="truncate text-muted-foreground text-xs">{user.email}</div>
                   </div>
                 </div>
                 <Link

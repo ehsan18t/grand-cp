@@ -20,7 +20,7 @@ export function PhasePageContent({ phaseId }: PhasePageContentProps) {
   const getProblemsWithUserData = useAppStore((s) => s.getProblemsWithUserData);
 
   const phase = phases.find((p) => p.id === phaseId);
-  
+
   if (!phase) {
     notFound();
   }

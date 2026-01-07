@@ -1,5 +1,9 @@
-import type { Platform } from "@/db/schema";
+import type { Platform } from "@/types/domain";
 
+/**
+ * ProblemData represents the static problem data without a database ID.
+ * Used for seeding and build-time fallback.
+ */
 export interface ProblemData {
   number: number;
   platform: Platform;

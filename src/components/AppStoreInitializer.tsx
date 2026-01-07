@@ -11,9 +11,9 @@
  */
 
 import { Loader2 } from "lucide-react";
-import { useEffect, useRef, useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { authClient } from "@/lib/auth-client";
-import { useAppStore, type InitResponse } from "@/stores/app-store";
+import { type InitResponse, useAppStore } from "@/stores/app-store";
 
 interface AppStoreInitializerProps {
   children: React.ReactNode;

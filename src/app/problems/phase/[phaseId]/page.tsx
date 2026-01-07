@@ -7,7 +7,7 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { phaseId } = await params;
-  
+
   return {
     title: `Phase ${phaseId} | Grand CP`,
     description: `Competitive programming problems for Phase ${phaseId}`,

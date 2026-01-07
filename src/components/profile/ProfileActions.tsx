@@ -69,7 +69,7 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
       }
 
       setIsEditing(false);
-      
+
       // Update store immediately
       if (user) {
         setUser({ ...user, username: newUsername });

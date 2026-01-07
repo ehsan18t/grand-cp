@@ -1,7 +1,6 @@
 "use client";
 
 import { Heart } from "lucide-react";
-import { useState } from "react";
 import type { FavoriteProblem } from "@/types/domain";
 import { ProblemCard } from "./ProblemCard";
 
@@ -9,20 +8,19 @@ interface FavoritesListProps {
   favorites: FavoriteProblem[];
 }
 
-export function FavoritesList({ favorites: initialFavorites }: FavoritesListProps) {
-  const [favorites, setFavorites] = useState(initialFavorites);
-
-  const handleFavoriteChange = (problemId: number, isFavorite: boolean) => {
-    if (!isFavorite) {
-      setFavorites((prev) => prev.filter((f) => f.id !== problemId));
-    }
-  };
-
+/**
+ * FavoritesList - Renders grouped list of favorite problems.
+ *
+ * This component receives favorites from Zustand (via parent) and renders them.
+ * Status/favorite changes are handled by ProblemCard which updates Zustand directly.
+ * The parent re-renders with new favorites automatically due to Zustand subscription.
+ */
+export function FavoritesList({ favorites }: FavoritesListProps) {
   if (favorites.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-8 text-center">
         <Heart className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
-        <p className="text-muted-foreground">All favorites have been removed.</p>
+        <p className="text-muted-foreground">No favorites yet.</p>
       </div>
     );
   }
@@ -46,15 +44,7 @@ export function FavoritesList({ favorites: initialFavorites }: FavoritesListProp
             <h2 className="mb-3 font-semibold text-lg text-muted-foreground">Phase {phaseId}</h2>
             <div className="space-y-2">
               {phaseProblems.map((problem) => (
-                <ProblemCard
-                  key={problem.id}
-                  problem={problem}
-                  initialStatus={problem.userStatus}
-                  initialFavorite
-                  onFavoriteChange={handleFavoriteChange}
-                  showStatus
-                  showFavorite
-                />
+                <ProblemCard key={problem.id} problem={problem} showStatus showFavorite />
               ))}
             </div>
           </div>

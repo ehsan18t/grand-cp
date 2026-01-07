@@ -4,10 +4,10 @@ import { Heart, Star } from "lucide-react";
 import { forwardRef, useCallback, useState } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 import { LoginPrompt } from "@/components/auth";
+import { useToast } from "@/components/ui";
 import type { ProblemData } from "@/data/problems";
 import { cn } from "@/lib/utils";
-import { useAppStore, useStatus, useIsFavorite, useIsPending } from "@/stores/app-store";
-import { useToast } from "@/components/ui";
+import { useAppStore, useIsFavorite, useIsPending, useStatus } from "@/stores/app-store";
 import type { ProblemStatus } from "@/types/domain";
 import { PlatformBadge } from "./PlatformBadge";
 import { StatusSelect } from "./StatusSelect";
@@ -100,18 +100,17 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
   // Use store state for status and favorite
   const storeStatus = useStatus(problem.number);
   const storeIsFavorite = useIsFavorite(problem.id ?? 0);
-  const isStatusPending = useIsPending(`status-${problem.number}`);
   const isFavoritePending = useIsPending(`favorite-${problem.id}`);
-  
+
   // Use store state if available, fall back to initial props
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
   const currentStatus = isAuthenticated ? storeStatus : initialStatus;
   const isFavorite = isAuthenticated ? storeIsFavorite : initialFavorite;
-  
+
   // Store actions
   const storeSetStatus = useAppStore((s) => s.setStatus);
   const storeToggleFavorite = useAppStore((s) => s.toggleFavorite);
-  
+
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const { addToast } = useToast();
   const styles = problemCardVariants({ compact });
@@ -168,18 +167,21 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
     return nodes;
   }, []);
 
-  const showToast = useCallback((message: string, type: "error" | "success") => {
-    addToast({
-      title: type === "error" ? "Error" : "Success",
-      description: message,
-      variant: type === "error" ? "destructive" : "default",
-    });
-  }, [addToast]);
+  const showToast = useCallback(
+    (message: string, type: "error" | "success") => {
+      addToast({
+        title: type === "error" ? "Error" : "Success",
+        description: message,
+        variant: type === "error" ? "destructive" : "default",
+      });
+    },
+    [addToast],
+  );
 
   const handleStatusChange = useCallback(
     async (newStatus: ProblemStatus) => {
       if (!problem.id) return;
-      
+
       // Use store action which handles optimistic update and rollback
       const success = await storeSetStatus(problem.number, problem.id, newStatus, showToast);
       if (success) {
