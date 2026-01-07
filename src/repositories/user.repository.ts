@@ -11,6 +11,8 @@ import type { UserProfile } from "@/types/domain";
 export class UserRepository {
   constructor(private db: Database) {}
 
+  private readonly MAX_SITEMAP_USERS = 1000;
+
   /**
    * Find a user by username or ID.
    */
@@ -99,7 +101,9 @@ export class UserRepository {
   /**
    * Get all users with usernames (for sitemap).
    */
-  async findAllWithUsernames(limit = 1000): Promise<Array<{ username: string; updatedAt: Date }>> {
+  async findAllWithUsernames(
+    limit = this.MAX_SITEMAP_USERS,
+  ): Promise<Array<{ username: string; updatedAt: Date }>> {
     const results = await this.db
       .select({
         username: users.username,
