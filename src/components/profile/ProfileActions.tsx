@@ -31,7 +31,8 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
         setShareMessage("Link copied to clipboard!");
         setTimeout(() => setShareMessage(null), 2000);
       }
-    } catch {
+    } catch (error) {
+      console.error("Share failed", error);
       // User cancelled share or error
       await navigator.clipboard.writeText(profileUrl);
       setShareMessage("Link copied to clipboard!");
@@ -66,7 +67,8 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
       // Navigate to new profile URL
       router.push(`/u/${newUsername}`);
       router.refresh();
-    } catch {
+    } catch (error) {
+      console.error("Username update error", error);
       setError("Failed to update username");
     } finally {
       setIsLoading(false);

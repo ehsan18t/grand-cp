@@ -22,7 +22,8 @@ export function ShareButton({ title, text, url, className }: ShareButtonProps) {
         setMessage("Link copied!");
         setTimeout(() => setMessage(null), 2000);
       }
-    } catch {
+    } catch (error) {
+      console.error("Share failed", error);
       await navigator.clipboard.writeText(url);
       setMessage("Link copied!");
       setTimeout(() => setMessage(null), 2000);
