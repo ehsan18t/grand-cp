@@ -34,7 +34,8 @@ export function ProblemStoreProvider({
 
   useEffect(() => {
     // Only initialize once per mount
-    if (!initialized.current && (initialStatuses.length > 0 || initialFavorites.length > 0)) {
+    // Only initialize once per mount
+    if (!initialized.current) {
       const statusMap = new Map(initialStatuses);
       const favoriteSet = new Set(initialFavorites);
       initialize(statusMap, favoriteSet);
