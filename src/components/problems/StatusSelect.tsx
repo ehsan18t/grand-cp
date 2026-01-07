@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  ChevronDown,
-  Circle,
-  CircleCheck,
-  CircleDot,
-  Lock,
-  RotateCcw,
-  SkipForward,
-} from "lucide-react";
+import { ChevronDown, Circle, CircleCheck, CircleDot, RotateCcw, SkipForward } from "lucide-react";
 
 import { forwardRef, useState } from "react";
 import { tv } from "tailwind-variants";
@@ -75,9 +67,9 @@ const selectVariants = tv({
       "cursor-pointer transition-all duration-200",
       "hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
       "min-h-[32px] sm:min-h-0 sm:gap-2 sm:px-3",
-      // Guest-specific styling - more muted with lock hint
-      "bg-muted text-muted-foreground",
-      "hover:bg-muted/80",
+      // Guest-specific styling - looks like untouched but muted
+      "bg-status-untouched/50 text-status-untouched-foreground/70",
+      "hover:bg-status-untouched/70",
     ],
     menu: [
       "absolute right-0 top-full z-50 mt-1",
@@ -153,8 +145,8 @@ export const StatusSelect = forwardRef<HTMLDivElement, StatusSelectProps>(functi
             className={styles.guestTrigger()}
             title="Sign in to track progress"
           >
-            <Lock className="h-3.5 w-3.5" />
-            <span>Track Status</span>
+            <Circle className="h-3.5 w-3.5" />
+            <span>Untouched</span>
           </button>
         </div>
         <LoginPrompt

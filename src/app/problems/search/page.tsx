@@ -1,0 +1,31 @@
+import { getRequestContext } from "@/lib/request-context";
+import { AllProblemsSearch } from "./AllProblemsSearch";
+
+export const metadata = {
+  title: "Search Problems | Grand CP",
+  description: "Search across all 655+ competitive programming problems",
+};
+
+export default async function SearchPage() {
+  const { services, userId } = await getRequestContext();
+  const { problemService } = services;
+
+  const isGuest = !userId;
+
+  // Get all problems with user data
+  const allProblems = await problemService.getAllProblems();
+  const problemsWithUserData = await problemService.getProblemsWithUserData(allProblems, userId);
+
+  return (
+    <main className="container mx-auto px-4 py-8">
+      <header className="mb-8">
+        <h1 className="mb-2 font-bold text-2xl sm:text-3xl">Search All Problems</h1>
+        <p className="text-muted-foreground">
+          Search across all {allProblems.length} problems from every phase.
+        </p>
+      </header>
+
+      <AllProblemsSearch problems={problemsWithUserData} isGuest={isGuest} />
+    </main>
+  );
+}

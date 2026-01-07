@@ -1,4 +1,4 @@
-import { LogIn } from "lucide-react";
+import { LogIn, Search } from "lucide-react";
 import Link from "next/link";
 import { getRequestContext } from "@/lib/request-context";
 import type { PhaseWithProgress } from "@/types/domain";
@@ -41,6 +41,13 @@ export default async function ProblemsPage() {
           From 800 Codeforces Rating to Candidate Master (2200+). {totalProblems}+ problems
           organized in {phases.length} phases.
         </p>
+        <Link
+          href="/problems/search"
+          className="mt-4 inline-flex items-center gap-2 rounded-lg border border-primary/30 bg-primary/10 px-4 py-2 font-medium text-primary text-sm transition-colors hover:bg-primary/20"
+        >
+          <Search className="h-4 w-4" />
+          Search All Problems
+        </Link>
       </header>
 
       {/* Guest CTA */}
@@ -124,26 +131,131 @@ export default async function ProblemsPage() {
       </div>
 
       <section className="mt-12 rounded-xl border border-border bg-card p-4 sm:mt-16 sm:p-8">
-        <h2 className="mb-4 font-bold text-xl sm:text-2xl">📚 How to Practice</h2>
+        <h2 className="mb-6 font-bold text-xl sm:text-2xl">📚 How to Practice</h2>
+
+        {/* Two Pillars */}
+        <div className="mb-8 grid gap-4 md:grid-cols-2">
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+            <h3 className="mb-2 font-semibold text-primary">&quot;What to Think&quot;</h3>
+            <p className="text-muted-foreground text-sm">
+              Know standard problems, techniques, and patterns. Build your mental library of
+              solutions.
+            </p>
+          </div>
+          <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+            <h3 className="mb-2 font-semibold text-primary">&quot;How to Think&quot;</h3>
+            <p className="text-muted-foreground text-sm">
+              Build paths to solutions through intentional struggle. The struggle is where learning
+              happens.
+            </p>
+          </div>
+        </div>
+
+        {/* Golden Rules */}
+        <div className="mb-8">
+          <h3 className="mb-3 font-semibold text-lg">🏆 Golden Rules</h3>
+          <ul className="grid gap-2 text-muted-foreground text-sm sm:grid-cols-2">
+            <li className="flex items-start gap-2">
+              <span className="text-primary">1.</span>
+              <span>
+                <strong className="text-foreground">No jumping around</strong> - The order is
+                crucial
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary">2.</span>
+              <span>
+                <strong className="text-foreground">Struggle first</strong> - 30-60 min before hints
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary">3.</span>
+              <span>
+                <strong className="text-foreground">Avoid self-deception</strong> - Editorial =
+                spoiled
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary">4.</span>
+              <span>
+                <strong className="text-foreground">Upsolve religiously</strong> - After every
+                contest
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary">5.</span>
+              <span>
+                <strong className="text-foreground">Ask &quot;Why?&quot;</strong> - Reflect after
+                solving
+              </span>
+            </li>
+            <li className="flex items-start gap-2">
+              <span className="text-primary">6.</span>
+              <span>
+                <strong className="text-foreground">Implement everything</strong> - Reading ≠
+                solving
+              </span>
+            </li>
+          </ul>
+        </div>
+
         <div className="grid gap-6 md:grid-cols-2">
+          {/* Time Guidelines */}
           <div>
-            <h3 className="mb-2 font-semibold text-lg">Golden Rules</h3>
-            <ul className="list-inside list-disc space-y-1 text-muted-foreground text-sm">
-              <li>Follow problems serially - order is crucial</li>
-              <li>Struggle 30-60 min before seeking hints</li>
-              <li>Implement everything - reading is not solving</li>
-              <li>Upsolve after every contest</li>
+            <h3 className="mb-3 font-semibold text-lg">⏱️ Time Guidelines</h3>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between rounded bg-muted/50 px-3 py-2">
+                <span>Easy</span>
+                <span className="text-muted-foreground">15-20 min</span>
+              </div>
+              <div className="flex justify-between rounded bg-muted/50 px-3 py-2">
+                <span>Medium</span>
+                <span className="text-muted-foreground">30-45 min</span>
+              </div>
+              <div className="flex justify-between rounded bg-muted/50 px-3 py-2">
+                <span>Hard</span>
+                <span className="text-muted-foreground">60-90 min</span>
+              </div>
+              <div className="flex justify-between rounded bg-muted/50 px-3 py-2">
+                <span>Very Hard</span>
+                <span className="text-muted-foreground">2+ hours (over days)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* After Editorial */}
+          <div>
+            <h3 className="mb-3 font-semibold text-lg">🤔 After Reading Editorial</h3>
+            <ul className="space-y-2 text-muted-foreground text-sm">
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span>&quot;Why didn&apos;t I think of this?&quot;</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span>&quot;What observation wasn&apos;t intuitive?&quot;</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span>&quot;Is this technique standard?&quot;</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary">•</span>
+                <span>&quot;What similar problems could this solve?&quot;</span>
+              </li>
             </ul>
           </div>
-          <div>
-            <h3 className="mb-2 font-semibold text-lg">Time Guidelines</h3>
-            <ul className="list-inside list-disc space-y-1 text-muted-foreground text-sm">
-              <li>Easy: 15-20 minutes</li>
-              <li>Medium: 30-45 minutes</li>
-              <li>Hard: 60-90 minutes</li>
-              <li>Very Hard: 2+ hours (over days)</li>
-            </ul>
-          </div>
+        </div>
+
+        {/* Warning Signs */}
+        <div className="mt-6 rounded-lg border border-destructive/20 bg-destructive/5 p-4">
+          <h3 className="mb-2 font-semibold text-destructive">⚠️ Warning Signs of Self-Deception</h3>
+          <ul className="grid gap-1 text-muted-foreground text-sm sm:grid-cols-2">
+            <li>• Only solving easy problems</li>
+            <li>• Reading hints after 5 minutes</li>
+            <li>• Saying &quot;I would have solved it&quot;</li>
+            <li>• Rushing for quantity over quality</li>
+          </ul>
         </div>
       </section>
     </main>
