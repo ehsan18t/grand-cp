@@ -3,7 +3,7 @@
  * Contains pure database queries without business logic.
  */
 
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import type { Database } from "@/db";
 import { phases, problems } from "@/db/schema";
 import type { Phase } from "@/types/domain";
@@ -22,7 +22,7 @@ export class PhaseRepository {
    * Get a phase by ID.
    */
   async findById(id: number): Promise<Phase | null> {
-    const [phase] = await this.db.select().from(phases).where(sql`${phases.id} = ${id}`).limit(1);
+    const [phase] = await this.db.select().from(phases).where(eq(phases.id, id)).limit(1);
     return phase ?? null;
   }
 
