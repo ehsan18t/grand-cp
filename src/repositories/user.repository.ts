@@ -3,7 +3,7 @@
  * Contains pure database queries without business logic.
  */
 
-import { eq, or, isNotNull } from "drizzle-orm";
+import { eq, isNotNull, or } from "drizzle-orm";
 import type { Database } from "@/db";
 import { users } from "@/db/schema";
 import type { UserProfile } from "@/types/domain";

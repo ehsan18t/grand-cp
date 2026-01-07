@@ -12,11 +12,12 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { ProblemStatus } from "@/types/domain";
 
-export type StatusValue = ProblemStatus | "untouched";
+/** @deprecated Use ProblemStatus from @/types/domain instead */
+export type StatusValue = ProblemStatus;
 
 interface ProblemState {
   // Status map: problemNumber -> status
-  statuses: Map<number, StatusValue>;
+  statuses: Map<number, ProblemStatus>;
   // Favorites set: problemId
   favorites: Set<number>;
   // Loading states
@@ -27,19 +28,19 @@ interface ProblemState {
 
 interface ProblemActions {
   // Initialization
-  initialize: (statuses: Map<number, StatusValue>, favorites: Set<number>) => void;
+  initialize: (statuses: Map<number, ProblemStatus>, favorites: Set<number>) => void;
   setHydrated: (hydrated: boolean) => void;
 
   // Status operations (optimistic)
-  setStatus: (problemNumber: number, status: StatusValue) => Promise<void>;
-  getStatus: (problemNumber: number) => StatusValue;
+  setStatus: (problemNumber: number, status: ProblemStatus) => Promise<void>;
+  getStatus: (problemNumber: number) => ProblemStatus;
 
   // Favorite operations (optimistic)
   toggleFavorite: (problemId: number) => Promise<void>;
   isFavorite: (problemId: number) => boolean;
 
   // Batch operations
-  setStatusBatch: (entries: Array<[number, StatusValue]>) => void;
+  setStatusBatch: (entries: Array<[number, ProblemStatus]>) => void;
   setFavoritesBatch: (ids: number[]) => void;
 
   // Check if an update is pending

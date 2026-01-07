@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import type { ProblemData } from "@/data/problems";
+import type { ProblemStatus } from "@/types/domain";
 import { PlatformFilter, type PlatformFilter as PlatformFilterValue, ProblemList } from ".";
-import type { StatusValue } from "./StatusSelect";
 
 export interface ProblemWithUserData extends ProblemData {
   id: number;
-  userStatus: StatusValue;
+  userStatus: ProblemStatus;
   isFavorite: boolean;
 }
 

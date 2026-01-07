@@ -39,12 +39,10 @@ export class UserService {
     username: string,
   ): Promise<{ success: boolean; username: string }> {
     // Validate username format
-    // Validate username format
     if (!this.isValidUsername(username)) {
       throw new Error("Invalid username format");
     }
 
-    // Check if username is taken
     // Check if username is taken
     const isTaken = await this.userRepo.isUsernameTaken(username, userId);
     if (isTaken) {

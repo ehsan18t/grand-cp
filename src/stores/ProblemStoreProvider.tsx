@@ -1,14 +1,15 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { type StatusValue, useProblemStore } from "@/stores/problem-store";
+import { useProblemStore } from "@/stores/problem-store";
+import type { ProblemStatus } from "@/types/domain";
 
 interface ProblemStoreProviderProps {
   children: React.ReactNode;
   /**
    * Initial statuses from server: Array of [problemNumber, status]
    */
-  initialStatuses?: Array<[number, StatusValue]>;
+  initialStatuses?: Array<[number, ProblemStatus]>;
   /**
    * Initial favorite problem IDs from server
    */
@@ -33,7 +34,6 @@ export function ProblemStoreProvider({
   const initialize = useProblemStore((state) => state.initialize);
 
   useEffect(() => {
-    // Only initialize once per mount
     // Only initialize once per mount
     if (!initialized.current) {
       const statusMap = new Map(initialStatuses);

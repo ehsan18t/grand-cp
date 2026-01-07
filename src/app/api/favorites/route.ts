@@ -1,80 +1,35 @@
-import { getApiContext } from "@/lib/request-context";
+import { ApiResponse, validatePositiveInt, withAuth } from "@/lib/api-utils";
+import { Errors } from "@/lib/errors";
 
 // Get user's favorites
-export async function GET(request: Request) {
-  try {
-    const { auth, services } = await getApiContext();
-    const session = await auth.api.getSession({ headers: request.headers });
-
-    if (!session?.user?.id) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const favorites = await services.favoriteService.getFavorites(session.user.id);
-
-    return Response.json({ favorites });
-  } catch (error) {
-    console.error("Favorites fetch error:", error);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
+export const GET = withAuth(async (_request, { services, userId }) => {
+  const favorites = await services.favoriteService.getFavorites(userId);
+  return ApiResponse.ok({ favorites });
+});
 
 // Add a problem to favorites
-export async function POST(request: Request) {
-  try {
-    const { auth, services } = await getApiContext();
-    const session = await auth.api.getSession({ headers: request.headers });
+export const POST = withAuth(async (request, { services, userId }) => {
+  const body = (await request.json()) as { problemId?: unknown };
+  const problemId = validatePositiveInt(body.problemId, "problemId");
 
-    if (!session?.user?.id) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const body = (await request.json()) as { problemId: number };
-    const { problemId } = body;
-
-    if (!problemId || typeof problemId !== "number" || !Number.isInteger(problemId) || problemId <= 0) {
-      return Response.json({ error: "Invalid problemId" }, { status: 400 });
-    }
-
-    const result = await services.favoriteService.addFavorite(session.user.id, problemId);
-
-    return Response.json({ message: "Added to favorites", problemId });
-  } catch (error) {
-    console.error("Favorite add error:", error);
-    if (error instanceof Error && error.message === "Problem not found") {
-      return Response.json({ error: "Problem not found" }, { status: 404 });
-    }
-    return Response.json({ error: "Internal server error" }, { status: 500 });
-  }
-}
+  await services.favoriteService.addFavorite(userId, problemId);
+  return ApiResponse.ok({ message: "Added to favorites", problemId });
+});
 
 // Remove a problem from favorites
-export async function DELETE(request: Request) {
-  try {
-    const { auth, services } = await getApiContext();
-    const session = await auth.api.getSession({ headers: request.headers });
+export const DELETE = withAuth(async (request, { services, userId }) => {
+  const url = new URL(request.url);
+  const problemIdStr = url.searchParams.get("problemId");
 
-    if (!session?.user?.id) {
-      return Response.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const url = new URL(request.url);
-    const problemIdStr = url.searchParams.get("problemId");
-
-    if (!problemIdStr) {
-      return Response.json({ error: "problemId is required" }, { status: 400 });
-    }
-
-    const problemIdNum = Number.parseInt(problemIdStr, 10);
-    if (!Number.isInteger(problemIdNum) || problemIdNum <= 0) {
-      return Response.json({ error: "Invalid problemId" }, { status: 400 });
-    }
-
-    await services.favoriteService.removeFavorite(session.user.id, problemIdNum);
-
-    return Response.json({ message: "Removed from favorites", problemId: problemIdNum });
-  } catch (error) {
-    console.error("Favorite remove error:", error);
-    return Response.json({ error: "Internal server error" }, { status: 500 });
+  if (!problemIdStr) {
+    throw Errors.badRequest("problemId is required");
   }
-}
+
+  const problemId = Number.parseInt(problemIdStr, 10);
+  if (!Number.isInteger(problemId) || problemId <= 0) {
+    throw Errors.badRequest("Invalid problemId");
+  }
+
+  await services.favoriteService.removeFavorite(userId, problemId);
+  return ApiResponse.ok({ message: "Removed from favorites", problemId });
+});

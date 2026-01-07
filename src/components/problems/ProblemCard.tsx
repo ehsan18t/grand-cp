@@ -5,8 +5,9 @@ import { forwardRef, useCallback, useState } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 import type { ProblemData } from "@/data/problems";
 import { cn } from "@/lib/utils";
+import type { ProblemStatus } from "@/types/domain";
 import { PlatformBadge } from "./PlatformBadge";
-import { StatusSelect, type StatusValue } from "./StatusSelect";
+import { StatusSelect } from "./StatusSelect";
 
 const problemCardVariants = tv({
   slots: {
@@ -55,9 +56,9 @@ const problemCardVariants = tv({
 
 export interface ProblemCardProps extends VariantProps<typeof problemCardVariants> {
   problem: ProblemData & { id?: number };
-  initialStatus?: StatusValue;
+  initialStatus?: ProblemStatus;
   initialFavorite?: boolean;
-  onStatusChange?: (problemNumber: number, status: StatusValue) => void;
+  onStatusChange?: (problemNumber: number, status: ProblemStatus) => void;
   onFavoriteChange?: (problemId: number, isFavorite: boolean) => void;
   showStatus?: boolean;
   showFavorite?: boolean;
@@ -78,13 +79,13 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
   },
   ref,
 ) {
-  const [currentStatus, setCurrentStatus] = useState<StatusValue>(initialStatus);
+  const [currentStatus, setCurrentStatus] = useState<ProblemStatus>(initialStatus);
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isUpdating, setIsUpdating] = useState(false);
   const styles = problemCardVariants({ compact });
 
   const handleStatusChange = useCallback(
-    async (newStatus: StatusValue) => {
+    async (newStatus: ProblemStatus) => {
       const previousStatus = currentStatus;
       setCurrentStatus(newStatus);
 

@@ -4,11 +4,13 @@ import { ChevronDown, Circle, CircleCheck, CircleDot, RotateCcw, SkipForward } f
 import { forwardRef, useState } from "react";
 import { tv } from "tailwind-variants";
 import { cn } from "@/lib/utils";
+import type { ProblemStatus } from "@/types/domain";
 
-export type StatusValue = "untouched" | "attempting" | "solved" | "revisit" | "skipped";
+/** @deprecated Use ProblemStatus from @/types/domain instead */
+export type StatusValue = ProblemStatus;
 
 interface StatusOption {
-  value: StatusValue;
+  value: ProblemStatus;
   label: string;
   icon: React.ReactNode;
   colorClass: string;
@@ -75,8 +77,8 @@ const selectVariants = tv({
 });
 
 export interface StatusSelectProps {
-  value: StatusValue;
-  onChange: (value: StatusValue) => void;
+  value: ProblemStatus;
+  onChange: (value: ProblemStatus) => void;
   disabled?: boolean;
   className?: string;
 }
@@ -89,7 +91,7 @@ export const StatusSelect = forwardRef<HTMLDivElement, StatusSelectProps>(functi
   const styles = selectVariants();
   const currentOption = statusOptions.find((opt) => opt.value === value) ?? statusOptions[0];
 
-  const handleSelect = (newValue: StatusValue) => {
+  const handleSelect = (newValue: ProblemStatus) => {
     onChange(newValue);
     setIsOpen(false);
   };

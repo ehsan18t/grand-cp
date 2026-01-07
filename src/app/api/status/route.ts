@@ -1,19 +1,8 @@
-import { getApiContext } from "@/lib/request-context";
+import { ApiResponse, CACHE_HEADERS, withAuth, withOptionalAuth } from "@/lib/api-utils";
+import { Errors } from "@/lib/errors";
 import type { ProblemStatus } from "@/types/domain";
 
-const varyCookieHeaders = {
-  Vary: "Cookie",
-} as const;
-
-const publicApiCacheHeaders = {
-  ...varyCookieHeaders,
-  "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
-} as const;
-
-const privateApiNoStoreHeaders = {
-  ...varyCookieHeaders,
-  "Cache-Control": "private, no-store",
-} as const;
+const VALID_STATUSES: ProblemStatus[] = ["untouched", "attempting", "solved", "revisit", "skipped"];
 
 interface StatusUpdateBody {
   problemNumber: number;
@@ -26,85 +15,38 @@ function isValidStatusUpdateBody(body: unknown): body is StatusUpdateBody {
   return (
     typeof problemNumber === "number" &&
     typeof status === "string" &&
-    ["untouched", "attempting", "solved", "revisit", "skipped"].includes(status)
+    VALID_STATUSES.includes(status as ProblemStatus)
   );
 }
 
-export async function POST(request: Request) {
-  try {
-    const { auth, services } = await getApiContext();
-    const session = await auth.api.getSession({ headers: request.headers });
+export const POST = withAuth(async (request, { services, userId }) => {
+  const body = await request.json();
 
-    if (!session?.user?.id) {
-      return Response.json(
-        { error: "Unauthorized" },
-        { status: 401, headers: privateApiNoStoreHeaders },
-      );
-    }
-
-    const body = await request.json();
-    if (!isValidStatusUpdateBody(body)) {
-      return Response.json({ error: "Invalid body" }, { status: 400 });
-    }
-
-    const { problemNumber, status } = body;
-
-    const result = await services.statusService.updateStatus(
-      session.user.id,
-      problemNumber,
-      status,
-    );
-
-    return Response.json(
-      {
-        message: "Status updated",
-        problemNumber: result.problemNumber,
-        status: result.status,
-        previousStatus: result.previousStatus,
-      },
-      { headers: privateApiNoStoreHeaders },
-    );
-  } catch (error) {
-    if (error instanceof Error) {
-      if (error.message === "Invalid status") {
-        return Response.json(
-          { error: "Invalid status" },
-          { status: 400, headers: privateApiNoStoreHeaders },
-        );
-      }
-      if (error.message === "Problem not found") {
-        return Response.json(
-          { error: "Problem not found" },
-          { status: 404, headers: privateApiNoStoreHeaders },
-        );
-      }
-    }
-    console.error("Status update error:", error);
-    return Response.json(
-      { error: "Internal server error" },
-      { status: 500, headers: privateApiNoStoreHeaders },
-    );
+  if (!isValidStatusUpdateBody(body)) {
+    throw Errors.badRequest("Invalid body");
   }
-}
 
-export async function GET(request: Request) {
-  try {
-    const { auth, services } = await getApiContext();
-    const session = await auth.api.getSession({ headers: request.headers });
+  const { problemNumber, status } = body;
 
-    // For authenticated users, get their personal status
-    if (session?.user?.id) {
-      const statuses = await services.statusService.getAllStatuses(session.user.id);
-      return Response.json({ statuses }, { headers: privateApiNoStoreHeaders });
-    }
+  const result = await services.statusService.updateStatus(userId, problemNumber, status);
 
-    // For guests, return empty (they can only view, not track)
-    return Response.json({ statuses: [] }, { headers: publicApiCacheHeaders });
-  } catch (error) {
-    console.error("Status fetch error:", error);
-    return Response.json(
-      { error: "Internal server error" },
-      { status: 500, headers: privateApiNoStoreHeaders },
-    );
+  return ApiResponse.ok(
+    {
+      message: "Status updated",
+      problemNumber: result.problemNumber,
+      status: result.status,
+      previousStatus: result.previousStatus,
+    },
+    CACHE_HEADERS.private,
+  );
+});
+
+export const GET = withOptionalAuth(async (_request, { services, userId }) => {
+  if (userId) {
+    const statuses = await services.statusService.getAllStatuses(userId);
+    return ApiResponse.ok({ statuses }, CACHE_HEADERS.private);
   }
-}
+
+  // For guests, return empty (they can only view, not track)
+  return ApiResponse.ok({ statuses: [] }, CACHE_HEADERS.publicShort);
+});

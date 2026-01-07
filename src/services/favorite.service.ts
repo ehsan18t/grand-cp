@@ -28,10 +28,7 @@ export class FavoriteService {
   /**
    * Add a problem to favorites.
    */
-  async addFavorite(
-    userId: string,
-    problemId: number,
-  ): Promise<FavoriteToggleResult> {
+  async addFavorite(userId: string, problemId: number): Promise<FavoriteToggleResult> {
     // Check if problem exists
     const problem = await this.problemRepo.findById(problemId);
     if (!problem) {
