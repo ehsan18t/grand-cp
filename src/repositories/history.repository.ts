@@ -3,7 +3,7 @@
  * Contains pure database queries without business logic.
  */
 
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import type { Database } from "@/db";
 import { problems, statusHistory } from "@/db/schema";
 import type { HistoryEntry, Platform, ProblemStatus } from "@/types/domain";
@@ -12,9 +12,9 @@ export class HistoryRepository {
   constructor(private db: Database) {}
 
   /**
-   * Get status history for a user with problem details.
+   * Get paginated status history for a user with problem details.
    */
-  async getHistoryForUser(userId: string, limit = 500): Promise<HistoryEntry[]> {
+  async getHistoryForUser(userId: string, limit = 50, offset = 0): Promise<HistoryEntry[]> {
     const results = await this.db
       .select({
         id: statusHistory.id,
@@ -32,6 +32,7 @@ export class HistoryRepository {
       .where(eq(statusHistory.userId, userId))
       .orderBy(desc(statusHistory.changedAt))
       .limit(limit)
+      .offset(offset)
       .all();
 
     return results.map((r) => ({
@@ -45,5 +46,18 @@ export class HistoryRepository {
       toStatus: r.toStatus as ProblemStatus,
       changedAt: r.changedAt,
     }));
+  }
+
+  /**
+   * Get total history count for a user.
+   */
+  async getHistoryCountForUser(userId: string): Promise<number> {
+    const result = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(statusHistory)
+      .where(eq(statusHistory.userId, userId))
+      .get();
+
+    return result?.count ?? 0;
   }
 }

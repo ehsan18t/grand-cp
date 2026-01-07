@@ -18,7 +18,7 @@ import {
   useState,
 } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
-import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { useReducedMotion } from "@/hooks";
 import { cn } from "@/lib/utils";
 
 // ============================================================================

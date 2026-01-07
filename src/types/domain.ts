@@ -10,6 +10,35 @@
 export type ProblemStatus = "untouched" | "attempting" | "solved" | "revisit" | "skipped";
 export type Platform = "leetcode" | "codeforces" | "cses" | "atcoder" | "other";
 
+/** Valid problem statuses - use for validation */
+export const VALID_STATUSES: readonly ProblemStatus[] = [
+  "untouched",
+  "attempting",
+  "solved",
+  "revisit",
+  "skipped",
+] as const;
+
+/** Check if a string is a valid problem status */
+export function isValidStatus(status: string): status is ProblemStatus {
+  return VALID_STATUSES.includes(status as ProblemStatus);
+}
+
+// ============================================================================
+// Username Validation
+// ============================================================================
+
+/** Username validation: 3-20 chars, alphanumeric + underscore */
+export const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+
+export const USERNAME_MIN_LENGTH = 3;
+export const USERNAME_MAX_LENGTH = 20;
+
+/** Check if a string is a valid username */
+export function isValidUsername(username: string): boolean {
+  return USERNAME_REGEX.test(username);
+}
+
 // ============================================================================
 // Phase Types
 // ============================================================================

@@ -5,15 +5,25 @@
 import type { HistoryRepository } from "@/repositories";
 import type { HistoryEntry } from "@/types/domain";
 
-const MAX_HISTORY_ENTRIES = 500;
+/** Max entries fetched per page */
+export const HISTORY_PAGE_SIZE = 50;
+/** Max entries to fetch for history page */
+export const HISTORY_MAX_ENTRIES = 200;
 
 export class HistoryService {
   constructor(private historyRepo: HistoryRepository) {}
 
   /**
-   * Get status history for a user.
+   * Get paginated status history for a user.
    */
-  async getHistory(userId: string, limit = MAX_HISTORY_ENTRIES): Promise<HistoryEntry[]> {
-    return this.historyRepo.getHistoryForUser(userId, limit);
+  async getHistory(userId: string, limit = HISTORY_PAGE_SIZE, offset = 0): Promise<HistoryEntry[]> {
+    return this.historyRepo.getHistoryForUser(userId, limit, offset);
+  }
+
+  /**
+   * Get total history count for a user.
+   */
+  async getHistoryCount(userId: string): Promise<number> {
+    return this.historyRepo.getHistoryCountForUser(userId);
   }
 }

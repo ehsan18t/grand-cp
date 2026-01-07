@@ -3,6 +3,24 @@
 import { Check, Edit2, Loader2, Share2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAppStore, useUser } from "@/stores/app-store";
+import { isValidUsername, USERNAME_MAX_LENGTH, USERNAME_MIN_LENGTH } from "@/types/domain";
+
+function validateUsername(value: string): string | null {
+  if (!value.trim()) {
+    return "Username is required";
+  }
+  if (value.length < USERNAME_MIN_LENGTH) {
+    return `Username must be at least ${USERNAME_MIN_LENGTH} characters`;
+  }
+  if (value.length > USERNAME_MAX_LENGTH) {
+    return `Username must be at most ${USERNAME_MAX_LENGTH} characters`;
+  }
+  if (!isValidUsername(value)) {
+    return "Username can only contain letters, numbers, and underscores";
+  }
+  return null;
+}
 
 interface ProfileActionsProps {
   isOwner: boolean;
@@ -31,12 +49,23 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
         setShareMessage("Link copied to clipboard!");
         setTimeout(() => setShareMessage(null), 2000);
       }
-    } catch (error) {
-      console.error("Share failed", error);
-      // User cancelled share or error
+    } catch {
+      // User cancelled share or error - fallback to clipboard
       await navigator.clipboard.writeText(profileUrl);
       setShareMessage("Link copied to clipboard!");
       setTimeout(() => setShareMessage(null), 2000);
+    }
+  };
+
+  // Store actions
+  const setUser = useAppStore((s) => s.setUser);
+  const user = useUser();
+
+  const handleUsernameChange = (value: string) => {
+    setNewUsername(value);
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
     }
   };
 
@@ -46,29 +75,58 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
       return;
     }
 
+    const normalizedUsername = newUsername.trim().toLowerCase();
+
+    // If normalization makes it equal, nothing to persist.
+    if (normalizedUsername === username) {
+      setIsEditing(false);
+      return;
+    }
+
+    // Client-side validation
+    const validationError = validateUsername(normalizedUsername);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
+
+    // Optimistic update - update store immediately
+    const previousUsername = user?.username;
+    if (user) {
+      setUser({ ...user, username: normalizedUsername });
+    }
 
     try {
       const res = await fetch("/api/user", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: newUsername }),
+        body: JSON.stringify({ username: normalizedUsername }),
       });
 
       const data = (await res.json()) as { error?: string };
 
       if (!res.ok) {
+        // Rollback on error
+        if (user && previousUsername) {
+          setUser({ ...user, username: previousUsername });
+        }
         setError(data.error ?? "Failed to update username");
         return;
       }
 
       setIsEditing(false);
+
       // Navigate to new profile URL
-      router.push(`/u/${newUsername}`);
+      router.push(`/u/${normalizedUsername}`);
       router.refresh();
-    } catch (error) {
-      console.error("Username update error", error);
+    } catch {
+      // Rollback on error
+      if (user && previousUsername) {
+        setUser({ ...user, username: previousUsername });
+      }
       setError("Failed to update username");
     } finally {
       setIsLoading(false);
@@ -93,9 +151,10 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
                 <input
                   type="text"
                   value={newUsername}
-                  onChange={(e) => setNewUsername(e.target.value)}
+                  onChange={(e) => handleUsernameChange(e.target.value)}
                   className="rounded border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="username"
+                  maxLength={USERNAME_MAX_LENGTH}
                   disabled={isLoading}
                 />
                 <button

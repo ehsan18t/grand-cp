@@ -30,12 +30,12 @@ const platformFilterOptions: { value: PlatformFilterValue; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
-export function HistoryList({ entries: initialEntries }: HistoryListProps) {
+export function HistoryList({ entries }: HistoryListProps) {
   const [statusFilter, setStatusFilter] = useState<FilterValue>("all");
   const [platformFilter, setPlatformFilter] = useState<PlatformFilterValue>("all");
 
   const filteredEntries = useMemo(() => {
-    return initialEntries.filter((entry) => {
+    return entries.filter((entry) => {
       // Filter by status (toStatus)
       if (statusFilter !== "all" && entry.toStatus !== statusFilter) {
         return false;
@@ -46,7 +46,7 @@ export function HistoryList({ entries: initialEntries }: HistoryListProps) {
       }
       return true;
     });
-  }, [initialEntries, statusFilter, platformFilter]);
+  }, [entries, statusFilter, platformFilter]);
 
   // Group entries by date for better visual organization
   const groupedEntries = useMemo(() => {
@@ -71,7 +71,7 @@ export function HistoryList({ entries: initialEntries }: HistoryListProps) {
     return groups;
   }, [filteredEntries]);
 
-  if (initialEntries.length === 0) {
+  if (entries.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-8 text-center">
         <Clock className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
@@ -114,7 +114,7 @@ export function HistoryList({ entries: initialEntries }: HistoryListProps) {
         </select>
 
         <span className="text-muted-foreground text-sm">
-          {filteredEntries.length} of {initialEntries.length} entries
+          {filteredEntries.length} of {entries.length} entries
         </span>
       </div>
 

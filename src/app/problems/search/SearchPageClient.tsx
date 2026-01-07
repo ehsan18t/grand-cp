@@ -1,30 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
-import { useSearchStore } from "@/stores";
-import type { ProblemWithUserData } from "@/types/domain";
+import { useAppStore } from "@/stores/app-store";
 import { AllProblemsSearch } from "./AllProblemsSearch";
 
-interface SearchPageClientProps {
-  initialProblems: ProblemWithUserData[];
-  isGuest: boolean;
-}
-
 /**
- * Client wrapper that initializes the search store with server data.
- * This ensures problems are cached in Zustand for fast client-side filtering.
+ * Client wrapper that reads problems from the app store.
  */
-export function SearchPageClient({ initialProblems, isGuest }: SearchPageClientProps) {
-  const setProblems = useSearchStore((s) => s.setProblems);
-  const isInitialized = useSearchStore((s) => s.isInitialized);
+export function SearchPageClient() {
+  const isAuthenticated = useAppStore((s) => s.isAuthenticated);
+  const getProblemsWithUserData = useAppStore((s) => s.getProblemsWithUserData);
 
-  // Initialize store with server data on mount
-  useEffect(() => {
-    if (!isInitialized) {
-      // Store base problem data (without user data for caching)
-      setProblems(initialProblems);
-    }
-  }, [initialProblems, setProblems, isInitialized]);
+  const problems = getProblemsWithUserData();
+  const isGuest = !isAuthenticated;
 
-  return <AllProblemsSearch problems={initialProblems} isGuest={isGuest} />;
+  return <AllProblemsSearch problems={problems} isGuest={isGuest} />;
 }

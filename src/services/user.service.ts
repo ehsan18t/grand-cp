@@ -3,9 +3,7 @@
  */
 
 import type { UserRepository } from "@/repositories";
-import type { UserProfile } from "@/types/domain";
-
-const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+import { isValidUsername, type UserProfile } from "@/types/domain";
 
 export class UserService {
   constructor(private userRepo: UserRepository) {}
@@ -38,26 +36,21 @@ export class UserService {
     userId: string,
     username: string,
   ): Promise<{ success: boolean; username: string }> {
+    const normalizedUsername = username.trim().toLowerCase();
+
     // Validate username format
-    if (!this.isValidUsername(username)) {
+    if (!isValidUsername(normalizedUsername)) {
       throw new Error("Invalid username format");
     }
 
     // Check if username is taken
-    const isTaken = await this.userRepo.isUsernameTaken(username, userId);
+    const isTaken = await this.userRepo.isUsernameTaken(normalizedUsername, userId);
     if (isTaken) {
       throw new Error("Username is already taken");
     }
 
-    await this.userRepo.updateUsername(userId, username);
+    await this.userRepo.updateUsername(userId, normalizedUsername);
 
-    return { success: true, username };
-  }
-
-  /**
-   * Validate username format.
-   */
-  isValidUsername(username: string): boolean {
-    return USERNAME_REGEX.test(username);
+    return { success: true, username: normalizedUsername };
   }
 }

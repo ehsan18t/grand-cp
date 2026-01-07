@@ -66,8 +66,10 @@ export const GuestOverlay = forwardRef<HTMLDivElement, GuestOverlayProps>(functi
         callbackURL: window.location.pathname,
       });
 
-      if ((result as any)?.error) {
-        throw new Error((result as any)?.error?.message ?? "Unknown error");
+      // Check if result contains an error
+      if (result && typeof result === "object" && "error" in result && result.error) {
+        const errorObj = result.error as { message?: string };
+        throw new Error(errorObj.message ?? "Sign in failed");
       }
     } catch {
       addToast({

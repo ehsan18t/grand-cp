@@ -29,28 +29,25 @@ const userMenuVariants = tv({
   },
 });
 
-interface UserSession {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    image?: string | null;
-    username?: string | null;
-  };
+interface UserMenuUser {
+  id: string;
+  name: string;
+  email: string;
+  image?: string | null;
+  username?: string | null;
 }
 
 export interface UserMenuProps {
-  session: UserSession;
+  user: UserMenuUser;
   className?: string;
 }
 
 export const UserMenu = forwardRef<HTMLDivElement, UserMenuProps>(function UserMenu(
-  { session, className },
+  { user, className },
   ref,
 ) {
   const [isOpen, setIsOpen] = useState(false);
   const styles = userMenuVariants();
-  const { user } = session;
 
   const handleSignOut = async () => {
     await authClient.signOut({
@@ -86,7 +83,7 @@ export const UserMenu = forwardRef<HTMLDivElement, UserMenuProps>(function UserM
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} aria-hidden="true" />
 
           {/* Menu */}
           <div className={styles.menu()}>

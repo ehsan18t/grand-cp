@@ -58,6 +58,12 @@ export class FavoriteService {
    * Remove a problem from favorites.
    */
   async removeFavorite(userId: string, problemId: number): Promise<FavoriteToggleResult> {
+    // Check if problem exists
+    const problem = await this.problemRepo.findById(problemId);
+    if (!problem) {
+      throw new Error("Problem not found");
+    }
+
     await this.favoriteRepo.remove(userId, problemId);
 
     return {

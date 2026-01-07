@@ -1,8 +1,6 @@
-import { ApiResponse, CACHE_HEADERS, withAuth, withOptionalAuth } from "@/lib/api-utils";
+import { ApiResponse, CACHE_HEADERS, withAuth } from "@/lib/api-utils";
 import { Errors } from "@/lib/errors";
-import type { ProblemStatus } from "@/types/domain";
-
-const VALID_STATUSES: ProblemStatus[] = ["untouched", "attempting", "solved", "revisit", "skipped"];
+import { type ProblemStatus, VALID_STATUSES } from "@/types/domain";
 
 interface StatusUpdateBody {
   problemNumber: number;
@@ -41,12 +39,4 @@ export const POST = withAuth(async (request, { services, userId }) => {
   );
 });
 
-export const GET = withOptionalAuth(async (_request, { services, userId }) => {
-  if (userId) {
-    const statuses = await services.statusService.getAllStatuses(userId);
-    return ApiResponse.ok({ statuses }, CACHE_HEADERS.private);
-  }
-
-  // For guests, return empty (they can only view, not track)
-  return ApiResponse.ok({ statuses: [] }, CACHE_HEADERS.publicShort);
-});
+// Note: GET handler removed - all initial data is fetched via /api/init
