@@ -21,6 +21,7 @@
 		"db:reset:remote": "bunx wrangler d1 execute grand-cp-db --remote --command=\"DROP TABLE IF EXISTS verifications; DROP TABLE IF EXISTS sessions; DROP TABLE IF EXISTS accounts; DROP TABLE IF EXISTS status_history; DROP TABLE IF EXISTS user_problems; DROP TABLE IF EXISTS user_favorites; DROP TABLE IF EXISTS problems; DROP TABLE IF EXISTS phases; DROP TABLE IF EXISTS users;\" && bunx wrangler d1 execute grand-cp-db --remote --file=./drizzle/0000_public_surge.sql && bun db:seed:remote"
 	},
 	"dependencies": {
+		"@bprogress/next": "^3.2.12",
 		"@gsap/react": "^2.1.2",
 		"@leeoniya/ufuzzy": "^1.0.19",
 		"@opennextjs/cloudflare": "^1.14.8",

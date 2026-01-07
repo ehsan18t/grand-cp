@@ -10,6 +10,7 @@
     --primary-foreground: oklch(0.98 0.005 36);
     --background: oklch(0.9383 0.0042 236.4993);
     --foreground: oklch(0.2 0.02 260);
+    --progress-color: oklch(0.6397 0.172 36.4421);
 
     /* === Focus Ring Colors (for box-shadow) === */
     --primary-rgb: 217, 119, 87;

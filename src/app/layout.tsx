@@ -5,6 +5,7 @@ import { ToastProvider } from "@/components/ui";
 import { ThemeProvider, themeScript } from "@/context";
 import { geistMono, geistSans } from "@/lib/fonts";
 import { getSiteUrlFromProcessEnv, siteConfig } from "@/lib/site";
+import ProgressProvider from "@/context/ProgressProvider";
 import "./globals.css";
 
 const siteUrl = getSiteUrlFromProcessEnv();
@@ -117,10 +118,12 @@ export default async function RootLayout({
           dangerouslySetInnerHTML={{ __html: themeScript }}
         />
         <ThemeProvider defaultTheme="system" enableSystem>
-          <ToastProvider position="bottom-right" showProgress pauseOnHover>
-            <Navbar />
-            {children}
-          </ToastProvider>
+          <ProgressProvider>
+            <ToastProvider position="bottom-right" showProgress pauseOnHover>
+              <Navbar />
+              {children}
+            </ToastProvider>
+          </ProgressProvider>
         </ThemeProvider>
       </body>
     </html>
