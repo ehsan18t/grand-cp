@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, BookOpen, Clock, Heart, Menu, X } from "lucide-react";
+import { BarChart3, BookOpen, Clock, Heart, Menu, Search, X } from "lucide-react";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -56,6 +56,20 @@ export function Navbar() {
               </Link>
             );
           })}
+
+          {/* Search Icon */}
+          <Link
+            href="/problems/search"
+            className={cn(
+              "flex items-center justify-center rounded-lg p-2 transition-colors",
+              pathname === "/problems/search"
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground",
+            )}
+            title="Search Problems"
+          >
+            <Search className="h-4 w-4" />
+          </Link>
         </div>
 
         {/* Auth Section */}
@@ -106,6 +120,21 @@ export function Navbar() {
                 </Link>
               );
             })}
+
+            {/* Mobile Search Link */}
+            <Link
+              href="/problems/search"
+              onClick={() => setMobileOpen(false)}
+              className={cn(
+                "flex items-center gap-2 rounded-lg px-4 py-3 font-medium text-sm transition-colors",
+                pathname === "/problems/search"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
+              )}
+            >
+              <Search className="h-4 w-4" />
+              Search
+            </Link>
           </div>
 
           <div className="mt-4 flex items-center justify-between border-border border-t pt-4">
