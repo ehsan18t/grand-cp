@@ -4,21 +4,19 @@ import { Check, Edit2, Loader2, Share2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAppStore, useUser } from "@/stores/app-store";
-
-/** Username validation: 3-20 chars, alphanumeric + underscore */
-const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+import { isValidUsername, USERNAME_MAX_LENGTH, USERNAME_MIN_LENGTH } from "@/types/domain";
 
 function validateUsername(value: string): string | null {
   if (!value.trim()) {
     return "Username is required";
   }
-  if (value.length < 3) {
-    return "Username must be at least 3 characters";
+  if (value.length < USERNAME_MIN_LENGTH) {
+    return `Username must be at least ${USERNAME_MIN_LENGTH} characters`;
   }
-  if (value.length > 20) {
-    return "Username must be at most 20 characters";
+  if (value.length > USERNAME_MAX_LENGTH) {
+    return `Username must be at most ${USERNAME_MAX_LENGTH} characters`;
   }
-  if (!USERNAME_REGEX.test(value)) {
+  if (!isValidUsername(value)) {
     return "Username can only contain letters, numbers, and underscores";
   }
   return null;
@@ -139,7 +137,7 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
                   onChange={(e) => handleUsernameChange(e.target.value)}
                   className="rounded border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="username"
-                  maxLength={20}
+                  maxLength={USERNAME_MAX_LENGTH}
                   disabled={isLoading}
                 />
                 <button

@@ -25,6 +25,21 @@ export function isValidStatus(status: string): status is ProblemStatus {
 }
 
 // ============================================================================
+// Username Validation
+// ============================================================================
+
+/** Username validation: 3-20 chars, alphanumeric + underscore */
+export const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+
+export const USERNAME_MIN_LENGTH = 3;
+export const USERNAME_MAX_LENGTH = 20;
+
+/** Check if a string is a valid username */
+export function isValidUsername(username: string): boolean {
+  return USERNAME_REGEX.test(username);
+}
+
+// ============================================================================
 // Phase Types
 // ============================================================================
 
