@@ -124,8 +124,9 @@ export const useProblemStore = create<ProblemStore>()(
           if (!res.ok) {
             throw new Error("Failed to update status");
           }
-        } catch {
+        } catch (error) {
           // Rollback on error
+          console.error("Failed to update status, rolling back:", error);
           set((state) => {
             const newStatuses = new Map(state.statuses);
             if (previousStatus === "untouched") {
@@ -182,8 +183,9 @@ export const useProblemStore = create<ProblemStore>()(
           if (!res.ok) {
             throw new Error("Failed to update favorite");
           }
-        } catch {
+        } catch (error) {
           // Rollback on error
+          console.error("Failed to update favorite, rolling back:", error);
           set((state) => {
             const newFavorites = new Set(state.favorites);
             if (wasFavorite) {
