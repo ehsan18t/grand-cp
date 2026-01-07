@@ -21,9 +21,10 @@ const THEMES: Array<{ value: Theme; label: string; icon: React.ReactNode }> = [
 export interface ThemeSwitcherProps {
   className?: string;
   align?: "start" | "center" | "end";
+  variant?: "icon" | "trigger";
 }
 
-export function ThemeSwitcher({ className, align = "end" }: ThemeSwitcherProps) {
+export function ThemeSwitcher({ className, align = "end", variant = "icon" }: ThemeSwitcherProps) {
   const { theme, resolvedTheme, setTheme, isLoading } = useTheme();
 
   const triggerIcon = useMemo(() => {
@@ -42,9 +43,15 @@ export function ThemeSwitcher({ className, align = "end" }: ThemeSwitcherProps) 
         aria-label="Change theme"
         disabled={isLoading}
         className={cn(
-          "h-10 w-10 justify-center px-0",
-          "bg-transparent",
-          "hover:border-accent hover:bg-accent",
+          variant === "icon" && [
+            "h-9 w-9 justify-center px-0 py-0",
+            "rounded-full",
+            "border border-transparent",
+            "bg-transparent",
+            "text-muted-foreground",
+            "hover:border-border hover:bg-muted hover:text-foreground",
+          ],
+          variant === "trigger" && ["h-10", "min-w-10"],
           isLoading && "cursor-not-allowed opacity-50",
           className,
         )}
