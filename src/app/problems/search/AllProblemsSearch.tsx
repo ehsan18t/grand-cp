@@ -24,7 +24,7 @@ export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps)
   // Create searchable text for each problem (name + topic + platform)
   const getSearchableText = useCallback(
     (problem: ProblemWithUserData) =>
-      `${problem.name} ${problem.topic || ""} ${problem.platform}`.toLowerCase(),
+      `${problem.name} ${problem.note || ""} ${problem.topic || ""} ${problem.platform}`.toLowerCase(),
     [],
   );
 

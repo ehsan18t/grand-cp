@@ -34,7 +34,7 @@ export function PhaseProblems({ problems, isGuest = false }: PhaseProblemsProps)
   // Create searchable text for fuzzy search
   const getSearchableText = useCallback(
     (problem: ProblemWithUserData) =>
-      `${problem.name} ${problem.topic || ""} ${problem.platform}`.toLowerCase(),
+      `${problem.name} ${problem.note || ""} ${problem.topic || ""} ${problem.platform}`.toLowerCase(),
     [],
   );
 

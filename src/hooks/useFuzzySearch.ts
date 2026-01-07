@@ -59,6 +59,9 @@ export function useFuzzySearch<T>({
   });
 
   const search = useMemo(() => {
+    // Reset cache whenever the underlying haystack changes.
+    cacheRef.current = { query: "", indices: null };
+
     return (query: string): T[] => {
       const trimmedQuery = query.trim();
 
@@ -73,16 +76,19 @@ export function useFuzzySearch<T>({
       }
 
       // Perform fuzzy search
-      const [idxs, _info, order] = uf.search(haystack, trimmedQuery);
+      // NOTE: When `order` is provided, it indexes into `info.idx` (not `idxs`).
+      // See uFuzzy docs/examples.
+      const [idxs, info, order] = uf.search(haystack, trimmedQuery, 1);
 
       // No matches
-      if (!idxs || idxs.length === 0) {
+      if (!idxs || idxs.length === 0 || !info || info.idx.length === 0) {
         cacheRef.current = { query: trimmedQuery, indices: [] };
         return [];
       }
 
       // Get ordered indices
-      const orderedIndices = order ? order.map((i) => idxs[i]) : idxs;
+      // `order` contains indices into `info.idx`.
+      const orderedIndices = order ? order.map((i) => info.idx[i]) : idxs;
 
       // Update cache
       cacheRef.current = { query: trimmedQuery, indices: orderedIndices };
