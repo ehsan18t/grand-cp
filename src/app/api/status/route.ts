@@ -20,6 +20,16 @@ interface StatusUpdateBody {
   status: ProblemStatus;
 }
 
+function isValidStatusUpdateBody(body: unknown): body is StatusUpdateBody {
+  if (typeof body !== "object" || body === null) return false;
+  const { problemNumber, status } = body as Record<string, unknown>;
+  return (
+    typeof problemNumber === "number" &&
+    typeof status === "string" &&
+    ["untouched", "attempting", "solved", "revisit", "skipped"].includes(status)
+  );
+}
+
 export async function POST(request: Request) {
   try {
     const { auth, services } = await getApiContext();
@@ -32,7 +42,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const body = (await request.json()) as StatusUpdateBody;
+    const body = await request.json();
+    if (!isValidStatusUpdateBody(body)) {
+      return Response.json({ error: "Invalid body" }, { status: 400 });
+    }
+
     const { problemNumber, status } = body;
 
     const result = await services.statusService.updateStatus(
