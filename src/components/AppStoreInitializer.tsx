@@ -85,15 +85,22 @@ export function AppStoreInitializer({ children }: AppStoreInitializerProps) {
   useEffect(() => {
     if (!session?.user) return;
 
-    const sessionUser = session.user;
+    const sessionUser = session.user as {
+      id: string;
+      name: string;
+      email: string;
+      image?: string | null;
+      username?: string | null;
+    };
     const storeUserData = storeUser;
 
-    // Check if user data needs updating
+    // Check if user data needs updating (including username)
     if (
       storeUserData &&
       (storeUserData.name !== sessionUser.name ||
         storeUserData.image !== sessionUser.image ||
-        storeUserData.email !== sessionUser.email)
+        storeUserData.email !== sessionUser.email ||
+        storeUserData.username !== (sessionUser.username ?? null))
     ) {
       useAppStore.setState({
         user: {
@@ -101,7 +108,7 @@ export function AppStoreInitializer({ children }: AppStoreInitializerProps) {
           name: sessionUser.name,
           email: sessionUser.email,
           image: sessionUser.image ?? null,
-          username: (sessionUser as { username?: string }).username ?? null,
+          username: sessionUser.username ?? null,
         },
       });
     }

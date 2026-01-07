@@ -1,11 +1,7 @@
 import { ApiResponse, validatePositiveInt, withAuth } from "@/lib/api-utils";
 import { Errors } from "@/lib/errors";
 
-// Get user's favorites
-export const GET = withAuth(async (_request, { services, userId }) => {
-  const favorites = await services.favoriteService.getFavorites(userId);
-  return ApiResponse.ok({ favorites });
-});
+// Note: GET handler removed - all initial data is fetched via /api/init
 
 // Add a problem to favorites
 export const POST = withAuth(async (request, { services, userId }) => {

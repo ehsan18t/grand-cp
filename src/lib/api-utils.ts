@@ -25,9 +25,14 @@ export const CACHE_HEADERS = {
     "Cache-Control": "private, no-store",
   } as const,
 
-  /** Public, short cache - for semi-dynamic data */
+  /** Public, short cache - for semi-dynamic data (still varies by cookie) */
   publicShort: {
     Vary: "Cookie",
+    "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
+  } as const,
+
+  /** Public, short cache - for guest-only data (no cookie variance, truly cacheable) */
+  publicGuest: {
     "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
   } as const,
 
@@ -106,12 +111,14 @@ export interface AuthenticatedContext extends ApiRequestContext {
   session: NonNullable<Awaited<ReturnType<Auth["api"]["getSession"]>>>;
 }
 
+export interface OptionalAuthContext extends ApiRequestContext {
+  userId: string | null;
+  session: Awaited<ReturnType<Auth["api"]["getSession"]>>;
+}
+
 type AuthenticatedHandler = (request: Request, ctx: AuthenticatedContext) => Promise<Response>;
 
-type OptionalAuthHandler = (
-  request: Request,
-  ctx: ApiRequestContext & { userId: string | null },
-) => Promise<Response>;
+type OptionalAuthHandler = (request: Request, ctx: OptionalAuthContext) => Promise<Response>;
 
 /**
  * Wrap an API handler with authentication and error handling.
@@ -174,9 +181,10 @@ export function withOptionalAuth(handler: OptionalAuthHandler) {
       const ctx = await getApiContext();
       const session = await ctx.auth.api.getSession({ headers: request.headers });
 
-      const optionalCtx = {
+      const optionalCtx: OptionalAuthContext = {
         ...ctx,
         userId: session?.user?.id ?? null,
+        session,
       };
 
       return await handler(request, optionalCtx);

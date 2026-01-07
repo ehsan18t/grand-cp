@@ -101,6 +101,7 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
   const storeStatus = useStatus(problem.number);
   const storeIsFavorite = useIsFavorite(problem.id ?? 0);
   const isFavoritePending = useIsPending(`favorite-${problem.id}`);
+  const isStatusPending = useIsPending(`status-${problem.number}`);
 
   // Use store state if available, fall back to initial props
   const isAuthenticated = useAppStore((s) => s.isAuthenticated);
@@ -180,7 +181,7 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
 
   const handleStatusChange = useCallback(
     async (newStatus: ProblemStatus) => {
-      if (!problem.id) return;
+      if (!problem.id || isStatusPending) return;
 
       // Use store action which handles optimistic update and rollback
       const success = await storeSetStatus(problem.number, problem.id, newStatus, showToast);
@@ -188,7 +189,7 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
         onStatusChange?.(problem.number, newStatus);
       }
     },
-    [problem.number, problem.id, storeSetStatus, showToast, onStatusChange],
+    [problem.number, problem.id, isStatusPending, storeSetStatus, showToast, onStatusChange],
   );
 
   const handleFavoriteToggle = useCallback(async () => {
@@ -254,7 +255,12 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
         {/* Actions */}
         <div className={styles.actions()}>
           {showStatus && (
-            <StatusSelect value={currentStatus} onChange={handleStatusChange} isGuest={isGuest} />
+            <StatusSelect
+              value={currentStatus}
+              onChange={handleStatusChange}
+              isGuest={isGuest}
+              disabled={isStatusPending}
+            />
           )}
 
           {showFavorite &&

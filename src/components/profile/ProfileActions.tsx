@@ -85,6 +85,12 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
     setIsLoading(true);
     setError(null);
 
+    // Optimistic update - update store immediately
+    const previousUsername = user?.username;
+    if (user) {
+      setUser({ ...user, username: newUsername });
+    }
+
     try {
       const res = await fetch("/api/user", {
         method: "PATCH",
@@ -95,21 +101,24 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
       const data = (await res.json()) as { error?: string };
 
       if (!res.ok) {
+        // Rollback on error
+        if (user && previousUsername) {
+          setUser({ ...user, username: previousUsername });
+        }
         setError(data.error ?? "Failed to update username");
         return;
       }
 
       setIsEditing(false);
 
-      // Update store immediately
-      if (user) {
-        setUser({ ...user, username: newUsername });
-      }
-
       // Navigate to new profile URL
       router.push(`/u/${newUsername}`);
       router.refresh();
     } catch {
+      // Rollback on error
+      if (user && previousUsername) {
+        setUser({ ...user, username: previousUsername });
+      }
       setError("Failed to update username");
     } finally {
       setIsLoading(false);

@@ -276,6 +276,7 @@ export const useAppStore = create<AppStore>()(
           favorites: new Set(),
           favoritedAtMap: new Map(),
           history: [],
+          pendingUpdates: new Set(),
           statusCounts: {
             solved: 0,
             attempting: 0,
@@ -450,6 +451,8 @@ export const useAppStore = create<AppStore>()(
         }
 
         const wasFavorite = state.favorites.has(problemId);
+        // Capture previous favoritedAt for rollback
+        const previousFavoritedAt = state.favoritedAtMap.get(problemId);
 
         // Optimistic update
         set((s) => {
@@ -502,9 +505,11 @@ export const useAppStore = create<AppStore>()(
             const newFavoritedAtMap = new Map(s.favoritedAtMap);
 
             if (wasFavorite) {
+              // Restore previous favorite with original timestamp
               newFavorites.add(problemId);
-              // Can't restore exact time, use now
-              newFavoritedAtMap.set(problemId, new Date());
+              if (previousFavoritedAt) {
+                newFavoritedAtMap.set(problemId, previousFavoritedAt);
+              }
             } else {
               newFavorites.delete(problemId);
               newFavoritedAtMap.delete(problemId);
@@ -611,14 +616,11 @@ export const useAppStore = create<AppStore>()(
             : [],
         };
       },
-      // Don't persist pending updates or loading state
+      // Don't persist pending updates, loading state, or public data (phases/problems)
+      // Public data is fetched on init, only user-specific data should be persisted
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
-        phases: state.phases,
-        problems: state.problems,
-        phaseCountsMap: state.phaseCountsMap,
-        totalProblems: state.totalProblems,
         statuses: state.statuses,
         statusByProblemId: state.statusByProblemId,
         favorites: state.favorites,

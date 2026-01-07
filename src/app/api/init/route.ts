@@ -7,7 +7,7 @@
 
 import { ApiResponse, CACHE_HEADERS, withOptionalAuth } from "@/lib/api-utils";
 
-export const GET = withOptionalAuth(async (request, { services, userId, auth }) => {
+export const GET = withOptionalAuth(async (_request, { services, userId, session }) => {
   const {
     phaseService,
     problemService,
@@ -17,14 +17,17 @@ export const GET = withOptionalAuth(async (request, { services, userId, auth }) 
     statsService,
   } = services;
 
-  // Get session for user info
-  const session = await auth.api.getSession({ headers: request.headers });
-
   // Fetch core data (always needed)
   const [{ phases, totalProblems, phaseCountsMap }, problems] = await Promise.all([
     phaseService.getPhaseSummary(),
     problemService.getAllProblems(),
   ]);
+
+  // Build problemNumber → problemId map for efficient status mapping
+  const problemNumberToId = new Map<number, number>();
+  for (const p of problems) {
+    problemNumberToId.set(p.number, p.id);
+  }
 
   // Convert Map to Record for JSON serialization
   const phaseCountsRecord: Record<number, number> = {};
@@ -41,9 +44,9 @@ export const GET = withOptionalAuth(async (request, { services, userId, auth }) 
     isAuthenticated: false as boolean,
   };
 
-  // If not authenticated, return base response
+  // If not authenticated, return base response with truly cacheable headers
   if (!userId) {
-    return ApiResponse.ok(baseResponse, CACHE_HEADERS.publicShort);
+    return ApiResponse.ok(baseResponse, CACHE_HEADERS.publicGuest);
   }
 
   // Fetch user-specific data
@@ -54,15 +57,19 @@ export const GET = withOptionalAuth(async (request, { services, userId, auth }) 
     statsService.getUserStats(userId, totalProblems),
   ]);
 
-  // Build statuses array with problemId for mapping
-  const statusesWithIds = allStatuses.map((s) => {
-    const problem = problems.find((p) => p.number === s.problemNumber);
-    return {
-      problemNumber: s.problemNumber,
-      problemId: problem?.id ?? 0,
-      status: s.status,
-    };
-  });
+  // Build statuses array with problemId for mapping (O(1) lookup)
+  const statusesWithIds = allStatuses
+    .map((s) => {
+      const problemId = problemNumberToId.get(s.problemNumber);
+      // Skip statuses for problems that don't exist
+      if (problemId === undefined) return null;
+      return {
+        problemNumber: s.problemNumber,
+        problemId,
+        status: s.status,
+      };
+    })
+    .filter((s): s is NonNullable<typeof s> => s !== null);
 
   // Build favorites array with favoritedAt
   const favoritesWithDates = favorites.map((f) => ({
@@ -76,7 +83,7 @@ export const GET = withOptionalAuth(async (request, { services, userId, auth }) 
     phaseSolvedRecord[k] = v;
   }
 
-  // Build user object from session
+  // Build user object from session (already available from withOptionalAuth)
   const user = session?.user
     ? {
         id: session.user.id,

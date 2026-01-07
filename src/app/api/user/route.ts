@@ -14,13 +14,4 @@ export const PATCH = withAuth(async (request, { services, userId }) => {
   return ApiResponse.ok({ success: true, username: result.username });
 });
 
-// Get current user info
-export const GET = withAuth(async (_request, { services, userId }) => {
-  const user = await services.userService.getUserById(userId);
-
-  if (!user) {
-    throw Errors.notFound("User");
-  }
-
-  return ApiResponse.ok(user);
-});
+// Note: GET handler removed - all initial data is fetched via /api/init
