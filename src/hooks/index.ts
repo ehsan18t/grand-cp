@@ -4,6 +4,8 @@ export type { AnimateOnMountOptions, AnimationType } from "./useAnimateOnMount";
 export { useAnimateOnMount } from "./useAnimateOnMount";
 export type { ButtonAnimationOptions, ButtonAnimationReturn } from "./useButtonAnimation";
 export { useButtonAnimation } from "./useButtonAnimation";
+// Search Hooks
+export { useFuzzySearch } from "./useFuzzySearch";
 // Types
 export type { GsapContextOptions, GsapContextReturn } from "./useGsapContext";
 export { gsap, ScrollTrigger, useGSAP, useGsapContext } from "./useGsapContext";

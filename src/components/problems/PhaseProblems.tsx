@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { GuestBanner } from "@/components/auth";
 import type { ProblemData } from "@/data/problems";
+import { useFuzzySearch } from "@/hooks";
 import type { ProblemStatus } from "@/types/domain";
 import {
   type FavoriteFilter,
@@ -30,14 +31,23 @@ export function PhaseProblems({ problems, isGuest = false }: PhaseProblemsProps)
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [favoriteFilter, setFavoriteFilter] = useState<FavoriteFilter>("all");
 
-  const filteredProblems = useMemo(() => {
-    let result = problems;
+  // Create searchable text for fuzzy search
+  const getSearchableText = useCallback(
+    (problem: ProblemWithUserData) =>
+      `${problem.name} ${problem.topic || ""} ${problem.platform}`.toLowerCase(),
+    [],
+  );
 
-    // Search filter
-    if (search.trim()) {
-      const searchLower = search.toLowerCase().trim();
-      result = result.filter((p) => p.name.toLowerCase().includes(searchLower));
-    }
+  // Use fuzzy search hook
+  const { search: fuzzySearch } = useFuzzySearch({
+    items: problems,
+    getSearchableText,
+    minQueryLength: 1,
+  });
+
+  const filteredProblems = useMemo(() => {
+    // First apply fuzzy search
+    let result = search.trim() ? fuzzySearch(search) : problems;
 
     // Platform filter
     if (platformFilter !== "all") {
@@ -55,7 +65,7 @@ export function PhaseProblems({ problems, isGuest = false }: PhaseProblemsProps)
     }
 
     return result;
-  }, [problems, search, platformFilter, statusFilter, favoriteFilter, isGuest]);
+  }, [problems, search, fuzzySearch, platformFilter, statusFilter, favoriteFilter, isGuest]);
 
   const topics = useMemo(() => {
     return [...new Set(filteredProblems.map((p) => p.topic))];

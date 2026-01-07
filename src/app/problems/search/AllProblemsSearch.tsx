@@ -1,9 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ProblemCard } from "@/components/problems/ProblemCard";
 import { ProblemFilters } from "@/components/problems/ProblemFilters";
 import { phases } from "@/data/phases";
+import { useFuzzySearch } from "@/hooks";
 import type { Platform, ProblemStatus, ProblemWithUserData } from "@/types/domain";
 
 interface AllProblemsSearchProps {
@@ -20,37 +21,41 @@ export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps)
   const [status, setStatus] = useState<StatusFilter>("all");
   const [favorite, setFavorite] = useState<FavoriteFilter>("all");
 
+  // Create searchable text for each problem (name + topic + platform)
+  const getSearchableText = useCallback(
+    (problem: ProblemWithUserData) =>
+      `${problem.name} ${problem.topic || ""} ${problem.platform}`.toLowerCase(),
+    [],
+  );
+
+  // Use fuzzy search hook
+  const { search: fuzzySearch } = useFuzzySearch({
+    items: problems,
+    getSearchableText,
+    minQueryLength: 1,
+  });
+
   const filteredProblems = useMemo(() => {
-    return problems.filter((problem) => {
-      // Search filter
-      if (search) {
-        const query = search.toLowerCase();
-        const matchesName = problem.name.toLowerCase().includes(query);
-        const matchesPlatform = problem.platform.toLowerCase().includes(query);
-        const matchesTopic = problem.topic?.toLowerCase().includes(query);
-        if (!matchesName && !matchesPlatform && !matchesTopic) {
-          return false;
-        }
-      }
+    // First apply fuzzy search
+    let result = search.trim() ? fuzzySearch(search) : problems;
 
-      // Platform filter
-      if (platform !== "all" && problem.platform !== platform) {
-        return false;
-      }
+    // Platform filter
+    if (platform !== "all") {
+      result = result.filter((problem) => problem.platform === platform);
+    }
 
-      // Status filter (only for authenticated users)
-      if (!isGuest && status !== "all" && problem.userStatus !== status) {
-        return false;
-      }
+    // Status filter (only for authenticated users)
+    if (!isGuest && status !== "all") {
+      result = result.filter((problem) => problem.userStatus === status);
+    }
 
-      // Favorite filter (only for authenticated users)
-      if (!isGuest && favorite === "favorites" && !problem.isFavorite) {
-        return false;
-      }
+    // Favorite filter (only for authenticated users)
+    if (!isGuest && favorite === "favorites") {
+      result = result.filter((problem) => problem.isFavorite);
+    }
 
-      return true;
-    });
-  }, [problems, search, platform, status, favorite, isGuest]);
+    return result;
+  }, [problems, search, fuzzySearch, platform, status, favorite, isGuest]);
 
   // Group by phase for display
   const groupedByPhase = useMemo(() => {
@@ -63,6 +68,9 @@ export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps)
     }
     return groups;
   }, [filteredProblems]);
+
+  const hasActiveFilters =
+    search !== "" || platform !== "all" || status !== "all" || favorite !== "all";
 
   return (
     <div className="space-y-6">
@@ -81,13 +89,16 @@ export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps)
       {/* Results count */}
       <div className="text-muted-foreground text-sm">
         Showing {filteredProblems.length} of {problems.length} problems
+        {search.trim() && (
+          <span className="ml-1 text-primary">(fuzzy matching "{search.trim()}")</span>
+        )}
       </div>
 
       {/* Results grouped by phase */}
       {filteredProblems.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-muted-foreground">No problems match your filters.</p>
-          {(search !== "" || platform !== "all" || status !== "all" || favorite !== "all") && (
+          {hasActiveFilters && (
             <button
               type="button"
               onClick={() => {
@@ -121,10 +132,7 @@ export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps)
                   </h2>
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                     {phaseProblems.map((problem) => (
-                      <ProblemCard
-                        key={`${problem.platform}-${problem.id}`}
-                        problem={problem}
-                      />
+                      <ProblemCard key={`${problem.platform}-${problem.id}`} problem={problem} />
                     ))}
                   </div>
                 </section>

@@ -10,3 +10,9 @@ export {
   useProblemStore,
   useStatus,
 } from "./problem-store";
+
+export {
+  useAllProblems,
+  useSearchInitialized,
+  useSearchStore,
+} from "./search-store";

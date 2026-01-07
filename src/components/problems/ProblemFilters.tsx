@@ -219,7 +219,7 @@ export const ProblemFilters = forwardRef<HTMLDivElement, ProblemFiltersProps>(
                     <Heart
                       className={cn("h-3.5 w-3.5", favorite === "favorites" && "fill-current")}
                     />
-                    Favorites only
+                    Favorites Only
                   </button>
                 </div>
               </div>

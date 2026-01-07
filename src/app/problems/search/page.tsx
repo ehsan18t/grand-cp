@@ -1,5 +1,5 @@
 import { getRequestContext } from "@/lib/request-context";
-import { AllProblemsSearch } from "./AllProblemsSearch";
+import { SearchPageClient } from "./SearchPageClient";
 
 export const metadata = {
   title: "Search Problems | Grand CP",
@@ -12,7 +12,7 @@ export default async function SearchPage() {
 
   const isGuest = !userId;
 
-  // Get all problems with user data
+  // Get all problems with user data (this data is passed once to client and cached)
   const allProblems = await problemService.getAllProblems();
   const problemsWithUserData = await problemService.getProblemsWithUserData(allProblems, userId);
 
@@ -21,11 +21,12 @@ export default async function SearchPage() {
       <header className="mb-8">
         <h1 className="mb-2 font-bold text-2xl sm:text-3xl">Search All Problems</h1>
         <p className="text-muted-foreground">
-          Search across all {allProblems.length} problems from every phase.
+          Search across all {allProblems.length} problems from every phase. Uses fuzzy matching for
+          typo-tolerant search.
         </p>
       </header>
 
-      <AllProblemsSearch problems={problemsWithUserData} isGuest={isGuest} />
+      <SearchPageClient initialProblems={problemsWithUserData} isGuest={isGuest} />
     </main>
   );
 }
