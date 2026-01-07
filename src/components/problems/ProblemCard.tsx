@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart, Lock, Star } from "lucide-react";
+import { Heart, Star } from "lucide-react";
 import { forwardRef, useCallback, useState } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 import { LoginPrompt } from "@/components/auth";
@@ -40,8 +40,9 @@ const problemCardVariants = tv({
     favoriteButtonActive: "text-destructive",
     guestFavoriteButton: [
       "flex h-8 w-8 items-center justify-center rounded-md",
-      "text-muted-foreground/60 transition-all",
-      "hover:bg-muted hover:text-muted-foreground",
+      "text-muted-foreground/50 transition-all",
+      "hover:bg-destructive/10 hover:text-destructive/70",
+      "cursor-pointer",
     ],
   },
   variants: {
@@ -222,7 +223,7 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
                 aria-label="Sign in to save favorites"
                 title="Sign in to save favorites"
               >
-                <Lock className="h-4 w-4" />
+                <Heart className="h-4 w-4" />
               </button>
             ) : (
               <button

@@ -1,4 +1,16 @@
-import { ArrowRight, BarChart3, BookOpen, Target, Trophy, Users } from "lucide-react";
+import {
+  ArrowRight,
+  BarChart3,
+  BookOpen,
+  Brain,
+  CheckCircle2,
+  Clock,
+  Flame,
+  Heart,
+  Target,
+  Trophy,
+  Zap,
+} from "lucide-react";
 import Link from "next/link";
 import { phases as phasesData } from "@/data/phases";
 import { problems as problemsData } from "@/data/problems";
@@ -52,25 +64,26 @@ export default async function HomePage() {
       <section className="py-16 text-center md:py-24">
         <div className="mx-auto max-w-3xl">
           <h1 className="mb-4 font-bold text-4xl md:text-6xl">
-            Master <span className="text-primary">Competitive Programming</span>
+            From <span className="text-primary">800</span> to{" "}
+            <span className="text-primary">Candidate Master</span>
           </h1>
           <p className="mb-8 text-lg text-muted-foreground md:text-xl">
-            A curated collection of 655+ problems to take you from beginner to advanced. Track your
-            progress, build consistency, and reach your rating goals.
+            A curated roadmap of {totalProblems}+ problems across {totalPhases} phases. Track your
+            progress, struggle intentionally, and reach 2200+ Codeforces rating.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/problems"
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
-              Start Practicing
+              Start the Journey
               <ArrowRight className="h-5 w-5" />
             </Link>
             <Link
               href="/stats"
               className="inline-flex items-center gap-2 rounded-lg border border-border px-6 py-3 font-medium transition-colors hover:bg-accent"
             >
-              View Your Stats
+              Track Progress
             </Link>
           </div>
         </div>
@@ -89,8 +102,38 @@ export default async function HomePage() {
             value={totalPhases}
             label="Learning Phases"
           />
-          <StatCard icon={<Trophy className="h-6 w-6" />} value="2400+" label="Target Rating" />
-          <StatCard icon={<Users className="h-6 w-6" />} value="Free" label="For Everyone" />
+          <StatCard icon={<Trophy className="h-6 w-6" />} value="2200+" label="Target Rating" />
+          <StatCard icon={<Zap className="h-6 w-6" />} value="4" label="Platforms" />
+        </div>
+      </section>
+
+      {/* Philosophy Section */}
+      <section className="py-12">
+        <div className="mb-8 text-center">
+          <h2 className="mb-2 font-bold text-2xl md:text-3xl">The Philosophy</h2>
+          <p className="text-muted-foreground">
+            Based on research from top competitive programmers (E869120, -is-this-fft-, TheScrasse)
+          </p>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <PhilosophyCard
+            icon={<Brain className="h-6 w-6" />}
+            title="What to Think"
+            description="Know standard problems, techniques, and patterns. Build your mental library of solutions."
+          />
+          <PhilosophyCard
+            icon={<Flame className="h-6 w-6" />}
+            title="How to Think"
+            description="Build paths to solutions through intentional struggle. The struggle is where learning happens."
+          />
+        </div>
+
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <RuleCard icon={<CheckCircle2 />} text="Follow problems serially - order matters" />
+          <RuleCard icon={<Clock />} text="Struggle 30-60 min before hints" />
+          <RuleCard icon={<Target />} text="Implement everything - reading ≠ solving" />
+          <RuleCard icon={<Trophy />} text="Upsolve after every contest" />
         </div>
       </section>
 
@@ -99,8 +142,7 @@ export default async function HomePage() {
         <div className="mb-8 text-center">
           <h2 className="mb-2 font-bold text-2xl md:text-3xl">Structured Learning Path</h2>
           <p className="text-muted-foreground">
-            Progress through carefully designed phases, each focusing on specific skills and rating
-            targets
+            Progress through carefully designed phases, each targeting specific rating ranges
           </p>
         </div>
 
@@ -143,7 +185,7 @@ export default async function HomePage() {
           <FeatureCard
             icon={<Target className="h-8 w-8" />}
             title="Progress Tracking"
-            description="Mark problems as solved, attempting, or skipped. See your progress at a glance."
+            description="Mark problems as solved, attempting, revisit, or skipped. See your progress at a glance."
           />
           <FeatureCard
             icon={<BarChart3 className="h-8 w-8" />}
@@ -151,9 +193,9 @@ export default async function HomePage() {
             description="Visualize your progress with detailed statistics and breakdowns by phase."
           />
           <FeatureCard
-            icon={<Users className="h-8 w-8" />}
-            title="Public Profiles"
-            description="Share your progress with friends and compete to improve together."
+            icon={<Heart className="h-8 w-8" />}
+            title="Save Favorites"
+            description="Bookmark problems you want to revisit. Build your personal problem collection."
           />
         </div>
       </section>
@@ -163,14 +205,14 @@ export default async function HomePage() {
         <div className="rounded-2xl bg-linear-to-r from-primary/10 to-primary/5 p-8 text-center md:p-12">
           <h2 className="mb-4 font-bold text-2xl md:text-3xl">Ready to Level Up?</h2>
           <p className="mx-auto mb-6 max-w-xl text-muted-foreground">
-            Join the journey and start solving problems today. Track your progress and reach your
-            competitive programming goals.
+            Start your journey from 800 to Candidate Master. The order is crucial - each problem
+            builds on the previous one.
           </p>
           <Link
             href="/problems"
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Get Started
+            Start Problem #1
             <ArrowRight className="h-5 w-5" />
           </Link>
         </div>
@@ -195,6 +237,42 @@ function StatCard({ icon, value, label }: StatCardProps) {
         <div className="font-bold font-mono text-2xl">{value}</div>
         <div className="text-muted-foreground text-sm">{label}</div>
       </div>
+    </div>
+  );
+}
+
+interface PhilosophyCardProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}
+
+function PhilosophyCard({ icon, title, description }: PhilosophyCardProps) {
+  return (
+    <div className="rounded-lg border border-border bg-card p-6">
+      <div className="mb-3 flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          {icon}
+        </div>
+        <h3 className="font-semibold text-lg">{title}</h3>
+      </div>
+      <p className="text-muted-foreground">{description}</p>
+    </div>
+  );
+}
+
+interface RuleCardProps {
+  icon: React.ReactNode;
+  text: string;
+}
+
+function RuleCard({ icon, text }: RuleCardProps) {
+  return (
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-4">
+      <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+        {icon}
+      </div>
+      <span className="text-sm">{text}</span>
     </div>
   );
 }

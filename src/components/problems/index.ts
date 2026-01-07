@@ -11,6 +11,13 @@ export {
   type PlatformFilterProps,
 } from "./PlatformFilter";
 export { ProblemCard, type ProblemCardProps, problemCardVariants } from "./ProblemCard";
+export {
+  type FavoriteFilter,
+  ProblemFilters,
+  type ProblemFiltersProps,
+  problemFiltersVariants,
+  type StatusFilter,
+} from "./ProblemFilters";
 export { ProblemList } from "./ProblemList";
 export {
   StatusBadge,
