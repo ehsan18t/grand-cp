@@ -190,6 +190,11 @@ export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps)
                         problem={row.problem}
                         highlightTitleRanges={row.highlightTitleRanges}
                         highlightNoteRanges={row.highlightNoteRanges}
+                        isGuest={isGuest}
+                        showStatus={!isGuest}
+                        showFavorite={!isGuest}
+                        initialStatus={row.problem.userStatus}
+                        initialFavorite={row.problem.isFavorite}
                       />
                     ))}
                   </div>
