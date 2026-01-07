@@ -3,7 +3,7 @@
  * Contains pure database queries without business logic.
  */
 
-import { eq, or } from "drizzle-orm";
+import { eq, or, isNotNull } from "drizzle-orm";
 import type { Database } from "@/db";
 import { users } from "@/db/schema";
 import type { UserProfile } from "@/types/domain";
@@ -106,9 +106,10 @@ export class UserRepository {
         updatedAt: users.updatedAt,
       })
       .from(users)
+      .where(isNotNull(users.username))
       .limit(limit);
 
-    // Filter out null usernames and cast
-    return results.filter((u): u is { username: string; updatedAt: Date } => u.username !== null);
+    // Cast as non-null since we filtered at DB level
+    return results as Array<{ username: string; updatedAt: Date }>;
   }
 }
