@@ -37,20 +37,18 @@ export class UserService {
   async updateUsername(
     userId: string,
     username: string,
-  ): Promise<{ success: boolean; username: string } | { error: string; code: number }> {
+  ): Promise<{ success: boolean; username: string }> {
+    // Validate username format
     // Validate username format
     if (!this.isValidUsername(username)) {
-      return {
-        error:
-          "Username must be 3-20 characters and contain only letters, numbers, and underscores",
-        code: 400,
-      };
+      throw new Error("Invalid username format");
     }
 
     // Check if username is taken
+    // Check if username is taken
     const isTaken = await this.userRepo.isUsernameTaken(username, userId);
     if (isTaken) {
-      return { error: "Username is already taken", code: 409 };
+      throw new Error("Username is already taken");
     }
 
     await this.userRepo.updateUsername(userId, username);

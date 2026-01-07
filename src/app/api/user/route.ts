@@ -17,13 +17,27 @@ export async function PATCH(request: Request) {
     return Response.json({ error: "Username is required" }, { status: 400 });
   }
 
-  const result = await services.userService.updateUsername(session.user.id, username);
-
-  if ("error" in result) {
-    return Response.json({ error: result.error }, { status: result.code });
+  try {
+    const result = await services.userService.updateUsername(session.user.id, username);
+    return Response.json({ success: true, username: result.username });
+  } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "Invalid username format") {
+        return Response.json(
+          {
+            error:
+              "Username must be 3-20 characters and contain only letters, numbers, and underscores",
+          },
+          { status: 400 },
+        );
+      }
+      if (error.message === "Username is already taken") {
+        return Response.json({ error: "Username is already taken" }, { status: 409 });
+      }
+    }
+    console.error("Username update error:", error);
+    return Response.json({ error: "Internal server error" }, { status: 500 });
   }
-
-  return Response.json({ success: true, username: result.username });
 }
 
 // Get current user info

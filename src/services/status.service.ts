@@ -20,16 +20,16 @@ export class StatusService {
     userId: string,
     problemNumber: number,
     status: ProblemStatus,
-  ): Promise<StatusUpdateResult | { error: string; code: number }> {
+  ): Promise<StatusUpdateResult> {
     // Validate status
     if (!VALID_STATUSES.includes(status)) {
-      return { error: "Invalid status", code: 400 };
+      throw new Error("Invalid status");
     }
 
     // Get problem by number
     const problem = await this.problemRepo.findByNumber(problemNumber);
     if (!problem) {
-      return { error: "Problem not found", code: 404 };
+      throw new Error("Problem not found");
     }
 
     // Get current status

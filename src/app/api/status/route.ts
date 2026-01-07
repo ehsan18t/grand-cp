@@ -41,13 +41,6 @@ export async function POST(request: Request) {
       status,
     );
 
-    if ("error" in result) {
-      return Response.json(
-        { error: result.error },
-        { status: result.code, headers: privateApiNoStoreHeaders },
-      );
-    }
-
     return Response.json(
       {
         message: "Status updated",
@@ -58,6 +51,20 @@ export async function POST(request: Request) {
       { headers: privateApiNoStoreHeaders },
     );
   } catch (error) {
+    if (error instanceof Error) {
+      if (error.message === "Invalid status") {
+        return Response.json(
+          { error: "Invalid status" },
+          { status: 400, headers: privateApiNoStoreHeaders },
+        );
+      }
+      if (error.message === "Problem not found") {
+        return Response.json(
+          { error: "Problem not found" },
+          { status: 404, headers: privateApiNoStoreHeaders },
+        );
+      }
+    }
     console.error("Status update error:", error);
     return Response.json(
       { error: "Internal server error" },
