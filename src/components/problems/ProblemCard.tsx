@@ -65,6 +65,10 @@ export interface ProblemCardProps extends VariantProps<typeof problemCardVariant
   problem: ProblemData & { id?: number };
   initialStatus?: ProblemStatus;
   initialFavorite?: boolean;
+  /** Highlight ranges for the title (0-based, end-exclusive) */
+  highlightTitleRanges?: Array<[number, number]>;
+  /** Highlight ranges for the note (0-based, end-exclusive) */
+  highlightNoteRanges?: Array<[number, number]>;
   onStatusChange?: (problemNumber: number, status: ProblemStatus) => void;
   onFavoriteChange?: (problemId: number, isFavorite: boolean) => void;
   showStatus?: boolean;
@@ -79,6 +83,8 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
     problem,
     initialStatus = "untouched",
     initialFavorite = false,
+    highlightTitleRanges,
+    highlightNoteRanges,
     onStatusChange,
     onFavoriteChange,
     showStatus = true,
@@ -94,6 +100,58 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
   const [isUpdating, setIsUpdating] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const styles = problemCardVariants({ compact });
+
+  const renderHighlightedText = useCallback((text: string, ranges?: Array<[number, number]>) => {
+    if (!ranges || ranges.length === 0) return text;
+
+    const sorted = [...ranges].filter(([start, end]) => start < end).sort(([a], [b]) => a - b);
+
+    // Merge overlapping ranges
+    const merged: Array<[number, number]> = [];
+    for (const [start, end] of sorted) {
+      const last = merged[merged.length - 1];
+      if (!last) {
+        merged.push([start, end]);
+        continue;
+      }
+      if (start <= last[1]) {
+        last[1] = Math.max(last[1], end);
+      } else {
+        merged.push([start, end]);
+      }
+    }
+
+    const nodes: React.ReactNode[] = [];
+    let cursor = 0;
+
+    for (const [start, end] of merged) {
+      const safeStart = Math.max(0, Math.min(start, text.length));
+      const safeEnd = Math.max(0, Math.min(end, text.length));
+
+      if (safeStart > cursor) {
+        nodes.push(text.slice(cursor, safeStart));
+      }
+
+      if (safeEnd > safeStart) {
+        nodes.push(
+          <span
+            key={`${safeStart}-${safeEnd}`}
+            className="rounded-sm bg-primary/20 text-foreground"
+          >
+            {text.slice(safeStart, safeEnd)}
+          </span>,
+        );
+      }
+
+      cursor = safeEnd;
+    }
+
+    if (cursor < text.length) {
+      nodes.push(text.slice(cursor));
+    }
+
+    return nodes;
+  }, []);
 
   const handleStatusChange = useCallback(
     async (newStatus: ProblemStatus) => {
@@ -193,11 +251,15 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
                 )}
                 aria-label={`Open ${problem.name} on ${problem.platform}`}
               >
-                {problem.name}
+                {renderHighlightedText(problem.name, highlightTitleRanges)}
               </a>
               {problem.isStarred && <Star className={styles.starIcon()} />}
             </div>
-            {problem.note && !compact && <div className={styles.note()}>{problem.note}</div>}
+            {problem.note && !compact && (
+              <div className={styles.note()}>
+                {renderHighlightedText(problem.note, highlightNoteRanges)}
+              </div>
+            )}
           </div>
         </div>
 

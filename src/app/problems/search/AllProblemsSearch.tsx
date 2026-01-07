@@ -15,59 +15,102 @@ interface AllProblemsSearchProps {
 type FavoriteFilter = "all" | "favorites";
 type StatusFilter = ProblemStatus | "all";
 
+type ResultRow = {
+  problem: ProblemWithUserData;
+  highlightTitleRanges?: Array<[number, number]>;
+  highlightNoteRanges?: Array<[number, number]>;
+};
+
+const sliceRangesToSegment = (
+  ranges: Array<[number, number]>,
+  segmentStart: number,
+  segmentEnd: number,
+): Array<[number, number]> => {
+  if (segmentEnd <= segmentStart) return [];
+
+  const out: Array<[number, number]> = [];
+  for (const [start, end] of ranges) {
+    const clippedStart = Math.max(start, segmentStart);
+    const clippedEnd = Math.min(end, segmentEnd);
+    if (clippedEnd > clippedStart) {
+      out.push([clippedStart - segmentStart, clippedEnd - segmentStart]);
+    }
+  }
+  return out;
+};
+
 export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps) {
   const [search, setSearch] = useState("");
   const [platform, setPlatform] = useState<Platform | "all">("all");
   const [status, setStatus] = useState<StatusFilter>("all");
   const [favorite, setFavorite] = useState<FavoriteFilter>("all");
 
-  // Create searchable text for each problem (name + topic + platform)
+  // Create searchable text for fuzzy search.
+  // We include topic/platform for finding results, but only highlight matches in title + note.
   const getSearchableText = useCallback(
     (problem: ProblemWithUserData) =>
-      `${problem.name} ${problem.note || ""} ${problem.topic || ""} ${problem.platform}`.toLowerCase(),
+      `${problem.name}\n${problem.note || ""}\n${problem.topic || ""}\n${problem.platform}`.toLowerCase(),
     [],
   );
 
   // Use fuzzy search hook
-  const { search: fuzzySearch } = useFuzzySearch({
+  const { searchWithMatches: fuzzySearchWithMatches } = useFuzzySearch({
     items: problems,
     getSearchableText,
     minQueryLength: 1,
   });
 
-  const filteredProblems = useMemo(() => {
-    // First apply fuzzy search
-    let result = search.trim() ? fuzzySearch(search) : problems;
+  const filteredRows = useMemo((): ResultRow[] => {
+    const trimmed = search.trim();
+
+    // First apply fuzzy search (carrying match ranges along).
+    let result: ResultRow[] = trimmed
+      ? fuzzySearchWithMatches(trimmed).map(({ item, ranges }) => {
+          const titleStart = 0;
+          const titleEnd = item.name.length;
+          const noteStart = titleEnd + 1;
+          const noteEnd = noteStart + (item.note?.length ?? 0);
+
+          return {
+            problem: item,
+            highlightTitleRanges: sliceRangesToSegment(ranges, titleStart, titleEnd),
+            highlightNoteRanges: sliceRangesToSegment(ranges, noteStart, noteEnd),
+          };
+        })
+      : problems.map((problem) => ({ problem }));
 
     // Platform filter
     if (platform !== "all") {
-      result = result.filter((problem) => problem.platform === platform);
+      result = result.filter((row) => row.problem.platform === platform);
     }
 
     // Status filter (only for authenticated users)
     if (!isGuest && status !== "all") {
-      result = result.filter((problem) => problem.userStatus === status);
+      result = result.filter((row) => row.problem.userStatus === status);
     }
 
     // Favorite filter (only for authenticated users)
     if (!isGuest && favorite === "favorites") {
-      result = result.filter((problem) => problem.isFavorite);
+      result = result.filter((row) => row.problem.isFavorite);
     }
 
     return result;
-  }, [problems, search, fuzzySearch, platform, status, favorite, isGuest]);
+  }, [problems, search, fuzzySearchWithMatches, platform, status, favorite, isGuest]);
+
+  const filteredProblems = useMemo(() => filteredRows.map((r) => r.problem), [filteredRows]);
 
   // Group by phase for display
   const groupedByPhase = useMemo(() => {
-    const groups: Record<number, ProblemWithUserData[]> = {};
-    for (const problem of filteredProblems) {
-      if (!groups[problem.phaseId]) {
-        groups[problem.phaseId] = [];
+    const groups: Record<number, ResultRow[]> = {};
+    for (const row of filteredRows) {
+      const phaseId = row.problem.phaseId;
+      if (!groups[phaseId]) {
+        groups[phaseId] = [];
       }
-      groups[problem.phaseId].push(problem);
+      groups[phaseId].push(row);
     }
     return groups;
-  }, [filteredProblems]);
+  }, [filteredRows]);
 
   const hasActiveFilters =
     search !== "" || platform !== "all" || status !== "all" || favorite !== "all";
@@ -131,8 +174,13 @@ export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps)
                     )}
                   </h2>
                   <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {phaseProblems.map((problem) => (
-                      <ProblemCard key={`${problem.platform}-${problem.id}`} problem={problem} />
+                    {phaseProblems.map((row) => (
+                      <ProblemCard
+                        key={`${row.problem.platform}-${row.problem.id}`}
+                        problem={row.problem}
+                        highlightTitleRanges={row.highlightTitleRanges}
+                        highlightNoteRanges={row.highlightNoteRanges}
+                      />
                     ))}
                   </div>
                 </section>
