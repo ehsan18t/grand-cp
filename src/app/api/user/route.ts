@@ -13,7 +13,7 @@ export async function PATCH(request: Request) {
   const body = await request.json();
   const { username } = body as { username?: string };
 
-  if (!username || typeof username !== "string") {
+  if (!username || typeof username !== "string" || username.trim().length === 0) {
     return Response.json({ error: "Username is required" }, { status: 400 });
   }
 
