@@ -1,5 +1,22 @@
 # GitHub Copilot Instructions
 
+## Mandatory Rules
+
+- Always do deep research you can use internet or mcp servers if needed, then make plans before jumping into codes.
+- Always maintain todo list and follow it strictly. Make as many todos as needed to complete the task.
+- Never use inline SVG, use icons from `lucide-react`. If you can't find the required icon use `react-icons` as a last resort.
+- Always run `bun lint; bun format; bun typecheck` after making changes and fix issues if any.
+- Ensure all components are tree-shakeable and optimized for performance.
+- Always use `bun` for package management and scripts.
+- Always commit after as task is done.
+- Always communicate with nextjs dev tool mcp server for continuous checks if anything is wrong.
+- NEVER get to the conclusion that its external issue and not your code. Always double check your code first.
+- Always complete all todo you have. don't stop and ask for confirmation.
+- Never run the dev server. Just assume its already running. if you need terminal output or any logs just use `next-devtools` mcp server to get them.
+- Always write type safe typescript code.
+- DON'T JUST MAKE ANOTHER SHADCN DESIGN. IF I WANTED THAT I WOULD JUST USE SHADCN. MAKE IT DIFFERENT AND UNIQUE.
+
+
 ## 🔧 General Rules
 
 - **Plan first**: Do deep research, then make plans before coding
