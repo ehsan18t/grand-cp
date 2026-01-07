@@ -1,6 +1,6 @@
 "use client";
 
-import { BarChart3, BookOpen, Clock, Heart, Menu, X } from "lucide-react";
+import { BarChart3, BookOpen, Clock, Heart, Lock, Menu, X } from "lucide-react";
 
 import Image from "next/image";
 import Link from "next/link";
@@ -13,16 +13,18 @@ import { UserMenu } from "../auth/UserMenu";
 import { ThemeSwitcher } from "./ThemeSwitcher";
 
 const navLinks = [
-  { href: "/problems", label: "Problems", icon: BookOpen },
-  { href: "/problems/favorites", label: "Favorites", icon: Heart },
-  { href: "/stats", label: "Stats", icon: BarChart3 },
-  { href: "/problems/history", label: "History", icon: Clock },
+  { href: "/problems", label: "Problems", icon: BookOpen, requiresAuth: false },
+  { href: "/problems/favorites", label: "Favorites", icon: Heart, requiresAuth: true },
+  { href: "/stats", label: "Stats", icon: BarChart3, requiresAuth: true },
+  { href: "/problems/history", label: "History", icon: Clock, requiresAuth: true },
 ];
 
 export function Navbar() {
   const pathname = usePathname();
   const { data: session, isPending } = authClient.useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const isGuest = !session?.user;
 
   return (
     <nav className="sticky top-0 z-50 border-border border-b bg-background/80 backdrop-blur-sm">
@@ -40,6 +42,7 @@ export function Navbar() {
               link.href === "/problems"
                 ? pathname === "/problems" || pathname.startsWith("/problems/phase")
                 : pathname.startsWith(link.href);
+            const showLock = link.requiresAuth && isGuest && !isPending;
             return (
               <Link
                 key={link.href}
@@ -48,11 +51,15 @@ export function Navbar() {
                   "flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-sm transition-colors",
                   isActive
                     ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                    : showLock
+                      ? "text-muted-foreground/60 hover:bg-accent hover:text-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
                 )}
+                title={showLock ? "Sign in to access" : undefined}
               >
                 <link.icon className="h-4 w-4" />
                 {link.label}
+                {showLock && <Lock className="h-3 w-3 opacity-50" />}
               </Link>
             );
           })}
@@ -89,6 +96,7 @@ export function Navbar() {
                 link.href === "/problems"
                   ? pathname === "/problems" || pathname.startsWith("/problems/phase")
                   : pathname.startsWith(link.href);
+              const showLock = link.requiresAuth && isGuest && !isPending;
               return (
                 <Link
                   key={link.href}
@@ -98,11 +106,14 @@ export function Navbar() {
                     "flex items-center gap-2 rounded-lg px-4 py-3 font-medium text-sm transition-colors",
                     isActive
                       ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                      : showLock
+                        ? "text-muted-foreground/60 hover:bg-accent hover:text-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-foreground",
                   )}
                 >
                   <link.icon className="h-4 w-4" />
                   {link.label}
+                  {showLock && <Lock className="h-3 w-3 opacity-50" />}
                 </Link>
               );
             })}

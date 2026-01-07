@@ -1,8 +1,10 @@
-import { BarChart3, Clock, Target, TrendingUp, Trophy } from "lucide-react";
+import { BarChart3, Clock, LogIn, Target, TrendingUp, Trophy } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ShareButton } from "@/components/ui";
 import { getRequestContext } from "@/lib/request-context";
 import { getSiteUrlFromEnv } from "@/lib/site";
+import { StatsContent } from "./StatsContent";
 
 export const metadata: Metadata = {
   title: "Stats | Grand CP",
@@ -40,6 +42,8 @@ export default async function StatsPage() {
   const username = session?.user?.username ?? session?.user?.id;
   const profileUrl = username ? `${siteUrl}/u/${username}` : null;
 
+  const isGuest = !userId;
+
   return (
     <main className="container mx-auto px-4 py-8">
       {/* Header */}
@@ -57,145 +61,169 @@ export default async function StatsPage() {
         )}
       </header>
 
-      {/* Overview Cards */}
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          icon={<Trophy className="h-5 w-5" />}
-          label="Problems Solved"
-          value={stats.solved}
-          total={totalProblems}
-          color="text-status-solved"
-        />
-        <StatCard
-          icon={<TrendingUp className="h-5 w-5" />}
-          label="In Progress"
-          value={stats.attempting}
-          color="text-status-attempting"
-        />
-        <StatCard
-          icon={<Target className="h-5 w-5" />}
-          label="Completion Rate"
-          value={`${progressPercentage}%`}
-          color="text-primary"
-        />
-        <StatCard
-          icon={<Clock className="h-5 w-5" />}
-          label="Time Tracked"
-          value="0h"
-          subtext="Coming soon"
-          color="text-muted-foreground"
-        />
-      </div>
-
-      {/* Progress by Status */}
-      <section className="mb-8">
-        <h2 className="mb-4 flex items-center gap-2 font-semibold text-xl">
-          <BarChart3 className="h-5 w-5 text-primary" />
-          Status Breakdown
-        </h2>
-
-        <div className="rounded-lg border border-border bg-card p-6">
-          <div className="mb-4 flex h-4 overflow-hidden rounded-full bg-muted">
-            {stats.solved > 0 && (
-              <div
-                className="bg-status-solved transition-all"
-                style={{ width: `${(stats.solved / totalProblems) * 100}%` }}
-              />
-            )}
-            {stats.attempting > 0 && (
-              <div
-                className="bg-status-attempting transition-all"
-                style={{ width: `${(stats.attempting / totalProblems) * 100}%` }}
-              />
-            )}
-            {stats.revisit > 0 && (
-              <div
-                className="bg-status-revisit transition-all"
-                style={{ width: `${(stats.revisit / totalProblems) * 100}%` }}
-              />
-            )}
-            {stats.skipped > 0 && (
-              <div
-                className="bg-status-skipped transition-all"
-                style={{ width: `${(stats.skipped / totalProblems) * 100}%` }}
-              />
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-            <StatusLegend label="Solved" value={stats.solved} colorClass="bg-status-solved" />
-            <StatusLegend
-              label="Attempting"
-              value={stats.attempting}
-              colorClass="bg-status-attempting"
-            />
-            <StatusLegend label="Revisit" value={stats.revisit} colorClass="bg-status-revisit" />
-            <StatusLegend label="Skipped" value={stats.skipped} colorClass="bg-status-skipped" />
-            <StatusLegend
-              label="Untouched"
-              value={stats.untouched}
-              colorClass="bg-status-untouched"
-            />
+      {/* Guest CTA Banner */}
+      {isGuest && (
+        <div className="mb-8 overflow-hidden rounded-xl border border-primary/20 bg-primary/5 p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="mb-1 font-semibold text-lg">Ready to track your progress?</h2>
+              <p className="text-muted-foreground text-sm">
+                Sign in to see your personal statistics and track your problem-solving journey.
+              </p>
+            </div>
+            <Link
+              href="/api/auth/signin"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-all hover:bg-primary/90"
+            >
+              <LogIn className="h-4 w-4" />
+              Sign in with Google
+            </Link>
           </div>
         </div>
-      </section>
+      )}
 
-      {/* Progress by Phase */}
-      <section className="mb-8">
-        <h2 className="mb-4 flex items-center gap-2 font-semibold text-xl">
-          <Target className="h-5 w-5 text-primary" />
-          Phase Progress
-        </h2>
+      <StatsContent isGuest={isGuest}>
+        {/* Overview Cards */}
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            icon={<Trophy className="h-5 w-5" />}
+            label="Problems Solved"
+            value={stats.solved}
+            total={totalProblems}
+            color="text-status-solved"
+          />
+          <StatCard
+            icon={<TrendingUp className="h-5 w-5" />}
+            label="In Progress"
+            value={stats.attempting}
+            color="text-status-attempting"
+          />
+          <StatCard
+            icon={<Target className="h-5 w-5" />}
+            label="Completion Rate"
+            value={`${progressPercentage}%`}
+            color="text-primary"
+          />
+          <StatCard
+            icon={<Clock className="h-5 w-5" />}
+            label="Time Tracked"
+            value="0h"
+            subtext="Coming soon"
+            color="text-muted-foreground"
+          />
+        </div>
 
-        <div className="space-y-4">
-          {phases.map((phase) => {
-            const phaseTotal = phaseCountsMap.get(phase.id) ?? 0;
-            const phaseSolved = phaseSolvedMap.get(phase.id) ?? 0;
-            const phaseProgress = phaseTotal > 0 ? Math.round((phaseSolved / phaseTotal) * 100) : 0;
+        {/* Progress by Status */}
+        <section className="mb-8">
+          <h2 className="mb-4 flex items-center gap-2 font-semibold text-xl">
+            <BarChart3 className="h-5 w-5 text-primary" />
+            Status Breakdown
+          </h2>
 
-            return (
-              <div key={phase.id} className="rounded-lg border border-border bg-card p-4">
-                <div className="mb-2 flex items-center justify-between">
-                  <div>
-                    <span className="font-mono text-muted-foreground text-sm">
-                      Phase {phase.id}
-                    </span>
-                    <h3 className="font-medium">{phase.name}</h3>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-mono font-semibold">{phaseProgress}%</div>
-                    <div className="text-muted-foreground text-sm">
-                      {phaseSolved}/{phaseTotal} solved
+          <div className="rounded-lg border border-border bg-card p-6">
+            <div className="mb-4 flex h-4 overflow-hidden rounded-full bg-muted">
+              {stats.solved > 0 && (
+                <div
+                  className="bg-status-solved transition-all"
+                  style={{ width: `${(stats.solved / totalProblems) * 100}%` }}
+                />
+              )}
+              {stats.attempting > 0 && (
+                <div
+                  className="bg-status-attempting transition-all"
+                  style={{ width: `${(stats.attempting / totalProblems) * 100}%` }}
+                />
+              )}
+              {stats.revisit > 0 && (
+                <div
+                  className="bg-status-revisit transition-all"
+                  style={{ width: `${(stats.revisit / totalProblems) * 100}%` }}
+                />
+              )}
+              {stats.skipped > 0 && (
+                <div
+                  className="bg-status-skipped transition-all"
+                  style={{ width: `${(stats.skipped / totalProblems) * 100}%` }}
+                />
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+              <StatusLegend label="Solved" value={stats.solved} colorClass="bg-status-solved" />
+              <StatusLegend
+                label="Attempting"
+                value={stats.attempting}
+                colorClass="bg-status-attempting"
+              />
+              <StatusLegend label="Revisit" value={stats.revisit} colorClass="bg-status-revisit" />
+              <StatusLegend label="Skipped" value={stats.skipped} colorClass="bg-status-skipped" />
+              <StatusLegend
+                label="Untouched"
+                value={stats.untouched}
+                colorClass="bg-status-untouched"
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* Progress by Phase */}
+        <section className="mb-8">
+          <h2 className="mb-4 flex items-center gap-2 font-semibold text-xl">
+            <Target className="h-5 w-5 text-primary" />
+            Phase Progress
+          </h2>
+
+          <div className="space-y-4">
+            {phases.map((phase) => {
+              const phaseTotal = phaseCountsMap.get(phase.id) ?? 0;
+              const phaseSolved = phaseSolvedMap.get(phase.id) ?? 0;
+              const phaseProgress =
+                phaseTotal > 0 ? Math.round((phaseSolved / phaseTotal) * 100) : 0;
+
+              return (
+                <div key={phase.id} className="rounded-lg border border-border bg-card p-4">
+                  <div className="mb-2 flex items-center justify-between">
+                    <div>
+                      <span className="font-mono text-muted-foreground text-sm">
+                        Phase {phase.id}
+                      </span>
+                      <h3 className="font-medium">{phase.name}</h3>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-mono font-semibold">{phaseProgress}%</div>
+                      <div className="text-muted-foreground text-sm">
+                        {phaseSolved}/{phaseTotal} solved
+                      </div>
                     </div>
                   </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full bg-status-solved transition-all"
+                      style={{ width: `${phaseProgress}%` }}
+                    />
+                  </div>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-muted">
-                  <div
-                    className="h-full bg-status-solved transition-all"
-                    style={{ width: `${phaseProgress}%` }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Recent Activity */}
-      <section>
-        <h2 className="mb-4 flex items-center gap-2 font-semibold text-xl">
-          <Clock className="h-5 w-5 text-primary" />
-          Recent Activity
-        </h2>
-
-        <div className="rounded-lg border border-border bg-card p-6">
-          <div className="py-8 text-center text-muted-foreground">
-            <Clock className="mx-auto mb-2 h-8 w-8 opacity-50" />
-            <p>No recent activity</p>
-            <p className="text-sm">Start solving problems to see your progress here</p>
+              );
+            })}
           </div>
-        </div>
-      </section>
+        </section>
+
+        {/* Recent Activity */}
+        <section>
+          <h2 className="mb-4 flex items-center gap-2 font-semibold text-xl">
+            <Clock className="h-5 w-5 text-primary" />
+            Recent Activity
+          </h2>
+
+          <div className="rounded-lg border border-border bg-card p-6">
+            <div className="py-8 text-center text-muted-foreground">
+              <Clock className="mx-auto mb-2 h-8 w-8 opacity-50" />
+              <p>No recent activity</p>
+              <p className="text-sm">Start solving problems to see your progress here</p>
+            </div>
+          </div>
+        </section>
+      </StatsContent>
     </main>
   );
 }

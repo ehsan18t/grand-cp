@@ -1,8 +1,27 @@
 "use client";
 
-import { ChevronDown, Circle, CircleCheck, CircleDot, RotateCcw, SkipForward } from "lucide-react";
+import {
+  ChevronDown,
+  Circle,
+  CircleCheck,
+  CircleDot,
+  Lock,
+  RotateCcw,
+  SkipForward,
+} from "lucide-react";
+
+ChevronDown,
+  Circle,
+  CircleCheck,
+  CircleDot,
+  Lock,
+  RotateCcw,
+  SkipForward,
+} from "lucide-react"
+
 import { forwardRef, useState } from "react";
 import { tv } from "tailwind-variants";
+import { LoginPrompt } from "@/components/auth";
 import { cn } from "@/lib/utils";
 import type { ProblemStatus } from "@/types/domain";
 
@@ -59,6 +78,16 @@ const selectVariants = tv({
       // Slightly larger tap target on mobile
       "min-h-[32px] sm:min-h-0 sm:gap-2 sm:px-3",
     ],
+    guestTrigger: [
+      "inline-flex items-center justify-between gap-1.5",
+      "rounded-full px-2.5 py-1.5 text-xs font-medium",
+      "cursor-pointer transition-all duration-200",
+      "hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+      "min-h-[32px] sm:min-h-0 sm:gap-2 sm:px-3",
+      // Guest-specific styling - more muted with lock hint
+      "bg-muted text-muted-foreground",
+      "hover:bg-muted/80",
+    ],
     menu: [
       "absolute right-0 top-full z-50 mt-1",
       "min-w-[140px] rounded-lg border border-border bg-popover p-1",
@@ -80,14 +109,17 @@ export interface StatusSelectProps {
   value: ProblemStatus;
   onChange: (value: ProblemStatus) => void;
   disabled?: boolean;
+  /** When true, shows a guest-mode version that prompts for login */
+  isGuest?: boolean;
   className?: string;
 }
 
 export const StatusSelect = forwardRef<HTMLDivElement, StatusSelectProps>(function StatusSelect(
-  { value, onChange, disabled = false, className },
+  { value, onChange, disabled = false, isGuest = false, className },
   ref,
 ) {
   const [isOpen, setIsOpen] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const styles = selectVariants();
   const currentOption = statusOptions.find((opt) => opt.value === value) ?? statusOptions[0];
 
@@ -101,15 +133,53 @@ export const StatusSelect = forwardRef<HTMLDivElement, StatusSelectProps>(functi
       setIsOpen(false);
     } else if (e.key === "Enter" || e.key === " ") {
       e.preventDefault();
+      if (isGuest) {
+        setShowLoginPrompt(true);
+      } else {
+        setIsOpen(!isOpen);
+      }
+    }
+  };
+
+  const handleClick = () => {
+    if (disabled) return;
+    if (isGuest) {
+      setShowLoginPrompt(true);
+    } else {
       setIsOpen(!isOpen);
     }
   };
+
+  // Guest mode - show muted badge that opens login prompt
+  if (isGuest) {
+    return (
+      <>
+        <div ref={ref} className={cn("relative", className)}>
+          <button
+            type="button"
+            onClick={handleClick}
+            onKeyDown={handleKeyDown}
+            className={styles.guestTrigger()}
+            title="Sign in to track progress"
+          >
+            <Lock className="h-3.5 w-3.5" />
+            <span>Track Status</span>
+          </button>
+        </div>
+        <LoginPrompt
+          isOpen={showLoginPrompt}
+          onClose={() => setShowLoginPrompt(false)}
+          feature="status"
+        />
+      </>
+    );
+  }
 
   return (
     <div ref={ref} className={cn("relative", className)}>
       <button
         type="button"
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={handleClick}
         onKeyDown={handleKeyDown}
         disabled={disabled}
         className={cn(

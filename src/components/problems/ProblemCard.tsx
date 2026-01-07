@@ -1,8 +1,9 @@
 "use client";
 
-import { Heart, Star } from "lucide-react";
+import { Heart, Lock, Star } from "lucide-react";
 import { forwardRef, useCallback, useState } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
+import { LoginPrompt } from "@/components/auth";
 import type { ProblemData } from "@/data/problems";
 import { cn } from "@/lib/utils";
 import type { ProblemStatus } from "@/types/domain";
@@ -37,6 +38,11 @@ const problemCardVariants = tv({
       "hover:bg-destructive/10 hover:text-destructive",
     ],
     favoriteButtonActive: "text-destructive",
+    guestFavoriteButton: [
+      "flex h-8 w-8 items-center justify-center rounded-md",
+      "text-muted-foreground/60 transition-all",
+      "hover:bg-muted hover:text-muted-foreground",
+    ],
   },
   variants: {
     compact: {
@@ -62,6 +68,8 @@ export interface ProblemCardProps extends VariantProps<typeof problemCardVariant
   onFavoriteChange?: (problemId: number, isFavorite: boolean) => void;
   showStatus?: boolean;
   showFavorite?: boolean;
+  /** When true, shows guest-mode controls that prompt for login */
+  isGuest?: boolean;
   className?: string;
 }
 
@@ -74,6 +82,7 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
     onFavoriteChange,
     showStatus = true,
     showFavorite = true,
+    isGuest = false,
     compact,
     className,
   },
@@ -82,6 +91,7 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
   const [currentStatus, setCurrentStatus] = useState<ProblemStatus>(initialStatus);
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   const styles = problemCardVariants({ compact });
 
   const handleStatusChange = useCallback(
@@ -150,64 +160,91 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
     }
   }, [problem.id, isFavorite, isUpdating, onFavoriteChange]);
 
+  const handleGuestFavoriteClick = () => {
+    setShowLoginPrompt(true);
+  };
+
   return (
-    <div ref={ref} className={cn(styles.root(), className)}>
-      {/* Top row: number, platform, content */}
-      <div className={styles.topRow()}>
-        {/* Problem number */}
-        <div className={styles.number()}>#{problem.number}</div>
+    <>
+      <div ref={ref} className={cn(styles.root(), className)}>
+        {/* Top row: number, platform, content */}
+        <div className={styles.topRow()}>
+          {/* Problem number */}
+          <div className={styles.number()}>#{problem.number}</div>
 
-        {/* Platform badge */}
-        <div className={styles.platformWrapper()}>
-          <PlatformBadge platform={problem.platform} size={compact ? "sm" : "md"} />
-        </div>
-
-        {/* Problem content */}
-        <div className={styles.content()}>
-          <div className={styles.title()}>
-            <a
-              href={problem.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={cn(
-                styles.titleText(),
-                "hover:text-primary hover:underline",
-                // Keep link text from stretching the row on small screens
-                "block",
-              )}
-              aria-label={`Open ${problem.name} on ${problem.platform}`}
-            >
-              {problem.name}
-            </a>
-            {problem.isStarred && <Star className={styles.starIcon()} />}
+          {/* Platform badge */}
+          <div className={styles.platformWrapper()}>
+            <PlatformBadge platform={problem.platform} size={compact ? "sm" : "md"} />
           </div>
-          {problem.note && !compact && <div className={styles.note()}>{problem.note}</div>}
+
+          {/* Problem content */}
+          <div className={styles.content()}>
+            <div className={styles.title()}>
+              <a
+                href={problem.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  styles.titleText(),
+                  "hover:text-primary hover:underline",
+                  // Keep link text from stretching the row on small screens
+                  "block",
+                )}
+                aria-label={`Open ${problem.name} on ${problem.platform}`}
+              >
+                {problem.name}
+              </a>
+              {problem.isStarred && <Star className={styles.starIcon()} />}
+            </div>
+            {problem.note && !compact && <div className={styles.note()}>{problem.note}</div>}
+          </div>
+        </div>
+
+        {compact ? (
+          <div className={styles.divider()} aria-hidden="true" />
+        ) : (
+          <div className="h-px w-full bg-border sm:hidden" aria-hidden="true" />
+        )}
+
+        {/* Actions */}
+        <div className={styles.actions()}>
+          {showStatus && (
+            <StatusSelect value={currentStatus} onChange={handleStatusChange} isGuest={isGuest} />
+          )}
+
+          {showFavorite &&
+            problem.id &&
+            (isGuest ? (
+              <button
+                type="button"
+                onClick={handleGuestFavoriteClick}
+                className={styles.guestFavoriteButton()}
+                aria-label="Sign in to save favorites"
+                title="Sign in to save favorites"
+              >
+                <Lock className="h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleFavoriteToggle}
+                disabled={isUpdating}
+                className={cn(styles.favoriteButton(), isFavorite && styles.favoriteButtonActive())}
+                aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+              >
+                <Heart className={cn("h-4 w-4", isFavorite && "fill-current")} />
+              </button>
+            ))}
         </div>
       </div>
 
-      {compact ? (
-        <div className={styles.divider()} aria-hidden="true" />
-      ) : (
-        <div className="h-px w-full bg-border sm:hidden" aria-hidden="true" />
-      )}
-
-      {/* Actions */}
-      <div className={styles.actions()}>
-        {showStatus && <StatusSelect value={currentStatus} onChange={handleStatusChange} />}
-
-        {showFavorite && problem.id && (
-          <button
-            type="button"
-            onClick={handleFavoriteToggle}
-            disabled={isUpdating}
-            className={cn(styles.favoriteButton(), isFavorite && styles.favoriteButtonActive())}
-            aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-          >
-            <Heart className={cn("h-4 w-4", isFavorite && "fill-current")} />
-          </button>
-        )}
-      </div>
-    </div>
+      {/* Login prompt for guest favorite action */}
+      <LoginPrompt
+        isOpen={showLoginPrompt}
+        onClose={() => setShowLoginPrompt(false)}
+        feature="favorite"
+      />
+    </>
   );
 });
 

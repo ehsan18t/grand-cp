@@ -1,3 +1,4 @@
+import { LogIn } from "lucide-react";
 import Link from "next/link";
 import { getRequestContext } from "@/lib/request-context";
 import type { PhaseWithProgress } from "@/types/domain";
@@ -13,6 +14,8 @@ export const metadata = {
 export default async function ProblemsPage() {
   const { services, userId } = await getRequestContext();
   const { phaseService, statsService } = services;
+
+  const isGuest = !userId;
 
   // Get phase summary (phases + problem counts)
   const { phases, totalProblems, phaseCountsMap } = await phaseService.getPhaseSummary();
@@ -39,6 +42,28 @@ export default async function ProblemsPage() {
           organized in {phases.length} phases.
         </p>
       </header>
+
+      {/* Guest CTA */}
+      {isGuest && (
+        <div className="mb-8 overflow-hidden rounded-xl border border-primary/20 bg-primary/5 p-4 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="mb-1 font-semibold text-lg">Track your progress</h2>
+              <p className="text-muted-foreground text-sm">
+                Sign in to save your progress, mark problems as solved, and track your journey to
+                Candidate Master.
+              </p>
+            </div>
+            <Link
+              href="/api/auth/signin"
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-all hover:bg-primary/90"
+            >
+              <LogIn className="h-4 w-4" />
+              Sign in
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
         {phasesWithProgress.map((phase) => (
@@ -72,15 +97,27 @@ export default async function ProblemsPage() {
                 </span>
               </div>
 
-              <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-muted">
-                <div
-                  className="h-full rounded-full bg-primary transition-all duration-500"
-                  style={{ width: `${phase.progressPercentage}%` }}
-                />
-              </div>
-              <p className="mt-1 text-right text-muted-foreground text-xs">
-                {phase.solvedCount}/{phase.totalProblems} solved ({phase.progressPercentage}%)
-              </p>
+              {/* Progress bar - show different state for guests */}
+              {isGuest ? (
+                <div className="mt-4">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted" />
+                  <p className="mt-1 text-right text-muted-foreground text-xs">
+                    Sign in to track progress
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary transition-all duration-500"
+                      style={{ width: `${phase.progressPercentage}%` }}
+                    />
+                  </div>
+                  <p className="mt-1 text-right text-muted-foreground text-xs">
+                    {phase.solvedCount}/{phase.totalProblems} solved ({phase.progressPercentage}%)
+                  </p>
+                </>
+              )}
             </div>
           </Link>
         ))}

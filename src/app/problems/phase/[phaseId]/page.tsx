@@ -126,7 +126,7 @@ export default async function PhasePage({ params }: PageProps) {
       </div>
 
       {/* Problems with Filtering */}
-      <PhaseProblems problems={phaseProblems} />
+      <PhaseProblems problems={phaseProblems} isGuest={!userId} />
 
       {/* Navigation */}
       <nav className="mt-12 flex flex-col gap-4 border-border border-t pt-8 sm:flex-row sm:items-center sm:justify-between">

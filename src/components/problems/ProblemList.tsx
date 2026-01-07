@@ -6,9 +6,11 @@ import { ProblemCard } from "./ProblemCard";
 interface ProblemListProps {
   problems: ProblemWithUserData[];
   topic: string;
+  /** When true, shows guest mode UI with login prompts */
+  isGuest?: boolean;
 }
 
-export function ProblemList({ problems, topic }: ProblemListProps) {
+export function ProblemList({ problems, topic, isGuest = false }: ProblemListProps) {
   return (
     <section>
       <h2 className="mb-4 flex items-center gap-2 font-semibold text-xl">
@@ -27,6 +29,7 @@ export function ProblemList({ problems, topic }: ProblemListProps) {
             initialStatus={problem.userStatus}
             initialFavorite={problem.isFavorite}
             showFavorite
+            isGuest={isGuest}
           />
         ))}
       </div>
