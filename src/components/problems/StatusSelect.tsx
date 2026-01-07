@@ -10,15 +10,6 @@ import {
   SkipForward,
 } from "lucide-react";
 
-ChevronDown,
-  Circle,
-  CircleCheck,
-  CircleDot,
-  Lock,
-  RotateCcw,
-  SkipForward,
-} from "lucide-react"
-
 import { forwardRef, useState } from "react";
 import { tv } from "tailwind-variants";
 import { LoginPrompt } from "@/components/auth";
