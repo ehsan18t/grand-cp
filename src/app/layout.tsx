@@ -3,9 +3,9 @@ import Script from "next/script";
 import { Navbar } from "@/components/layout";
 import { ToastProvider } from "@/components/ui";
 import { ThemeProvider, themeScript } from "@/context";
+import ProgressProvider from "@/context/ProgressProvider";
 import { geistMono, geistSans } from "@/lib/fonts";
 import { getSiteUrlFromProcessEnv, siteConfig } from "@/lib/site";
-import ProgressProvider from "@/context/ProgressProvider";
 import "./globals.css";
 
 const siteUrl = getSiteUrlFromProcessEnv();

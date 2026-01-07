@@ -1,11 +1,10 @@
 "use client";
 
 import { BarChart3, BookOpen, Clock, Heart, Menu, Search, X } from "lucide-react";
-
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 import { LoginButton } from "../auth/LoginButton";
@@ -24,80 +23,41 @@ export function Navbar() {
   const { data: session, isPending } = authClient.useSession();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Close mobile menu on route change
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally re-run when pathname changes
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
+
+  const isSearchActive = pathname === "/problems/search";
+
   return (
-    <nav className="sticky top-0 z-50 border-border border-b bg-background/80 backdrop-blur-sm">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <span className="text-primary">Grand</span>
-          <span>CP</span>
-        </Link>
-
-        {/* Desktop Navigation */}
-        <div className="hidden items-center gap-1 md:flex">
-          {navLinks.map((link) => {
-            const isActive =
-              link.href === "/problems"
-                ? pathname === "/problems" || pathname.startsWith("/problems/phase")
-                : pathname.startsWith(link.href);
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-sm transition-colors",
-                  isActive
-                    ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
-                )}
-              >
-                <link.icon className="h-4 w-4" />
-                {link.label}
-              </Link>
-            );
-          })}
-
-          {/* Search Icon */}
+    <>
+      <nav className="sticky top-0 z-50 border-border border-b bg-background/95 backdrop-blur-md supports-backdrop-filter:bg-background/80">
+        <div className="container mx-auto flex h-14 items-center justify-between gap-4 px-4 sm:h-16">
+          {/* Logo */}
           <Link
-            href="/problems/search"
-            className={cn(
-              "flex items-center justify-center rounded-lg p-2 transition-colors",
-              pathname === "/problems/search"
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-accent hover:text-foreground",
-            )}
-            title="Search Problems"
+            href="/"
+            className="flex shrink-0 items-center gap-1.5 font-bold text-lg transition-opacity hover:opacity-80 sm:text-xl"
           >
-            <Search className="h-4 w-4" />
+            <span className="text-primary">Grand</span>
+            <span>CP</span>
           </Link>
-        </div>
 
-        {/* Auth Section */}
-        <div className="hidden items-center gap-4 md:flex">
-          <ThemeSwitcher />
-          {isPending ? (
-            <div className="h-10 w-24 animate-pulse rounded-lg bg-muted" />
-          ) : session?.user ? (
-            <UserMenu session={session} />
-          ) : (
-            <LoginButton size="sm" />
-          )}
-        </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          type="button"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-accent md:hidden"
-        >
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      {mobileOpen && (
-        <div className="border-border border-t bg-background p-4 md:hidden">
-          <div className="space-y-2">
+          {/* Desktop Navigation */}
+          <div className="hidden flex-1 items-center justify-center gap-1 md:flex">
             {navLinks.map((link) => {
               const isActive =
                 link.href === "/problems"
@@ -107,47 +67,157 @@ export function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  onClick={() => setMobileOpen(false)}
                   className={cn(
-                    "flex items-center gap-2 rounded-lg px-4 py-3 font-medium text-sm transition-colors",
+                    "flex items-center gap-2 rounded-lg px-3 py-2 font-medium text-sm transition-all",
                     isActive
                       ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <link.icon className="h-4 w-4" />
+                  <span className="hidden lg:inline">{link.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Desktop Right Section - Utility Icons + Auth */}
+          <div className="hidden items-center gap-2 md:flex">
+            {/* Utility Icons */}
+            <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/50 p-1">
+              <Link
+                href="/problems/search"
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-md transition-colors",
+                  isSearchActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-background hover:text-foreground",
+                )}
+                title="Search Problems"
+              >
+                <Search className="h-4 w-4" />
+              </Link>
+              <ThemeSwitcher className="h-8 w-8 border-0 bg-transparent hover:bg-background" />
+            </div>
+
+            {/* Auth */}
+            {isPending ? (
+              <div className="h-9 w-24 animate-pulse rounded-full bg-muted" />
+            ) : session?.user ? (
+              <UserMenu session={session} />
+            ) : (
+              <LoginButton size="sm" />
+            )}
+          </div>
+
+          {/* Mobile Right Section */}
+          <div className="flex items-center gap-2 md:hidden">
+            {/* Mobile Utility Icons */}
+            <Link
+              href="/problems/search"
+              className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
+                isSearchActive
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted",
+              )}
+              title="Search"
+            >
+              <Search className="h-4 w-4" />
+            </Link>
+
+            <button
+              type="button"
+              onClick={() => setMobileOpen(!mobileOpen)}
+              className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-lg transition-colors",
+                mobileOpen ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted",
+              )}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileOpen}
+            >
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      {/* Mobile Menu Overlay */}
+      <div
+        className={cn(
+          "fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300 md:hidden",
+          mobileOpen ? "opacity-100" : "pointer-events-none opacity-0",
+        )}
+        onClick={() => setMobileOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* Mobile Menu Panel */}
+      <div
+        className={cn(
+          "fixed inset-y-0 right-0 z-50 w-full max-w-xs border-border border-l bg-background shadow-xl transition-transform duration-300 ease-out md:hidden",
+          mobileOpen ? "translate-x-0" : "translate-x-full",
+        )}
+      >
+        {/* Mobile Menu Header */}
+        <div className="flex h-14 items-center justify-between border-border border-b px-4 sm:h-16">
+          <span className="font-semibold text-sm">Menu</span>
+          <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            aria-label="Close menu"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Mobile Menu Content */}
+        <div className="flex h-[calc(100%-3.5rem)] flex-col overflow-y-auto sm:h-[calc(100%-4rem)]">
+          {/* Navigation Links */}
+          <div className="flex-1 space-y-1 p-4">
+            <p className="mb-2 px-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">
+              Navigation
+            </p>
+            {navLinks.map((link) => {
+              const isActive =
+                link.href === "/problems"
+                  ? pathname === "/problems" || pathname.startsWith("/problems/phase")
+                  : pathname.startsWith(link.href);
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg px-3 py-3 font-medium text-sm transition-colors",
+                    isActive ? "bg-primary/10 text-primary" : "text-foreground hover:bg-muted",
+                  )}
+                >
+                  <link.icon className="h-5 w-5" />
                   {link.label}
                 </Link>
               );
             })}
-
-            {/* Mobile Search Link */}
-            <Link
-              href="/problems/search"
-              onClick={() => setMobileOpen(false)}
-              className={cn(
-                "flex items-center gap-2 rounded-lg px-4 py-3 font-medium text-sm transition-colors",
-                pathname === "/problems/search"
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground",
-              )}
-            >
-              <Search className="h-4 w-4" />
-              Search
-            </Link>
           </div>
 
-          <div className="mt-4 flex items-center justify-between border-border border-t pt-4">
-            <div className="text-muted-foreground text-xs">Theme</div>
-            <ThemeSwitcher />
+          {/* Settings Section */}
+          <div className="border-border border-t p-4">
+            <p className="mb-2 px-3 font-medium text-muted-foreground text-xs uppercase tracking-wider">
+              Settings
+            </p>
+            <div className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
+              <span className="text-sm">Theme</span>
+              <ThemeSwitcher />
+            </div>
           </div>
 
-          <div className="mt-4 border-border border-t pt-4">
+          {/* User Section */}
+          <div className="border-border border-t p-4">
             {isPending ? (
-              <div className="h-10 w-full animate-pulse rounded-lg bg-muted" />
+              <div className="h-12 w-full animate-pulse rounded-lg bg-muted" />
             ) : session?.user ? (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-3">
                   {session.user.image ? (
                     <Image
                       src={session.user.image}
@@ -155,25 +225,33 @@ export function Navbar() {
                       width={40}
                       height={40}
                       sizes="40px"
-                      className="h-10 w-10 rounded-full object-cover"
+                      className="h-10 w-10 rounded-full object-cover ring-2 ring-primary/20"
                     />
                   ) : (
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 font-semibold text-primary ring-2 ring-primary/20">
                       {session.user.name.charAt(0)}
                     </div>
                   )}
-                  <div>
-                    <div className="font-medium text-sm">{session.user.name}</div>
-                    <div className="text-muted-foreground text-xs">{session.user.email}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate font-medium text-sm">{session.user.name}</div>
+                    <div className="truncate text-muted-foreground text-xs">
+                      {session.user.email}
+                    </div>
                   </div>
                 </div>
+                <Link
+                  href={`/u/${session.user.id}`}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-border py-2.5 text-sm transition-colors hover:bg-muted"
+                >
+                  View Profile
+                </Link>
                 <button
                   type="button"
                   onClick={async () => {
                     await authClient.signOut();
                     setMobileOpen(false);
                   }}
-                  className="text-destructive text-sm"
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-destructive/10 py-2.5 text-destructive text-sm transition-colors hover:bg-destructive/20"
                 >
                   Sign Out
                 </button>
@@ -183,7 +261,7 @@ export function Navbar() {
             )}
           </div>
         </div>
-      )}
-    </nav>
+      </div>
+    </>
   );
 }

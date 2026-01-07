@@ -6,62 +6,63 @@
   :root,
   [data-theme="light"] {
     /* === Core Colors === */
-    --primary: oklch(0.6397 0.172 36.4421);
-    --primary-foreground: oklch(0.98 0.005 36);
-    --background: oklch(0.9383 0.0042 236.4993);
-    --foreground: oklch(0.2 0.02 260);
-    --progress-color: oklch(0.6397 0.172 36.4421);
+    /* Vibrant teal - represents growth, technology, clarity */
+    --primary: oklch(0.55 0.18 195);
+    --primary-foreground: oklch(0.98 0.005 195);
+    --background: oklch(0.985 0.002 260);
+    --foreground: oklch(0.15 0.02 260);
+    --progress-color: oklch(0.55 0.18 195);
 
     /* === Focus Ring Colors (for box-shadow) === */
-    --primary-rgb: 217, 119, 87;
+    --primary-rgb: 0, 150, 160;
     --destructive-rgb: 220, 60, 60;
     --success-rgb: 60, 180, 100;
-    --warning-rgb: 220, 180, 50;
+    --warning-rgb: 230, 160, 40;
 
     /* === Secondary & Muted === */
-    --secondary: oklch(0.85 0.015 260);
+    --secondary: oklch(0.94 0.01 260);
     --secondary-foreground: oklch(0.25 0.02 260);
-    --muted: oklch(0.92 0.008 260);
-    --muted-foreground: oklch(0.45 0.02 260);
+    --muted: oklch(0.96 0.005 260);
+    --muted-foreground: oklch(0.5 0.015 260);
 
-    /* === Accent === */
-    --accent: oklch(0.75 0.12 200);
-    --accent-foreground: oklch(0.15 0.02 200);
+    /* === Accent - Coral/Orange for energy and action === */
+    --accent: oklch(0.55 0.18 195);
+    --accent-foreground: oklch(0.15 0.02 45);
 
     /* === UI Elements === */
-    --border: oklch(0.85 0.01 260);
-    --input: oklch(0.88 0.008 260);
-    --ring: oklch(0.6397 0.172 36.4421);
+    --border: oklch(0.9 0.005 260);
+    --input: oklch(0.95 0.005 260);
+    --ring: oklch(0.55 0.18 195);
 
     /* === Status Colors === */
     --destructive: oklch(0.55 0.22 27);
     --destructive-foreground: oklch(0.98 0.01 27);
-    --success: oklch(0.6 0.18 145);
-    --success-foreground: oklch(0.98 0.01 145);
-    --warning: oklch(0.75 0.18 85);
-    --warning-foreground: oklch(0.2 0.02 85);
-    --info: oklch(0.6 0.15 240);
-    --info-foreground: oklch(0.98 0.01 240);
+    --success: oklch(0.6 0.18 150);
+    --success-foreground: oklch(0.98 0.01 150);
+    --warning: oklch(0.72 0.16 75);
+    --warning-foreground: oklch(0.15 0.02 75);
+    --info: oklch(0.6 0.15 245);
+    --info-foreground: oklch(0.98 0.01 245);
 
     /* === Platform Colors (Competitive Programming) === */
-    --leetcode: oklch(0.65 0.2 145);
-    --leetcode-foreground: oklch(0.98 0.01 145);
-    --codeforces: oklch(0.55 0.15 240);
-    --codeforces-foreground: oklch(0.98 0.01 240);
-    --cses: oklch(0.7 0.18 85);
-    --cses-foreground: oklch(0.15 0.02 85);
-    --atcoder: oklch(0.5 0.08 50);
-    --atcoder-foreground: oklch(0.98 0.01 50);
+    --leetcode: oklch(0.62 0.18 150);
+    --leetcode-foreground: oklch(0.98 0.01 150);
+    --codeforces: oklch(0.55 0.16 245);
+    --codeforces-foreground: oklch(0.98 0.01 245);
+    --cses: oklch(0.68 0.15 75);
+    --cses-foreground: oklch(0.15 0.02 75);
+    --atcoder: oklch(0.52 0.1 30);
+    --atcoder-foreground: oklch(0.98 0.01 30);
 
     /* === Problem Status Colors === */
-    --status-untouched: oklch(0.6 0.02 260);
+    --status-untouched: oklch(0.65 0.02 260);
     --status-untouched-foreground: oklch(0.98 0.01 260);
-    --status-attempting: oklch(0.75 0.18 85);
-    --status-attempting-foreground: oklch(0.15 0.02 85);
-    --status-solved: oklch(0.6 0.18 145);
-    --status-solved-foreground: oklch(0.98 0.01 145);
-    --status-revisit: oklch(0.6 0.15 240);
-    --status-revisit-foreground: oklch(0.98 0.01 240);
+    --status-attempting: oklch(0.72 0.16 75);
+    --status-attempting-foreground: oklch(0.15 0.02 75);
+    --status-solved: oklch(0.6 0.18 150);
+    --status-solved-foreground: oklch(0.98 0.01 150);
+    --status-revisit: oklch(0.6 0.15 245);
+    --status-revisit-foreground: oklch(0.98 0.01 245);
     --status-skipped: oklch(0.55 0.02 260);
     --status-skipped-foreground: oklch(0.98 0.01 260);
 
@@ -104,63 +105,64 @@
   [data-theme="dark"],
   .dark {
     /* === Core Colors === */
-    --primary: oklch(0.7 0.18 36);
-    --primary-foreground: oklch(0.15 0.02 36);
-    --background: oklch(0.18 0.025 262);
-    --foreground: oklch(0.93 0.008 260);
+    /* Bright teal - pops on dark backgrounds */
+    --primary: oklch(0.72 0.16 195);
+    --primary-foreground: oklch(0.12 0.02 195);
+    --background: oklch(0.14 0.02 260);
+    --foreground: oklch(0.94 0.005 260);
 
     /* === Focus Ring Colors (for box-shadow) === */
-    --primary-rgb: 230, 140, 110;
+    --primary-rgb: 60, 200, 210;
     --destructive-rgb: 240, 80, 80;
     --success-rgb: 80, 200, 120;
-    --warning-rgb: 240, 200, 70;
+    --warning-rgb: 245, 180, 60;
 
     /* === Secondary & Muted === */
-    --secondary: oklch(0.28 0.02 262);
-    --secondary-foreground: oklch(0.9 0.008 260);
-    --muted: oklch(0.25 0.018 262);
-    --muted-foreground: oklch(0.6 0.015 260);
+    --secondary: oklch(0.22 0.015 260);
+    --secondary-foreground: oklch(0.92 0.005 260);
+    --muted: oklch(0.2 0.012 260);
+    --muted-foreground: oklch(0.58 0.01 260);
 
-    /* === Accent === */
-    --accent: oklch(0.55 0.12 200);
-    --accent-foreground: oklch(0.95 0.008 200);
+    /* === Accent - Coral/Orange === */
+    --accent: oklch(0.72 0.16 195);
+    --accent-foreground: oklch(0.12 0.02 45);
 
     /* === UI Elements === */
-    --border: oklch(0.32 0.02 262);
-    --input: oklch(0.28 0.02 262);
-    --ring: oklch(0.7 0.18 36);
+    --border: oklch(0.28 0.015 260);
+    --input: oklch(0.22 0.015 260);
+    --ring: oklch(0.72 0.16 195);
 
     /* === Status Colors === */
-    --destructive: oklch(0.6 0.22 27);
+    --destructive: oklch(0.62 0.22 27);
     --destructive-foreground: oklch(0.98 0.01 27);
-    --success: oklch(0.65 0.18 145);
-    --success-foreground: oklch(0.15 0.02 145);
-    --warning: oklch(0.78 0.18 85);
-    --warning-foreground: oklch(0.15 0.02 85);
-    --info: oklch(0.65 0.15 240);
-    --info-foreground: oklch(0.15 0.01 240);
+    --success: oklch(0.68 0.17 150);
+    --success-foreground: oklch(0.12 0.02 150);
+    --warning: oklch(0.75 0.16 75);
+    --warning-foreground: oklch(0.12 0.02 75);
+    --info: oklch(0.68 0.14 245);
+    --info-foreground: oklch(0.12 0.01 245);
 
     /* === Platform Colors (Competitive Programming) === */
-    --leetcode: oklch(0.7 0.18 145);
-    --leetcode-foreground: oklch(0.15 0.02 145);
-    --codeforces: oklch(0.6 0.14 240);
-    --codeforces-foreground: oklch(0.98 0.01 240);
-    --cses: oklch(0.75 0.16 85);
-    --cses-foreground: oklch(0.15 0.02 85);
-    --atcoder: oklch(0.55 0.08 50);
-    --atcoder-foreground: oklch(0.98 0.01 50);
+    --leetcode: oklch(0.68 0.17 150);
+    --leetcode-foreground: oklch(0.12 0.02 150);
+    --codeforces: oklch(0.65 0.14 245);
+    --codeforces-foreground: oklch(0.98 0.01 245);
+    --cses: oklch(0.72 0.14 75);
+    --cses-foreground: oklch(0.12 0.02 75);
+    --atcoder: oklch(0.58 0.1 30);
+    --atcoder-foreground: oklch(0.98 0.01 30);
 
     /* === Problem Status Colors === */
-    --status-untouched: oklch(0.5 0.02 260);
-    --status-untouched-foreground: oklch(0.9 0.01 260);
-    --status-attempting: oklch(0.78 0.18 85);
-    --status-attempting-foreground: oklch(0.15 0.02 85);
-    --status-solved: oklch(0.65 0.18 145);
-    --status-solved-foreground: oklch(0.15 0.02 145);
-    --status-revisit: oklch(0.65 0.15 240);
-    --status-revisit-foreground: oklch(0.15 0.01 240);
-    --status-skipped: oklch(0.45 0.02 260);
-    --status-skipped-foreground: oklch(0.9 0.01 260);
+    --status-untouched: oklch(0.5 0.015 260);
+    --status-untouched-foreground: oklch(0.92 0.01 260);
+    --status-attempting: oklch(0.75 0.16 75);
+    --status-attempting-foreground: oklch(0.12 0.02 75);
+    --status-solved: oklch(0.68 0.17 150);
+    --status-solved-foreground: oklch(0.12 0.02 150);
+    --status-revisit: oklch(0.68 0.14 245);
+    --status-revisit-foreground: oklch(0.12 0.01 245);
+    --status-skipped: oklch(0.42 0.015 260);
+    --status-skipped-foreground: oklch(0.92 0.01 260);
 
     /* === Card & Popover === */
     --card: oklch(0.22 0.02 262);
