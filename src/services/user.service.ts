@@ -36,19 +36,21 @@ export class UserService {
     userId: string,
     username: string,
   ): Promise<{ success: boolean; username: string }> {
+    const normalizedUsername = username.trim().toLowerCase();
+
     // Validate username format
-    if (!isValidUsername(username)) {
+    if (!isValidUsername(normalizedUsername)) {
       throw new Error("Invalid username format");
     }
 
     // Check if username is taken
-    const isTaken = await this.userRepo.isUsernameTaken(username, userId);
+    const isTaken = await this.userRepo.isUsernameTaken(normalizedUsername, userId);
     if (isTaken) {
       throw new Error("Username is already taken");
     }
 
-    await this.userRepo.updateUsername(userId, username);
+    await this.userRepo.updateUsername(userId, normalizedUsername);
 
-    return { success: true, username };
+    return { success: true, username: normalizedUsername };
   }
 }

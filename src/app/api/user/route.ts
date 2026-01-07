@@ -10,7 +10,9 @@ export const PATCH = withAuth(async (request, { services, userId }) => {
     throw Errors.badRequest("Username is required");
   }
 
-  const result = await services.userService.updateUsername(userId, username);
+  const normalizedUsername = username.trim().toLowerCase();
+
+  const result = await services.userService.updateUsername(userId, normalizedUsername);
   return ApiResponse.ok({ success: true, username: result.username });
 });
 

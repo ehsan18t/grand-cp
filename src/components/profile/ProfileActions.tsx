@@ -75,8 +75,16 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
       return;
     }
 
+    const normalizedUsername = newUsername.trim().toLowerCase();
+
+    // If normalization makes it equal, nothing to persist.
+    if (normalizedUsername === username) {
+      setIsEditing(false);
+      return;
+    }
+
     // Client-side validation
-    const validationError = validateUsername(newUsername);
+    const validationError = validateUsername(normalizedUsername);
     if (validationError) {
       setError(validationError);
       return;
@@ -88,14 +96,14 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
     // Optimistic update - update store immediately
     const previousUsername = user?.username;
     if (user) {
-      setUser({ ...user, username: newUsername });
+      setUser({ ...user, username: normalizedUsername });
     }
 
     try {
       const res = await fetch("/api/user", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: newUsername }),
+        body: JSON.stringify({ username: normalizedUsername }),
       });
 
       const data = (await res.json()) as { error?: string };
@@ -112,7 +120,7 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
       setIsEditing(false);
 
       // Navigate to new profile URL
-      router.push(`/u/${newUsername}`);
+      router.push(`/u/${normalizedUsername}`);
       router.refresh();
     } catch {
       // Rollback on error
