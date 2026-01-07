@@ -3,6 +3,7 @@
 import { Check, Edit2, Loader2, Share2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useAppStore, useUser } from "@/stores/app-store";
 
 interface ProfileActionsProps {
   isOwner: boolean;
@@ -40,6 +41,10 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
     }
   };
 
+  // Store actions
+  const setUser = useAppStore((s) => s.setUser);
+  const user = useUser();
+
   const handleSaveUsername = async () => {
     if (newUsername === username) {
       setIsEditing(false);
@@ -64,6 +69,12 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
       }
 
       setIsEditing(false);
+      
+      // Update store immediately
+      if (user) {
+        setUser({ ...user, username: newUsername });
+      }
+
       // Navigate to new profile URL
       router.push(`/u/${newUsername}`);
       router.refresh();
