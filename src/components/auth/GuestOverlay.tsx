@@ -3,6 +3,7 @@
 import { Lock, LogIn } from "lucide-react";
 import { forwardRef } from "react";
 import { tv } from "tailwind-variants";
+import { useToast } from "@/components/ui";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
@@ -56,12 +57,25 @@ export const GuestOverlay = forwardRef<HTMLDivElement, GuestOverlayProps>(functi
   ref,
 ) {
   const styles = guestOverlayVariants();
+  const { addToast } = useToast();
 
   const handleLogin = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: window.location.pathname,
-    });
+    try {
+      const result = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: window.location.pathname,
+      });
+
+      if ((result as any)?.error) {
+        throw new Error((result as any)?.error?.message ?? "Unknown error");
+      }
+    } catch {
+      addToast({
+        variant: "destructive",
+        title: "Sign in failed",
+        description: "Please try again.",
+      });
+    }
   };
 
   return (

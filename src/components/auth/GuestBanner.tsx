@@ -3,6 +3,7 @@
 import { LogIn, Sparkles, X } from "lucide-react";
 import { forwardRef, useEffect, useState } from "react";
 import { tv } from "tailwind-variants";
+import { useToast } from "@/components/ui";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
@@ -67,6 +68,7 @@ export const GuestBanner = forwardRef<HTMLDivElement, GuestBannerProps>(function
   const styles = guestBannerVariants();
   const [isDismissed, setIsDismissed] = useState(true); // Start hidden to avoid flash
   const message = variantMessages[variant];
+  const { addToast } = useToast();
 
   // Check sessionStorage on mount
   useEffect(() => {
@@ -80,10 +82,22 @@ export const GuestBanner = forwardRef<HTMLDivElement, GuestBannerProps>(function
   };
 
   const handleLogin = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: window.location.pathname,
-    });
+    try {
+      const result = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: window.location.pathname,
+      });
+
+      if ((result as any)?.error) {
+        throw new Error((result as any)?.error?.message ?? "Unknown error");
+      }
+    } catch {
+      addToast({
+        variant: "destructive",
+        title: "Sign in failed",
+        description: "Please try again.",
+      });
+    }
   };
 
   if (isDismissed) return null;

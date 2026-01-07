@@ -3,6 +3,7 @@
 import { Lock, LogIn, Sparkles, X } from "lucide-react";
 import { forwardRef, useEffect, useRef } from "react";
 import { tv } from "tailwind-variants";
+import { useToast } from "@/components/ui";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
@@ -143,11 +144,25 @@ export const LoginPrompt = forwardRef<HTMLDivElement, LoginPromptProps>(function
     };
   }, [isOpen]);
 
+  const { addToast } = useToast();
+
   const handleLogin = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: window.location.pathname,
-    });
+    try {
+      const result = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: window.location.pathname,
+      });
+
+      if ((result as any)?.error) {
+        throw new Error((result as any)?.error?.message ?? "Unknown error");
+      }
+    } catch {
+      addToast({
+        variant: "destructive",
+        title: "Sign in failed",
+        description: "Please try again.",
+      });
+    }
   };
 
   if (!isOpen) return null;

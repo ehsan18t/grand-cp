@@ -3,6 +3,7 @@
 import { LogIn } from "lucide-react";
 import { forwardRef } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
+import { useToast } from "@/components/ui";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
 
@@ -40,11 +41,25 @@ export const LoginButton = forwardRef<HTMLButtonElement, LoginButtonProps>(funct
   { className, variant, size, showIcon = true, children, ...props },
   ref,
 ) {
+  const { addToast } = useToast();
+
   const handleLogin = async () => {
-    await authClient.signIn.social({
-      provider: "google",
-      callbackURL: "/problems",
-    });
+    try {
+      const result = await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/problems",
+      });
+
+      if ((result as any)?.error) {
+        throw new Error((result as any)?.error?.message ?? "Unknown error");
+      }
+    } catch {
+      addToast({
+        variant: "destructive",
+        title: "Sign in failed",
+        description: "Please try again. If it keeps failing, refresh the page.",
+      });
+    }
   };
 
   return (
