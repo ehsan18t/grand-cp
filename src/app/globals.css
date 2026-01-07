@@ -77,7 +77,7 @@
     --scroll-main: var(--primary);
 
     /* === Progress === */
-    --progress-color: var(--background);
+    --progress-color: var(--primary);
 
     /* === Animation Variables === */
     --animation-duration-fast: 150ms;
