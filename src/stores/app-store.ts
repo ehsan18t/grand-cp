@@ -366,8 +366,9 @@ export const useAppStore = create<AppStore>()(
           }
 
           // Add to history on success
+          // Use high-precision timestamp + random offset to avoid collisions
           const historyEntry: HistoryEntry = {
-            id: Date.now(),
+            id: Date.now() * 1000 + Math.floor(Math.random() * 1000),
             problemId,
             problemNumber,
             problemName: problem?.name ?? "",

@@ -10,6 +10,20 @@
 export type ProblemStatus = "untouched" | "attempting" | "solved" | "revisit" | "skipped";
 export type Platform = "leetcode" | "codeforces" | "cses" | "atcoder" | "other";
 
+/** Valid problem statuses - use for validation */
+export const VALID_STATUSES: readonly ProblemStatus[] = [
+  "untouched",
+  "attempting",
+  "solved",
+  "revisit",
+  "skipped",
+] as const;
+
+/** Check if a string is a valid problem status */
+export function isValidStatus(status: string): status is ProblemStatus {
+  return VALID_STATUSES.includes(status as ProblemStatus);
+}
+
 // ============================================================================
 // Phase Types
 // ============================================================================

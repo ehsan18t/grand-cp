@@ -5,6 +5,25 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAppStore, useUser } from "@/stores/app-store";
 
+/** Username validation: 3-20 chars, alphanumeric + underscore */
+const USERNAME_REGEX = /^[a-zA-Z0-9_]{3,20}$/;
+
+function validateUsername(value: string): string | null {
+  if (!value.trim()) {
+    return "Username is required";
+  }
+  if (value.length < 3) {
+    return "Username must be at least 3 characters";
+  }
+  if (value.length > 20) {
+    return "Username must be at most 20 characters";
+  }
+  if (!USERNAME_REGEX.test(value)) {
+    return "Username can only contain letters, numbers, and underscores";
+  }
+  return null;
+}
+
 interface ProfileActionsProps {
   isOwner: boolean;
   username: string;
@@ -32,9 +51,8 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
         setShareMessage("Link copied to clipboard!");
         setTimeout(() => setShareMessage(null), 2000);
       }
-    } catch (error) {
-      console.error("Share failed", error);
-      // User cancelled share or error
+    } catch {
+      // User cancelled share or error - fallback to clipboard
       await navigator.clipboard.writeText(profileUrl);
       setShareMessage("Link copied to clipboard!");
       setTimeout(() => setShareMessage(null), 2000);
@@ -45,9 +63,24 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
   const setUser = useAppStore((s) => s.setUser);
   const user = useUser();
 
+  const handleUsernameChange = (value: string) => {
+    setNewUsername(value);
+    // Clear error when user starts typing
+    if (error) {
+      setError(null);
+    }
+  };
+
   const handleSaveUsername = async () => {
     if (newUsername === username) {
       setIsEditing(false);
+      return;
+    }
+
+    // Client-side validation
+    const validationError = validateUsername(newUsername);
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
@@ -78,8 +111,7 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
       // Navigate to new profile URL
       router.push(`/u/${newUsername}`);
       router.refresh();
-    } catch (error) {
-      console.error("Username update error", error);
+    } catch {
       setError("Failed to update username");
     } finally {
       setIsLoading(false);
@@ -104,9 +136,10 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
                 <input
                   type="text"
                   value={newUsername}
-                  onChange={(e) => setNewUsername(e.target.value)}
+                  onChange={(e) => handleUsernameChange(e.target.value)}
                   className="rounded border border-border bg-background px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   placeholder="username"
+                  maxLength={20}
                   disabled={isLoading}
                 />
                 <button

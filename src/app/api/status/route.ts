@@ -1,8 +1,6 @@
 import { ApiResponse, CACHE_HEADERS, withAuth, withOptionalAuth } from "@/lib/api-utils";
 import { Errors } from "@/lib/errors";
-import type { ProblemStatus } from "@/types/domain";
-
-const VALID_STATUSES: ProblemStatus[] = ["untouched", "attempting", "solved", "revisit", "skipped"];
+import { type ProblemStatus, VALID_STATUSES } from "@/types/domain";
 
 interface StatusUpdateBody {
   problemNumber: number;
