@@ -1,7 +1,9 @@
 import { ArrowLeft, Search } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui";
+import { problems as staticProblems } from "@/data";
 import { getRequestContext } from "@/lib/request-context";
+import type { Problem, ProblemWithUserData } from "@/types/domain";
 import { SearchPageClient } from "./SearchPageClient";
 
 export const metadata = {
@@ -10,14 +12,28 @@ export const metadata = {
 };
 
 export default async function SearchPage() {
-  const { services, userId } = await getRequestContext();
-  const { problemService } = services;
+  let isGuest = true;
+  let allProblems: Problem[] = [];
+  let problemsWithUserData: ProblemWithUserData[] = [];
 
-  const isGuest = !userId;
+  try {
+    const { services, userId } = await getRequestContext();
+    const { problemService } = services;
 
-  // Get all problems with user data (this data is passed once to client and cached)
-  const allProblems = await problemService.getAllProblems();
-  const problemsWithUserData = await problemService.getProblemsWithUserData(allProblems, userId);
+    isGuest = !userId;
+    allProblems = await problemService.getAllProblems();
+    problemsWithUserData = await problemService.getProblemsWithUserData(allProblems, userId);
+  } catch (error) {
+    console.error("Search page failed to load dynamic data; using static fallback", error);
+
+    // Fallback: use static problems list and default user metadata
+    allProblems = staticProblems.map((p, idx) => ({ ...p, id: p.number ?? idx + 1 }));
+    problemsWithUserData = allProblems.map((p) => ({
+      ...p,
+      userStatus: "untouched" as const,
+      isFavorite: false,
+    }));
+  }
 
   return (
     <main className="container mx-auto px-4 py-8">
