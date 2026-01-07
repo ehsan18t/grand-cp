@@ -50,10 +50,10 @@ export const GET = withOptionalAuth(async (_request, { services, userId, session
   }
 
   // Fetch user-specific data
-  const [allStatuses, favorites, history, userStats] = await Promise.all([
+  const [allStatuses, favorites, historyCount, userStats] = await Promise.all([
     statusService.getAllStatuses(userId),
     favoriteService.getFavorites(userId),
-    historyService.getHistory(userId),
+    historyService.getHistoryCount(userId),
     statsService.getUserStats(userId, totalProblems),
   ]);
 
@@ -101,7 +101,7 @@ export const GET = withOptionalAuth(async (_request, { services, userId, session
       user,
       statuses: statusesWithIds,
       favorites: favoritesWithDates,
-      history,
+      historyCount,
       statusCounts: {
         solved: userStats.solved,
         attempting: userStats.attempting,

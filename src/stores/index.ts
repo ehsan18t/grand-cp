@@ -6,7 +6,7 @@ export {
   type InitResponse,
   type User,
   useAppStore,
-  useHistory,
+  useHistoryCount,
   useIsAuthenticated,
   useIsFavorite,
   useIsInitialized,

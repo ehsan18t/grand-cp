@@ -13,10 +13,8 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type {
   FavoriteProblem,
-  HistoryEntry,
   Phase,
   PhaseWithProgress,
-  Platform,
   Problem,
   ProblemStatus,
   ProblemWithUserData,
@@ -47,7 +45,7 @@ export interface InitResponse {
   user?: User;
   statuses?: Array<{ problemNumber: number; problemId: number; status: ProblemStatus }>;
   favorites?: Array<{ problemId: number; favoritedAt: string }>;
-  history?: HistoryEntry[];
+  historyCount?: number;
   statusCounts?: StatusCounts;
   phaseSolvedMap?: Record<number, number>;
 }
@@ -68,7 +66,7 @@ interface AppState {
   statusByProblemId: Map<number, ProblemStatus>; // problemId -> status (for favorites)
   favorites: Set<number>; // problemIds
   favoritedAtMap: Map<number, Date>; // problemId -> favoritedAt
-  history: HistoryEntry[];
+  historyCount: number; // Total history entries (for pagination)
   statusCounts: StatusCounts;
   phaseSolvedMap: Map<number, number>;
 
@@ -171,7 +169,7 @@ const initialState: AppState = {
   statusByProblemId: new Map(),
   favorites: new Set(),
   favoritedAtMap: new Map(),
-  history: [],
+  historyCount: 0,
   statusCounts: { solved: 0, attempting: 0, revisit: 0, skipped: 0, untouched: 0 },
   phaseSolvedMap: new Map(),
 
@@ -248,12 +246,7 @@ export const useAppStore = create<AppStore>()(
           statusByProblemId,
           favorites,
           favoritedAtMap,
-          history: data.history
-            ? data.history.map((h) => ({
-                ...h,
-                changedAt: h.changedAt instanceof Date ? h.changedAt : new Date(h.changedAt),
-              }))
-            : [],
+          historyCount: data.historyCount ?? 0,
           statusCounts: data.statusCounts ?? initialState.statusCounts,
           phaseSolvedMap,
 
@@ -275,7 +268,7 @@ export const useAppStore = create<AppStore>()(
           statusByProblemId: new Map(),
           favorites: new Set(),
           favoritedAtMap: new Map(),
-          history: [],
+          historyCount: 0,
           pendingUpdates: new Set(),
           statusCounts: {
             solved: 0,
@@ -366,22 +359,9 @@ export const useAppStore = create<AppStore>()(
             throw new Error("Failed to update status");
           }
 
-          // Add to history on success
-          // Use high-precision timestamp + random offset to avoid collisions
-          const historyEntry: HistoryEntry = {
-            id: Date.now() * 1000 + Math.floor(Math.random() * 1000),
-            problemId,
-            problemNumber,
-            problemName: problem?.name ?? "",
-            problemUrl: problem?.url ?? "",
-            platform: problem?.platform ?? ("other" as Platform),
-            fromStatus: previousStatus === "untouched" ? null : previousStatus,
-            toStatus: status,
-            changedAt: new Date(),
-          };
-
+          // Increment history count on success (actual history fetched separately)
           set((s) => ({
-            history: [historyEntry, ...s.history].slice(0, 500),
+            historyCount: s.historyCount + 1,
             pendingUpdates: new Set([...s.pendingUpdates].filter((k) => k !== key)),
           }));
 
@@ -600,22 +580,6 @@ export const useAppStore = create<AppStore>()(
         replacer: mapSerializer.replacer,
         reviver: mapSerializer.reviver,
       }),
-      // Handle hydration of complex types that JSON reviver misses (like Dates in arrays)
-      merge: (persistedState, currentState) => {
-        const state = persistedState as AppState;
-
-        // Deep merge with date restoration for history
-        return {
-          ...currentState,
-          ...state,
-          history: Array.isArray(state.history)
-            ? state.history.map((h) => ({
-                ...h,
-                changedAt: new Date(h.changedAt),
-              }))
-            : [],
-        };
-      },
       // Don't persist pending updates, loading state, or public data (phases/problems)
       // Public data is fetched on init, only user-specific data should be persisted
       partialize: (state) => ({
@@ -625,7 +589,7 @@ export const useAppStore = create<AppStore>()(
         statusByProblemId: state.statusByProblemId,
         favorites: state.favorites,
         favoritedAtMap: state.favoritedAtMap,
-        history: state.history,
+        historyCount: state.historyCount,
         statusCounts: state.statusCounts,
         phaseSolvedMap: state.phaseSolvedMap,
         isInitialized: state.isInitialized,
@@ -646,7 +610,7 @@ export const usePhases = () => useAppStore((s) => s.phases);
 export const useProblems = () => useAppStore((s) => s.problems);
 export const useTotalProblems = () => useAppStore((s) => s.totalProblems);
 export const useStatusCounts = () => useAppStore((s) => s.statusCounts);
-export const useHistory = () => useAppStore((s) => s.history);
+export const useHistoryCount = () => useAppStore((s) => s.historyCount);
 
 export const useStatus = (problemNumber: number) =>
   useAppStore((s) => s.statuses.get(problemNumber) ?? "untouched");
