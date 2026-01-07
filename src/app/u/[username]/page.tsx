@@ -1,14 +1,9 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { and, eq, or, sql } from "drizzle-orm";
 import { Calendar, Trophy, User } from "lucide-react";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { ProfileActions } from "@/components/profile";
-import { createDb } from "@/db";
-import { phases as dbPhases, problems as dbProblems, userProblems, users } from "@/db/schema";
-import { createAuth } from "@/lib/auth";
+import { getRequestContext } from "@/lib/request-context";
 import { getSiteUrlFromEnv } from "@/lib/site";
 
 interface PageProps {
@@ -27,26 +22,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ProfilePage({ params }: PageProps) {
   const { username } = await params;
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.DB);
-  const auth = createAuth(env.DB, env);
-
-  // Get current session to check if viewer is the profile owner
-  const headersList = await headers();
-  const session = await auth.api.getSession({ headers: headersList });
+  const { services, session, env } = await getRequestContext();
+  const { userService, phaseService, statsService } = services;
 
   // Fetch user from database
-  const [user] = await db
-    .select({
-      id: users.id,
-      name: users.name,
-      username: users.username,
-      image: users.image,
-      createdAt: users.createdAt,
-    })
-    .from(users)
-    .where(or(eq(users.username, username), eq(users.id, username)))
-    .limit(1);
+  const user = await userService.getUserByUsernameOrId(username);
 
   if (!user) {
     notFound();
@@ -56,63 +36,19 @@ export default async function ProfilePage({ params }: PageProps) {
     redirect(`/u/${user.username}`);
   }
 
-  // Fetch phases, total problems, and problem counts per phase
-  const [phases, totalProblemsResult, problemCountsByPhase] = await Promise.all([
-    db.select().from(dbPhases).orderBy(dbPhases.id),
-    db.select({ count: sql<number>`count(*)` }).from(dbProblems),
-    db
-      .select({
-        phaseId: dbProblems.phaseId,
-        count: sql<number>`count(*)`,
-      })
-      .from(dbProblems)
-      .groupBy(dbProblems.phaseId),
-  ]);
+  // Get phase summary and user stats
+  const { phases, totalProblems, phaseCountsMap } = await phaseService.getPhaseSummary();
+  const userStats = await statsService.getUserStats(user.id, totalProblems);
 
-  const totalProblems = totalProblemsResult[0]?.count ?? 0;
-  const phaseCountsMap = new Map(problemCountsByPhase.map((p) => [p.phaseId, p.count]));
-
-  // Fetch user's stats
-  const [statusCounts, solvedByPhase] = await Promise.all([
-    db
-      .select({
-        status: userProblems.status,
-        count: sql<number>`count(*)`,
-      })
-      .from(userProblems)
-      .where(eq(userProblems.userId, user.id))
-      .groupBy(userProblems.status),
-
-    db
-      .select({
-        phaseId: dbProblems.phaseId,
-        count: sql<number>`count(*)`,
-      })
-      .from(userProblems)
-      .innerJoin(dbProblems, eq(userProblems.problemId, dbProblems.id))
-      .where(and(eq(userProblems.userId, user.id), eq(userProblems.status, "solved")))
-      .groupBy(dbProblems.phaseId),
-  ]);
-
-  // Map status counts
   const stats = {
-    solved: 0,
-    attempting: 0,
-    revisit: 0,
-    skipped: 0,
+    solved: userStats.solved,
+    attempting: userStats.attempting,
+    revisit: userStats.revisit,
+    skipped: userStats.skipped,
   };
 
-  for (const row of statusCounts) {
-    if (row.status === "solved") stats.solved = row.count;
-    else if (row.status === "attempting") stats.attempting = row.count;
-    else if (row.status === "revisit") stats.revisit = row.count;
-    else if (row.status === "skipped") stats.skipped = row.count;
-  }
-
-  const phaseSolvedMap = new Map(solvedByPhase.map((p) => [p.phaseId, p.count]));
-
-  const progressPercentage =
-    totalProblems > 0 ? Math.round((stats.solved / totalProblems) * 100) : 0;
+  const phaseSolvedMap = userStats.phaseSolvedMap;
+  const progressPercentage = userStats.progressPercentage;
 
   // Check if current user is viewing their own profile
   const isOwner = session?.user?.id === user.id;
@@ -122,17 +58,11 @@ export default async function ProfilePage({ params }: PageProps) {
   const profileUrl = `${siteUrl}/u/${user.username ?? user.id}`;
 
   // Determine current phase (first incomplete phase)
-  let currentPhase = 0;
-  let targetRating = "1000+";
-  for (const phase of phases) {
-    const phaseTotal = phaseCountsMap.get(phase.id) ?? 0;
-    const phaseSolved = phaseSolvedMap.get(phase.id) ?? 0;
-    if (phaseSolved < phaseTotal) {
-      currentPhase = phase.id;
-      targetRating = `${phase.targetRatingEnd ?? 1000}+`;
-      break;
-    }
-  }
+  const { currentPhase, targetRating } = phaseService.determineCurrentPhase(
+    phases,
+    phaseCountsMap,
+    phaseSolvedMap,
+  );
 
   return (
     <main className="container mx-auto px-4 py-8">

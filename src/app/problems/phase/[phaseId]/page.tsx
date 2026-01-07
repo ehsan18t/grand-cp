@@ -1,18 +1,8 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { and, eq, inArray } from "drizzle-orm";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PhaseProblems } from "@/components/problems";
-import { createDb } from "@/db";
-import {
-  phases as dbPhases,
-  problems as dbProblems,
-  userFavorites,
-  userProblems,
-} from "@/db/schema";
-import { createAuth } from "@/lib/auth";
+import { getRequestContext, getServicesOnly } from "@/lib/request-context";
 
 // Revalidate phase pages every hour for fresh problem data
 export const revalidate = 3600;
@@ -27,9 +17,8 @@ interface PageProps {
  */
 export async function generateStaticParams() {
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const phases = await db.select({ id: dbPhases.id }).from(dbPhases);
+    const services = await getServicesOnly();
+    const phases = await services.phaseService.getAllPhases();
     return phases.map((phase) => ({ phaseId: String(phase.id) }));
   } catch {
     // Fallback to phases 1-8 if DB isn't available at build time
@@ -42,9 +31,8 @@ export async function generateMetadata({ params }: PageProps) {
   const phaseIdNum = Number.parseInt(phaseId, 10);
 
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const [phase] = await db.select().from(dbPhases).where(eq(dbPhases.id, phaseIdNum)).limit(1);
+    const services = await getServicesOnly();
+    const phase = await services.phaseService.getPhaseById(phaseIdNum);
 
     if (!phase) return { title: "Phase Not Found" };
 
@@ -61,107 +49,25 @@ export default async function PhasePage({ params }: PageProps) {
   const { phaseId } = await params;
   const phaseIdNum = Number.parseInt(phaseId, 10);
 
-  const { env } = await getCloudflareContext({ async: true });
-  const db = createDb(env.DB);
-  const auth = createAuth(env.DB, env);
-  const requestHeaders = await headers();
-  const session = await auth.api.getSession({ headers: requestHeaders });
+  const { services, userId } = await getRequestContext();
+  const { phaseService, problemService } = services;
 
   // Fetch phase from database
-  const [phase] = await db.select().from(dbPhases).where(eq(dbPhases.id, phaseIdNum)).limit(1);
+  const phase = await phaseService.getPhaseById(phaseIdNum);
 
   if (!phase) {
     notFound();
   }
 
   // Fetch all phases for navigation
-  const allPhases = await db.select().from(dbPhases).orderBy(dbPhases.id);
+  const allPhases = await phaseService.getAllPhases();
 
-  // Fetch problems for this phase from database
-  const problemsFromDb = await db
-    .select()
-    .from(dbProblems)
-    .where(eq(dbProblems.phaseId, phaseIdNum))
-    .orderBy(dbProblems.number);
+  // Fetch problems for this phase and enrich with user data
+  const problemsFromDb = await problemService.getProblemsByPhaseId(phaseIdNum);
+  const phaseProblems = await problemService.getProblemsWithUserData(problemsFromDb, userId);
 
-  // Map to ProblemData format with user status and favorites
-  type ProblemWithUserData = {
-    id: number;
-    number: number;
-    platform: "leetcode" | "codeforces" | "cses" | "atcoder" | "other";
-    name: string;
-    url: string;
-    phaseId: number;
-    topic: string;
-    isStarred: boolean;
-    note: string | null;
-    userStatus: "untouched" | "attempting" | "solved" | "revisit" | "skipped";
-    isFavorite: boolean;
-  };
-
-  let phaseProblems: ProblemWithUserData[] = problemsFromDb.map((p) => ({
-    id: p.id,
-    number: p.number,
-    platform: p.platform,
-    name: p.name,
-    url: p.url,
-    phaseId: p.phaseId,
-    topic: p.topic,
-    isStarred: p.isStarred,
-    note: p.note,
-    userStatus: "untouched" as const,
-    isFavorite: false,
-  }));
-
-  // Fetch user stats from database
-  const stats = { solved: 0, attempting: 0, skipped: 0 };
-
-  if (session?.user?.id && problemsFromDb.length > 0) {
-    const problemIds = problemsFromDb.map((p) => p.id);
-
-    // Get user statuses for these problems
-    const [userStatusRecords, userFavoriteRecords] = await Promise.all([
-      db
-        .select({
-          problemId: userProblems.problemId,
-          status: userProblems.status,
-        })
-        .from(userProblems)
-        .where(
-          and(
-            eq(userProblems.userId, session.user.id),
-            inArray(userProblems.problemId, problemIds),
-          ),
-        ),
-      db
-        .select({ problemId: userFavorites.problemId })
-        .from(userFavorites)
-        .where(
-          and(
-            eq(userFavorites.userId, session.user.id),
-            inArray(userFavorites.problemId, problemIds),
-          ),
-        ),
-    ]);
-
-    // Create lookup maps
-    const statusMap = new Map(userStatusRecords.map((r) => [r.problemId, r.status]));
-    const favoriteSet = new Set(userFavoriteRecords.map((r) => r.problemId));
-
-    // Merge user data into problems (p.id is already the DB ID)
-    phaseProblems = phaseProblems.map((p) => ({
-      ...p,
-      userStatus: statusMap.get(p.id) || "untouched",
-      isFavorite: favoriteSet.has(p.id),
-    }));
-
-    // Calculate stats from status records
-    for (const record of userStatusRecords) {
-      if (record.status === "solved") stats.solved++;
-      else if (record.status === "attempting") stats.attempting++;
-      else if (record.status === "skipped") stats.skipped++;
-    }
-  }
+  // Calculate stats from enriched problems
+  const stats = problemService.calculateStats(phaseProblems);
 
   const prevPhase = allPhases.find((p) => p.id === phaseIdNum - 1);
   const nextPhase = allPhases.find((p) => p.id === phaseIdNum + 1);

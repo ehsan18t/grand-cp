@@ -1,14 +1,9 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { desc, eq } from "drizzle-orm";
 import { Clock } from "lucide-react";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import Link from "next/link";
-import type { HistoryEntry } from "@/components/problems/HistoryItem";
 import { HistoryList } from "@/components/problems/HistoryList";
-import { createDb } from "@/db";
-import { problems, statusHistory } from "@/db/schema";
-import { createAuth } from "@/lib/auth";
+import { getRequestContext } from "@/lib/request-context";
+import type { HistoryEntry } from "@/types/domain";
 
 export const metadata: Metadata = {
   title: "History | Grand CP",
@@ -20,46 +15,11 @@ export default async function HistoryPage() {
   let isAuthenticated = false;
 
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const auth = createAuth(env.DB, env);
-    const requestHeaders = await headers();
-    const session = await auth.api.getSession({ headers: requestHeaders });
+    const { services, userId } = await getRequestContext();
 
-    if (session?.user?.id) {
+    if (userId) {
       isAuthenticated = true;
-
-      // Fetch status history with problem details
-      const results = await db
-        .select({
-          id: statusHistory.id,
-          problemId: statusHistory.problemId,
-          fromStatus: statusHistory.fromStatus,
-          toStatus: statusHistory.toStatus,
-          changedAt: statusHistory.changedAt,
-          problemNumber: problems.number,
-          problemName: problems.name,
-          problemUrl: problems.url,
-          platform: problems.platform,
-        })
-        .from(statusHistory)
-        .innerJoin(problems, eq(statusHistory.problemId, problems.id))
-        .where(eq(statusHistory.userId, session.user.id))
-        .orderBy(desc(statusHistory.changedAt))
-        .limit(500) // Limit to last 500 entries for performance
-        .all();
-
-      history = results.map((r) => ({
-        id: r.id,
-        problemId: r.problemId,
-        problemNumber: r.problemNumber,
-        problemName: r.problemName,
-        problemUrl: r.problemUrl,
-        platform: r.platform,
-        fromStatus: r.fromStatus as HistoryEntry["fromStatus"],
-        toStatus: r.toStatus as HistoryEntry["toStatus"],
-        changedAt: r.changedAt,
-      }));
+      history = await services.historyService.getHistory(userId);
     }
   } catch {
     // Database not available

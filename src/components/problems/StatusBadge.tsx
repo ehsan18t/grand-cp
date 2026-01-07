@@ -1,6 +1,7 @@
 "use client";
 
 import { tv, type VariantProps } from "tailwind-variants";
+import type { ProblemStatus } from "@/types/domain";
 
 const statusBadgeVariants = tv({
   base: "inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors",
@@ -24,7 +25,7 @@ const statusBadgeVariants = tv({
   },
 });
 
-const statusLabels: Record<string, string> = {
+const statusLabels: Record<ProblemStatus, string> = {
   untouched: "Untouched",
   attempting: "Attempting",
   solved: "Solved",
@@ -32,7 +33,8 @@ const statusLabels: Record<string, string> = {
   skipped: "Skipped",
 };
 
-export type StatusValue = "untouched" | "attempting" | "solved" | "revisit" | "skipped";
+/** @deprecated Use ProblemStatus from @/types/domain instead */
+export type StatusValue = ProblemStatus;
 
 export interface StatusBadgeProps extends VariantProps<typeof statusBadgeVariants> {
   className?: string;

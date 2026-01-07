@@ -1,4 +1,4 @@
-CREATE TABLE `accounts` (
+CREATE TABLE IF NOT EXISTS `accounts` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
 	`account_id` text NOT NULL,
@@ -15,7 +15,7 @@ CREATE TABLE `accounts` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE TABLE `phases` (
+CREATE TABLE IF NOT EXISTS `phases` (
 	`id` integer PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`description` text,
@@ -26,7 +26,7 @@ CREATE TABLE `phases` (
 	`problem_end` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `problems` (
+CREATE TABLE IF NOT EXISTS `problems` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`number` integer NOT NULL,
 	`platform` text NOT NULL,
@@ -39,8 +39,8 @@ CREATE TABLE `problems` (
 	FOREIGN KEY (`phase_id`) REFERENCES `phases`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `problems_number_unique` ON `problems` (`number`);--> statement-breakpoint
-CREATE TABLE `sessions` (
+CREATE UNIQUE INDEX IF NOT EXISTS `problems_number_unique` ON `problems` (`number`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `sessions` (
 	`id` text PRIMARY KEY NOT NULL,
 	`user_id` text NOT NULL,
 	`token` text NOT NULL,
@@ -52,8 +52,8 @@ CREATE TABLE `sessions` (
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `sessions_token_unique` ON `sessions` (`token`);--> statement-breakpoint
-CREATE TABLE `status_history` (
+CREATE UNIQUE INDEX IF NOT EXISTS `sessions_token_unique` ON `sessions` (`token`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `status_history` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` text NOT NULL,
 	`problem_id` integer NOT NULL,
@@ -64,7 +64,7 @@ CREATE TABLE `status_history` (
 	FOREIGN KEY (`problem_id`) REFERENCES `problems`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE TABLE `user_favorites` (
+CREATE TABLE IF NOT EXISTS `user_favorites` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` text NOT NULL,
 	`problem_id` integer NOT NULL,
@@ -73,8 +73,8 @@ CREATE TABLE `user_favorites` (
 	FOREIGN KEY (`problem_id`) REFERENCES `problems`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `user_favorites_user_id_problem_id_unique` ON `user_favorites` (`user_id`,`problem_id`);--> statement-breakpoint
-CREATE TABLE `user_problems` (
+CREATE UNIQUE INDEX IF NOT EXISTS `user_favorites_user_id_problem_id_unique` ON `user_favorites` (`user_id`,`problem_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `user_problems` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`user_id` text NOT NULL,
 	`problem_id` integer NOT NULL,
@@ -84,8 +84,8 @@ CREATE TABLE `user_problems` (
 	FOREIGN KEY (`problem_id`) REFERENCES `problems`(`id`) ON UPDATE no action ON DELETE cascade
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `user_problems_user_id_problem_id_unique` ON `user_problems` (`user_id`,`problem_id`);--> statement-breakpoint
-CREATE TABLE `users` (
+CREATE UNIQUE INDEX IF NOT EXISTS `user_problems_user_id_problem_id_unique` ON `user_problems` (`user_id`,`problem_id`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `users` (
 	`id` text PRIMARY KEY NOT NULL,
 	`name` text NOT NULL,
 	`email` text NOT NULL,
@@ -96,9 +96,9 @@ CREATE TABLE `users` (
 	`updated_at` integer NOT NULL
 );
 --> statement-breakpoint
-CREATE UNIQUE INDEX `users_email_unique` ON `users` (`email`);--> statement-breakpoint
-CREATE UNIQUE INDEX `users_username_unique` ON `users` (`username`);--> statement-breakpoint
-CREATE TABLE `verifications` (
+CREATE UNIQUE INDEX IF NOT EXISTS `users_email_unique` ON `users` (`email`);--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS `users_username_unique` ON `users` (`username`);--> statement-breakpoint
+CREATE TABLE IF NOT EXISTS `verifications` (
 	`id` text PRIMARY KEY NOT NULL,
 	`identifier` text NOT NULL,
 	`value` text NOT NULL,

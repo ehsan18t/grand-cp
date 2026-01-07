@@ -2,11 +2,11 @@
 
 import { Clock, Filter } from "lucide-react";
 import { useMemo, useState } from "react";
-import { type HistoryEntry, HistoryItem } from "./HistoryItem";
-import type { StatusValue } from "./StatusBadge";
+import type { HistoryEntry, Platform, ProblemStatus } from "@/types/domain";
+import { HistoryItem } from "./HistoryItem";
 
-type FilterValue = "all" | StatusValue;
-type PlatformFilterValue = "all" | "leetcode" | "codeforces" | "cses" | "atcoder" | "other";
+type FilterValue = "all" | ProblemStatus;
+type PlatformFilterValue = "all" | Platform;
 
 interface HistoryListProps {
   entries: HistoryEntry[];

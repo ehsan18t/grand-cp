@@ -1,89 +1,25 @@
-import { getCloudflareContext } from "@opennextjs/cloudflare";
-import { and, eq, inArray } from "drizzle-orm";
 import { Heart } from "lucide-react";
 import type { Metadata } from "next";
-import { headers } from "next/headers";
 import Link from "next/link";
 import { FavoritesList } from "@/components/problems/FavoritesList";
-import { createDb } from "@/db";
-import { problems, userFavorites, userProblems } from "@/db/schema";
-import { createAuth } from "@/lib/auth";
+import { getRequestContext } from "@/lib/request-context";
+import type { FavoriteProblem } from "@/types/domain";
 
 export const metadata: Metadata = {
   title: "Favorites | Grand CP",
   description: "Your favorited competitive programming problems",
 };
 
-interface FavoriteProblem {
-  id: number;
-  number: number;
-  platform: "leetcode" | "codeforces" | "cses" | "atcoder" | "other";
-  name: string;
-  url: string;
-  phaseId: number;
-  topic: string;
-  isStarred: boolean;
-  note: string | null;
-  favoritedAt: Date;
-  userStatus: "untouched" | "attempting" | "solved" | "revisit" | "skipped";
-}
-
 export default async function FavoritesPage() {
   let favorites: FavoriteProblem[] = [];
   let isAuthenticated = false;
 
   try {
-    const { env } = await getCloudflareContext({ async: true });
-    const db = createDb(env.DB);
-    const auth = createAuth(env.DB, env);
-    const requestHeaders = await headers();
-    const session = await auth.api.getSession({ headers: requestHeaders });
+    const { services, userId } = await getRequestContext();
 
-    if (session?.user?.id) {
+    if (userId) {
       isAuthenticated = true;
-
-      const results = await db
-        .select({
-          id: problems.id,
-          number: problems.number,
-          platform: problems.platform,
-          name: problems.name,
-          url: problems.url,
-          phaseId: problems.phaseId,
-          topic: problems.topic,
-          isStarred: problems.isStarred,
-          note: problems.note,
-          favoritedAt: userFavorites.createdAt,
-        })
-        .from(userFavorites)
-        .innerJoin(problems, eq(userFavorites.problemId, problems.id))
-        .where(eq(userFavorites.userId, session.user.id))
-        .orderBy(userFavorites.createdAt)
-        .all();
-
-      const problemIds = results.map((r) => r.id);
-      const statusRecords =
-        problemIds.length > 0
-          ? await db
-              .select({
-                problemId: userProblems.problemId,
-                status: userProblems.status,
-              })
-              .from(userProblems)
-              .where(
-                and(
-                  eq(userProblems.userId, session.user.id),
-                  inArray(userProblems.problemId, problemIds),
-                ),
-              )
-          : [];
-
-      const statusMap = new Map(statusRecords.map((r) => [r.problemId, r.status]));
-
-      favorites = results.map((r) => ({
-        ...(r as Omit<FavoriteProblem, "userStatus">),
-        userStatus: (statusMap.get(r.id) ?? "untouched") as FavoriteProblem["userStatus"],
-      }));
+      favorites = await services.favoriteService.getFavorites(userId);
     }
   } catch {
     // Database not available

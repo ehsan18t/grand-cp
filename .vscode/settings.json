@@ -32,9 +32,12 @@
     "editor.defaultFormatter": "biomejs.biome"
   },
   "cSpell.words": [
+    "atcoder",
     "bprogress",
     "clsx",
+    "Codeforces",
     "crawlable",
+    "CSES",
     "devsafe",
     "ecb",
     "ecb-site",
@@ -42,13 +45,16 @@
     "GSAP",
     "importmap",
     "Kode",
+    "leetcode",
     "lucide",
+    "maxage",
     "payloadcms",
     "shadcn",
     "TAFC",
     "TAFJ",
     "Temenos",
     "turbopack",
+    "wase",
     "yoyo"
   ]
 }

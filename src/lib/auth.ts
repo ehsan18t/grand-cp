@@ -7,6 +7,8 @@ import { getSiteUrlFromEnv } from "@/lib/site";
 export function createAuth(d1: D1Database, env: CloudflareEnv) {
   const db = createDb(d1);
 
+  const baseURL = (env.BETTER_AUTH_URL || getSiteUrlFromEnv(env)).replace(/\/+$/, "");
+
   return betterAuth({
     database: drizzleAdapter(db, {
       provider: "sqlite",
@@ -17,7 +19,7 @@ export function createAuth(d1: D1Database, env: CloudflareEnv) {
         verification: schema.verifications,
       },
     }),
-    baseURL: getSiteUrlFromEnv(env),
+    baseURL,
     secret: env.BETTER_AUTH_SECRET,
     emailAndPassword: {
       enabled: false,

@@ -2,22 +2,8 @@
 
 import { Heart } from "lucide-react";
 import { useState } from "react";
+import type { FavoriteProblem } from "@/types/domain";
 import { ProblemCard } from "./ProblemCard";
-import type { StatusValue } from "./StatusSelect";
-
-interface FavoriteProblem {
-  id: number;
-  number: number;
-  platform: "leetcode" | "codeforces" | "cses" | "atcoder" | "other";
-  name: string;
-  url: string;
-  phaseId: number;
-  topic: string;
-  isStarred: boolean;
-  note: string | null;
-  favoritedAt: Date;
-  userStatus: StatusValue;
-}
 
 interface FavoritesListProps {
   favorites: FavoriteProblem[];

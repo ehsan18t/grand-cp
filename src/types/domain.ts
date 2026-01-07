@@ -1,0 +1,142 @@
+/**
+ * Domain types for the application.
+ * These types represent business entities and DTOs used across layers.
+ */
+
+// ============================================================================
+// Status Types
+// ============================================================================
+
+export type ProblemStatus = "untouched" | "attempting" | "solved" | "revisit" | "skipped";
+export type Platform = "leetcode" | "codeforces" | "cses" | "atcoder" | "other";
+
+// ============================================================================
+// Phase Types
+// ============================================================================
+
+export interface Phase {
+  id: number;
+  name: string;
+  description: string | null;
+  targetRatingStart: number | null;
+  targetRatingEnd: number | null;
+  focus: string | null;
+  problemStart: number;
+  problemEnd: number;
+}
+
+export interface PhaseWithProgress extends Phase {
+  totalProblems: number;
+  solvedCount: number;
+  progressPercentage: number;
+}
+
+export interface PhaseSummary {
+  phases: Phase[];
+  totalProblems: number;
+  phaseCountsMap: Map<number, number>;
+}
+
+// ============================================================================
+// Problem Types
+// ============================================================================
+
+export interface Problem {
+  id: number;
+  number: number;
+  platform: Platform;
+  name: string;
+  url: string;
+  phaseId: number;
+  topic: string;
+  isStarred: boolean;
+  note: string | null;
+}
+
+export interface ProblemWithUserData extends Problem {
+  userStatus: ProblemStatus;
+  isFavorite: boolean;
+}
+
+export interface FavoriteProblem extends ProblemWithUserData {
+  favoritedAt: Date;
+}
+
+// ============================================================================
+// User Stats Types
+// ============================================================================
+
+export interface StatusCounts {
+  solved: number;
+  attempting: number;
+  revisit: number;
+  skipped: number;
+  untouched: number;
+}
+
+export interface UserStats extends StatusCounts {
+  totalProblems: number;
+  progressPercentage: number;
+  phaseSolvedMap: Map<number, number>;
+  favoritesCount: number;
+}
+
+export interface PhaseStats {
+  phaseId: number;
+  total: number;
+  solved: number;
+  percentage: number;
+}
+
+// ============================================================================
+// User Types
+// ============================================================================
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  username: string | null;
+  image: string | null;
+  createdAt: Date;
+}
+
+export interface UserProfileWithStats extends UserProfile {
+  stats: StatusCounts;
+  phaseSolvedMap: Map<number, number>;
+  progressPercentage: number;
+  currentPhase: number;
+  targetRating: string;
+}
+
+// ============================================================================
+// History Types
+// ============================================================================
+
+export interface HistoryEntry {
+  id: number;
+  problemId: number;
+  problemNumber: number;
+  problemName: string;
+  problemUrl: string;
+  platform: Platform;
+  fromStatus: ProblemStatus | null;
+  toStatus: ProblemStatus;
+  changedAt: Date;
+}
+
+// ============================================================================
+// API Response Types
+// ============================================================================
+
+export interface StatusUpdateResult {
+  success: boolean;
+  problemNumber: number;
+  status: ProblemStatus;
+  previousStatus: ProblemStatus;
+}
+
+export interface FavoriteToggleResult {
+  success: boolean;
+  problemId: number;
+  isFavorite: boolean;
+}

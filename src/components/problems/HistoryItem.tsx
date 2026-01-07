@@ -1,20 +1,9 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
+import type { HistoryEntry } from "@/types/domain";
 import { PlatformBadge } from "./PlatformBadge";
-import { StatusBadge, type StatusValue } from "./StatusBadge";
-
-export interface HistoryEntry {
-  id: number;
-  problemId: number;
-  problemNumber: number;
-  problemName: string;
-  problemUrl: string;
-  platform: "leetcode" | "codeforces" | "cses" | "atcoder" | "other";
-  fromStatus: StatusValue | null;
-  toStatus: StatusValue;
-  changedAt: Date;
-}
+import { StatusBadge } from "./StatusBadge";
 
 interface HistoryItemProps {
   entry: HistoryEntry;

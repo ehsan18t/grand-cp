@@ -1,5 +1,7 @@
+// Re-export domain types for backward compatibility
+export type { HistoryEntry, ProblemStatus } from "@/types/domain";
 export { FavoritesList } from "./FavoritesList";
-export { type HistoryEntry, HistoryItem } from "./HistoryItem";
+export { HistoryItem } from "./HistoryItem";
 export { HistoryList } from "./HistoryList";
 export { PhaseProblems, type ProblemWithUserData } from "./PhaseProblems";
 export { PlatformBadge, type PlatformBadgeProps, platformBadgeVariants } from "./PlatformBadge";
