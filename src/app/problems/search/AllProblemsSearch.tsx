@@ -60,24 +60,25 @@ export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps)
     minQueryLength: 1,
   });
 
+  const trimmedSearch = search.trim();
+
   const filteredRows = useMemo((): ResultRow[] => {
-    const trimmed = search.trim();
+    // Per requirement: do not show any results until a query exists.
+    if (!trimmedSearch) return [];
 
     // First apply fuzzy search (carrying match ranges along).
-    let result: ResultRow[] = trimmed
-      ? fuzzySearchWithMatches(trimmed).map(({ item, ranges }) => {
-          const titleStart = 0;
-          const titleEnd = item.name.length;
-          const noteStart = titleEnd + 1;
-          const noteEnd = noteStart + (item.note?.length ?? 0);
+    let result: ResultRow[] = fuzzySearchWithMatches(trimmedSearch).map(({ item, ranges }) => {
+      const titleStart = 0;
+      const titleEnd = item.name.length;
+      const noteStart = titleEnd + 1;
+      const noteEnd = noteStart + (item.note?.length ?? 0);
 
-          return {
-            problem: item,
-            highlightTitleRanges: sliceRangesToSegment(ranges, titleStart, titleEnd),
-            highlightNoteRanges: sliceRangesToSegment(ranges, noteStart, noteEnd),
-          };
-        })
-      : problems.map((problem) => ({ problem }));
+      return {
+        problem: item,
+        highlightTitleRanges: sliceRangesToSegment(ranges, titleStart, titleEnd),
+        highlightNoteRanges: sliceRangesToSegment(ranges, noteStart, noteEnd),
+      };
+    });
 
     // Platform filter
     if (platform !== "all") {
@@ -95,7 +96,7 @@ export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps)
     }
 
     return result;
-  }, [problems, search, fuzzySearchWithMatches, platform, status, favorite, isGuest]);
+  }, [trimmedSearch, fuzzySearchWithMatches, platform, status, favorite, isGuest]);
 
   const filteredProblems = useMemo(() => filteredRows.map((r) => r.problem), [filteredRows]);
 
@@ -113,7 +114,7 @@ export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps)
   }, [filteredRows]);
 
   const hasActiveFilters =
-    search !== "" || platform !== "all" || status !== "all" || favorite !== "all";
+    trimmedSearch !== "" || platform !== "all" || status !== "all" || favorite !== "all";
 
   return (
     <div className="space-y-6">
@@ -130,15 +131,21 @@ export function AllProblemsSearch({ problems, isGuest }: AllProblemsSearchProps)
       />
 
       {/* Results count */}
-      <div className="text-muted-foreground text-sm">
-        Showing {filteredProblems.length} of {problems.length} problems
-        {search.trim() && (
-          <span className="ml-1 text-primary">(fuzzy matching "{search.trim()}")</span>
-        )}
-      </div>
+      {trimmedSearch ? (
+        <div className="text-muted-foreground text-sm">
+          Showing {filteredProblems.length} of {problems.length} problems
+          <span className="ml-1 text-primary">(fuzzy matching "{trimmedSearch}")</span>
+        </div>
+      ) : (
+        <div className="text-muted-foreground text-sm">Start typing to search problems.</div>
+      )}
 
       {/* Results grouped by phase */}
-      {filteredProblems.length === 0 ? (
+      {!trimmedSearch ? (
+        <div className="py-12 text-center">
+          <p className="text-muted-foreground">No results yet — enter a search query.</p>
+        </div>
+      ) : filteredProblems.length === 0 ? (
         <div className="py-12 text-center">
           <p className="text-muted-foreground">No problems match your filters.</p>
           {hasActiveFilters && (
