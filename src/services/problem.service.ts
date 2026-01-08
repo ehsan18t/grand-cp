@@ -6,7 +6,7 @@ import type { ProblemRepository } from "@/repositories";
 import type { Problem, ProblemStatus, ProblemWithUserData } from "@/types/domain";
 
 export class ProblemService {
-  constructor(private problemRepo: ProblemRepository) {}
+  constructor(private readonly problemRepo: ProblemRepository) {}
 
   /**
    * Get all problems.

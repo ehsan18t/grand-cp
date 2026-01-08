@@ -9,7 +9,7 @@ import { phases, problems } from "@/db/schema";
 import type { Phase } from "@/types/domain";
 
 export class PhaseRepository {
-  constructor(private db: Database) {}
+  constructor(private readonly db: Database) {}
 
   /**
    * Get all phases ordered by ID.

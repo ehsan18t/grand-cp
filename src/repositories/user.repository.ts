@@ -9,7 +9,7 @@ import { users } from "@/db/schema";
 import type { UserProfile } from "@/types/domain";
 
 export class UserRepository {
-  constructor(private db: Database) {}
+  constructor(private readonly db: Database) {}
 
   private readonly MAX_SITEMAP_USERS = 1000;
 

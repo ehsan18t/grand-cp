@@ -104,14 +104,14 @@ export async function validateBody<T extends z.ZodMiniType>(
   const contentType = request.headers.get("content-type");
 
   if (!contentType?.includes("application/json")) {
-    throw new ValidationError400("Content-Type must be application/json");
+    throw new ValidationError("Content-Type must be application/json");
   }
 
   let body: unknown;
   try {
     body = await request.json();
   } catch {
-    throw new ValidationError400("Invalid JSON body");
+    throw new ValidationError("Invalid JSON body");
   }
 
   const result = schema.safeParse(body);
@@ -122,7 +122,7 @@ export async function validateBody<T extends z.ZodMiniType>(
       message: issue.message,
     }));
 
-    throw new ValidationError400(issues[0]?.message || "Validation failed", issues);
+    throw new ValidationError(issues[0]?.message || "Validation failed", issues);
   }
 
   return result.data;
@@ -143,16 +143,16 @@ export function validateQuery<T extends z.ZodMiniType>(request: Request, schema:
       message: issue.message,
     }));
 
-    throw new ValidationError400(issues[0]?.message || "Invalid query parameters", issues);
+    throw new ValidationError(issues[0]?.message || "Invalid query parameters", issues);
   }
 
   return result.data;
 }
 
 /**
- * Custom validation error class.
+ * Custom validation error class for API request validation.
  */
-export class ValidationError400 extends Error {
+export class ValidationError extends Error {
   readonly statusCode = 400;
   readonly issues?: Array<{ path: string; message: string }>;
 
@@ -166,6 +166,6 @@ export class ValidationError400 extends Error {
 /**
  * Check if an error is a validation error.
  */
-export function isValidationError(error: unknown): error is ValidationError400 {
-  return error instanceof ValidationError400;
+export function isValidationError(error: unknown): error is ValidationError {
+  return error instanceof ValidationError;
 }

@@ -3,8 +3,7 @@
 import { Lock, LogIn } from "lucide-react";
 import { forwardRef } from "react";
 import { tv } from "tailwind-variants";
-import { useToast } from "@/components/ui";
-import { authClient } from "@/lib/auth-client";
+import { useGoogleSignIn } from "@/hooks";
 import { cn } from "@/lib/utils";
 
 const guestOverlayVariants = tv({
@@ -57,28 +56,10 @@ export const GuestOverlay = forwardRef<HTMLDivElement, GuestOverlayProps>(functi
   ref,
 ) {
   const styles = guestOverlayVariants();
-  const { addToast } = useToast();
-
-  const handleLogin = async () => {
-    try {
-      const result = await authClient.signIn.social({
-        provider: "google",
-        callbackURL: window.location.pathname,
-      });
-
-      // Check if result contains an error
-      if (result && typeof result === "object" && "error" in result && result.error) {
-        const errorObj = result.error as { message?: string };
-        throw new Error(errorObj.message ?? "Sign in failed");
-      }
-    } catch {
-      addToast({
-        variant: "destructive",
-        title: "Sign in failed",
-        description: "Please try again.",
-      });
-    }
-  };
+  // Use current path as callback so user returns to same page after sign-in
+  const { signIn } = useGoogleSignIn({
+    callbackURL: typeof window !== "undefined" ? window.location.pathname : "/problems",
+  });
 
   return (
     <div ref={ref} className={cn(styles.root(), className)}>
@@ -94,7 +75,7 @@ export const GuestOverlay = forwardRef<HTMLDivElement, GuestOverlayProps>(functi
             </div>
             <h3 className={styles.title()}>{title}</h3>
             <p className={styles.description()}>{description}</p>
-            <button type="button" onClick={handleLogin} className={styles.loginButton()}>
+            <button type="button" onClick={signIn} className={styles.loginButton()}>
               <LogIn className="h-4 w-4" />
               Sign in with Google
             </button>

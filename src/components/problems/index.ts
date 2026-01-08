@@ -32,6 +32,5 @@ export {
 export {
   StatusSelect,
   type StatusSelectProps,
-  type StatusValue,
   statusOptions,
 } from "./StatusSelect";

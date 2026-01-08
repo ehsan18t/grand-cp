@@ -2,11 +2,12 @@
  * User Service - Business logic for user management.
  */
 
+import { Errors } from "@/lib/errors";
 import type { UserRepository } from "@/repositories";
 import { isValidUsername, type UserProfile } from "@/types/domain";
 
 export class UserService {
-  constructor(private userRepo: UserRepository) {}
+  constructor(private readonly userRepo: UserRepository) {}
 
   /**
    * Get a user by username or ID.
@@ -40,13 +41,13 @@ export class UserService {
 
     // Validate username format
     if (!isValidUsername(normalizedUsername)) {
-      throw new Error("Invalid username format");
+      throw Errors.badRequest("Invalid username format");
     }
 
     // Check if username is taken
     const isTaken = await this.userRepo.isUsernameTaken(normalizedUsername, userId);
     if (isTaken) {
-      throw new Error("Username is already taken");
+      throw Errors.conflict("Username is already taken");
     }
 
     await this.userRepo.updateUsername(userId, normalizedUsername);

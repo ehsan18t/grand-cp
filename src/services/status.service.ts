@@ -2,13 +2,14 @@
  * Status Service - Business logic for problem status management.
  */
 
+import { Errors } from "@/lib/errors";
 import type { ProblemRepository, StatusRepository } from "@/repositories";
 import { isValidStatus, type ProblemStatus, type StatusUpdateResult } from "@/types/domain";
 
 export class StatusService {
   constructor(
-    private statusRepo: StatusRepository,
-    private problemRepo: ProblemRepository,
+    private readonly statusRepo: StatusRepository,
+    private readonly problemRepo: ProblemRepository,
   ) {}
 
   /**
@@ -22,13 +23,13 @@ export class StatusService {
   ): Promise<StatusUpdateResult> {
     // Validate status
     if (!isValidStatus(status)) {
-      throw new Error("Invalid status");
+      throw Errors.badRequest("Invalid status");
     }
 
     // Get problem by number
     const problem = await this.problemRepo.findByNumber(problemNumber);
     if (!problem) {
-      throw new Error("Problem not found");
+      throw Errors.notFound("Problem");
     }
 
     // Get current status

@@ -21,6 +21,18 @@ export function isValidStatus(status: string): status is (typeof VALID_STATUSES)
 }
 
 // ============================================================================
+// Platform Validation
+// ============================================================================
+
+/** Valid platforms - use for validation */
+export const VALID_PLATFORMS = ["leetcode", "codeforces", "cses", "atcoder", "other"] as const;
+
+/** Check if a string is a valid platform */
+export function isValidPlatform(platform: string): platform is Platform {
+  return VALID_PLATFORMS.includes(platform as Platform);
+}
+
+// ============================================================================
 // Username Validation
 // ============================================================================
 

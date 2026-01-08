@@ -6,6 +6,8 @@ export type { ButtonAnimationOptions, ButtonAnimationReturn } from "./useButtonA
 export { useButtonAnimation } from "./useButtonAnimation";
 // Search Hooks
 export { useFuzzySearch } from "./useFuzzySearch";
+// Auth Hooks
+export { useGoogleSignIn } from "./useGoogleSignIn";
 // Types
 export type { GsapContextOptions, GsapContextReturn } from "./useGsapContext";
 export { gsap, ScrollTrigger, useGSAP, useGsapContext } from "./useGsapContext";

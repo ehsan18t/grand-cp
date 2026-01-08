@@ -7,8 +7,8 @@ import type { StatusCounts, UserStats } from "@/types/domain";
 
 export class StatsService {
   constructor(
-    private statusRepo: StatusRepository,
-    private favoriteRepo: FavoriteRepository,
+    private readonly statusRepo: StatusRepository,
+    private readonly favoriteRepo: FavoriteRepository,
   ) {}
 
   /**

@@ -19,7 +19,7 @@ export interface PhaseSolvedRecord {
 }
 
 export class StatusRepository {
-  constructor(private db: Database) {}
+  constructor(private readonly db: Database) {}
 
   /**
    * Get status counts for a user.
