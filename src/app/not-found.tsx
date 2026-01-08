@@ -9,15 +9,16 @@ export const metadata: Metadata = {
 
 export default function NotFound() {
   return (
-    <main className="container mx-auto flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-4 py-16 text-center">
+    <main className="container mx-auto flex min-h-full flex-col items-center justify-center overflow-hidden px-4 py-16 text-center">
       {/* 404 Visual */}
       <div className="relative mb-8">
-        <div className="font-bold text-[120px] text-primary/10 leading-none sm:text-[180px]">
-          404
+        <div className="flex items-center justify-center gap-28 font-bold text-[180px] text-primary/10 leading-none">
+          <span>4</span>
+          <span>4</span>
         </div>
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="rounded-full bg-primary/10 p-6">
-            <Search className="h-12 w-12 text-primary sm:h-16 sm:w-16" />
+            <Search className="h-16 w-16 text-primary" />
           </div>
         </div>
       </div>
