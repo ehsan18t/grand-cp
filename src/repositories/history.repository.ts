@@ -9,7 +9,7 @@ import { problems, statusHistory } from "@/db/schema";
 import type { HistoryEntry, Platform, ProblemStatus } from "@/types/domain";
 
 export class HistoryRepository {
-  constructor(private db: Database) {}
+  constructor(private readonly db: Database) {}
 
   /**
    * Get paginated status history for a user with problem details.

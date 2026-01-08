@@ -3,8 +3,7 @@
 import { LogIn } from "lucide-react";
 import { forwardRef } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
-import { useToast } from "@/components/ui";
-import { authClient } from "@/lib/auth-client";
+import { useGoogleSignIn } from "@/hooks";
 import { cn } from "@/lib/utils";
 
 const loginButtonVariants = tv({
@@ -41,34 +40,13 @@ export const LoginButton = forwardRef<HTMLButtonElement, LoginButtonProps>(funct
   { className, variant, size, showIcon = true, children, ...props },
   ref,
 ) {
-  const { addToast } = useToast();
-
-  const handleLogin = async () => {
-    try {
-      const result = await authClient.signIn.social({
-        provider: "google",
-        callbackURL: "/problems",
-      });
-
-      // Check if result contains an error
-      if (result && typeof result === "object" && "error" in result && result.error) {
-        const errorObj = result.error as { message?: string };
-        throw new Error(errorObj.message ?? "Sign in failed");
-      }
-    } catch {
-      addToast({
-        variant: "destructive",
-        title: "Sign in failed",
-        description: "Please try again. If it keeps failing, refresh the page.",
-      });
-    }
-  };
+  const { signIn } = useGoogleSignIn({ callbackURL: "/problems" });
 
   return (
     <button
       ref={ref}
       type="button"
-      onClick={handleLogin}
+      onClick={signIn}
       className={cn(loginButtonVariants({ variant, size }), className)}
       {...props}
     >

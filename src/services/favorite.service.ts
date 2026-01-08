@@ -7,8 +7,8 @@ import type { FavoriteProblem, FavoriteToggleResult } from "@/types/domain";
 
 export class FavoriteService {
   constructor(
-    private favoriteRepo: FavoriteRepository,
-    private problemRepo: ProblemRepository,
+    private readonly favoriteRepo: FavoriteRepository,
+    private readonly problemRepo: ProblemRepository,
   ) {}
 
   /**

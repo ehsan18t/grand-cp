@@ -6,7 +6,7 @@ import type { PhaseRepository } from "@/repositories";
 import type { Phase, PhaseSummary, PhaseWithProgress } from "@/types/domain";
 
 export class PhaseService {
-  constructor(private phaseRepo: PhaseRepository) {}
+  constructor(private readonly phaseRepo: PhaseRepository) {}
 
   /**
    * Get all phases with their problem counts.

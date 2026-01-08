@@ -11,7 +11,7 @@ export const HISTORY_PAGE_SIZE = 50;
 export const HISTORY_MAX_ENTRIES = 200;
 
 export class HistoryService {
-  constructor(private historyRepo: HistoryRepository) {}
+  constructor(private readonly historyRepo: HistoryRepository) {}
 
   /**
    * Get paginated status history for a user.

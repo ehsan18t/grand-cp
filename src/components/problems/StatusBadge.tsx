@@ -33,9 +33,6 @@ const statusLabels: Record<ProblemStatus, string> = {
   skipped: "Skipped",
 };
 
-/** @deprecated Use ProblemStatus from @/types/domain instead */
-export type StatusValue = ProblemStatus;
-
 export interface StatusBadgeProps extends VariantProps<typeof statusBadgeVariants> {
   className?: string;
 }

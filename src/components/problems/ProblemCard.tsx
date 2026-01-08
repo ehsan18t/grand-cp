@@ -1,7 +1,7 @@
 "use client";
 
 import { Heart, Star } from "lucide-react";
-import { forwardRef, useCallback, useState } from "react";
+import { forwardRef, memo, useCallback, useState } from "react";
 import { tv, type VariantProps } from "tailwind-variants";
 import { LoginPrompt } from "@/components/auth";
 import { useToast } from "@/components/ui";
@@ -80,7 +80,7 @@ export interface ProblemCardProps extends VariantProps<typeof problemCardVariant
   className?: string;
 }
 
-export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function ProblemCard(
+const ProblemCardBase = forwardRef<HTMLDivElement, ProblemCardProps>(function ProblemCard(
   {
     problem,
     initialStatus = "untouched",
@@ -299,6 +299,11 @@ export const ProblemCard = forwardRef<HTMLDivElement, ProblemCardProps>(function
   );
 });
 
+/**
+ * Memoized ProblemCard - prevents unnecessary re-renders in lists.
+ * Only re-renders when props change.
+ */
+export const ProblemCard = memo(ProblemCardBase);
 ProblemCard.displayName = "ProblemCard";
 
 export { problemCardVariants };

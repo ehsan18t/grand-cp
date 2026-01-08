@@ -3,38 +3,41 @@
  */
 
 import { ApiResponse, CACHE_HEADERS, withAuth } from "@/lib/api-utils";
+import { withRateLimit } from "@/lib/rate-limit";
+import { historyQuerySchema, validateQuery } from "@/lib/validation";
 import { HISTORY_MAX_ENTRIES, HISTORY_PAGE_SIZE } from "@/services/history.service";
 
-export const GET = withAuth(async (request, { services, userId }) => {
-  const url = new URL(request.url);
-  const pageParam = url.searchParams.get("page");
-  const page = pageParam ? Math.max(1, Number.parseInt(pageParam, 10) || 1) : 1;
+export const GET = withRateLimit(
+  "read",
+  withAuth(async (request, { services, userId }) => {
+    const { page } = validateQuery(request, historyQuerySchema);
 
-  // Calculate offset (max 200 entries = 4 pages of 50)
-  const maxPage = Math.ceil(HISTORY_MAX_ENTRIES / HISTORY_PAGE_SIZE);
-  const safePage = Math.min(page, maxPage);
-  const offset = (safePage - 1) * HISTORY_PAGE_SIZE;
+    // Calculate offset (max 200 entries = 4 pages of 50)
+    const maxPage = Math.ceil(HISTORY_MAX_ENTRIES / HISTORY_PAGE_SIZE);
+    const safePage = Math.min(page, maxPage);
+    const offset = (safePage - 1) * HISTORY_PAGE_SIZE;
 
-  const [entries, totalCount] = await Promise.all([
-    services.historyService.getHistory(userId, HISTORY_PAGE_SIZE, offset),
-    services.historyService.getHistoryCount(userId),
-  ]);
+    const [entries, totalCount] = await Promise.all([
+      services.historyService.getHistory(userId, HISTORY_PAGE_SIZE, offset),
+      services.historyService.getHistoryCount(userId),
+    ]);
 
-  // Serialize dates
-  const serializedEntries = entries.map((e) => ({
-    ...e,
-    changedAt: e.changedAt.toISOString(),
-  }));
+    // Serialize dates
+    const serializedEntries = entries.map((e) => ({
+      ...e,
+      changedAt: e.changedAt.toISOString(),
+    }));
 
-  return ApiResponse.ok(
-    {
-      entries: serializedEntries,
-      page: safePage,
-      pageSize: HISTORY_PAGE_SIZE,
-      totalCount,
-      totalPages: Math.min(Math.ceil(totalCount / HISTORY_PAGE_SIZE), maxPage),
-      hasMore: safePage < maxPage && offset + entries.length < totalCount,
-    },
-    CACHE_HEADERS.private,
-  );
-});
+    return ApiResponse.ok(
+      {
+        entries: serializedEntries,
+        page: safePage,
+        pageSize: HISTORY_PAGE_SIZE,
+        totalCount,
+        totalPages: Math.min(Math.ceil(totalCount / HISTORY_PAGE_SIZE), maxPage),
+        hasMore: safePage < maxPage && offset + entries.length < totalCount,
+      },
+      CACHE_HEADERS.private,
+    );
+  }),
+);

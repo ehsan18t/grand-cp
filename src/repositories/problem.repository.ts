@@ -18,7 +18,7 @@ export interface UserFavoriteRecord {
 }
 
 export class ProblemRepository {
-  constructor(private db: Database) {}
+  constructor(private readonly db: Database) {}
 
   /**
    * Get all problems.

@@ -102,13 +102,15 @@ export function useFuzzySearch<T>({
       }
 
       // NOTE: uFuzzy's types are not strict enough for TS to infer the tuple well.
-      // We cast to the expected runtime shape.
+      // We cast to the expected runtime shape with properly typed ranges.
+      interface UFuzzyInfo {
+        idx: number[];
+        ranges?: Array<Array<[number, number]> | null> | null;
+      }
+
       const [idxs, info, order] = uf.search(haystack, trimmedQuery, 1) as unknown as [
         number[] | null,
-        {
-          idx: number[];
-          ranges?: unknown;
-        },
+        UFuzzyInfo,
         number[] | null,
       ];
 
@@ -119,8 +121,8 @@ export function useFuzzySearch<T>({
 
       const orderedIndices = order ? order.map((i) => info.idx[i]) : info.idx;
       const orderedRanges = order
-        ? order.map((i) => normalizeRanges((info as any).ranges?.[i]))
-        : info.idx.map((_unused: number, i: number) => normalizeRanges((info as any).ranges?.[i]));
+        ? order.map((i) => normalizeRanges(info.ranges?.[i]))
+        : info.idx.map((_, i) => normalizeRanges(info.ranges?.[i]));
 
       cacheRef.current = { query: trimmedQuery, indices: orderedIndices, ranges: orderedRanges };
       return orderedIndices.map((i: number) => items[i]);

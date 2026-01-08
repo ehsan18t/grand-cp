@@ -8,9 +8,6 @@ import { LoginPrompt } from "@/components/auth";
 import { cn } from "@/lib/utils";
 import type { ProblemStatus } from "@/types/domain";
 
-/** @deprecated Use ProblemStatus from @/types/domain instead */
-export type StatusValue = ProblemStatus;
-
 interface StatusOption {
   value: ProblemStatus;
   label: string;

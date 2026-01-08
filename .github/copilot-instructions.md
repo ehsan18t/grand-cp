@@ -4,6 +4,7 @@
 
 - Always do deep research you can use internet or mcp servers if needed, then make plans before jumping into codes.
 - Always maintain todo list and follow it strictly. Make as many todos as needed to complete the task.
+- Always check latest relevant docs to understand best practices and latest features before jump into codes.
 - Never use inline SVG, use icons from `lucide-react`. If you can't find the required icon use `react-icons` as a last resort.
 - Always run `bun lint; bun format; bun typecheck` after making changes and fix issues if any.
 - Ensure all components are tree-shakeable and optimized for performance.

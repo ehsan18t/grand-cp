@@ -9,7 +9,7 @@ import { problems, userFavorites, userProblems } from "@/db/schema";
 import type { FavoriteProblem, Platform, ProblemStatus } from "@/types/domain";
 
 export class FavoriteRepository {
-  constructor(private db: Database) {}
+  constructor(private readonly db: Database) {}
 
   /**
    * Get favorites count for a user.

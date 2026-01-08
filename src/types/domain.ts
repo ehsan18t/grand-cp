@@ -3,25 +3,33 @@
  * These types represent business entities and DTOs used across layers.
  */
 
-// ============================================================================
-// Status Types
-// ============================================================================
+// Import and re-export core types from schema to maintain single source of truth
+import type { Platform as _Platform, ProblemStatus as _ProblemStatus } from "@/db/schema";
+export type Platform = _Platform;
+export type ProblemStatus = _ProblemStatus;
 
-export type ProblemStatus = "untouched" | "attempting" | "solved" | "revisit" | "skipped";
-export type Platform = "leetcode" | "codeforces" | "cses" | "atcoder" | "other";
+// ============================================================================
+// Status Validation
+// ============================================================================
 
 /** Valid problem statuses - use for validation */
-export const VALID_STATUSES: readonly ProblemStatus[] = [
-  "untouched",
-  "attempting",
-  "solved",
-  "revisit",
-  "skipped",
-] as const;
+export const VALID_STATUSES = ["untouched", "attempting", "solved", "revisit", "skipped"] as const;
 
 /** Check if a string is a valid problem status */
-export function isValidStatus(status: string): status is ProblemStatus {
-  return VALID_STATUSES.includes(status as ProblemStatus);
+export function isValidStatus(status: string): status is (typeof VALID_STATUSES)[number] {
+  return VALID_STATUSES.includes(status as (typeof VALID_STATUSES)[number]);
+}
+
+// ============================================================================
+// Platform Validation
+// ============================================================================
+
+/** Valid platforms - use for validation */
+export const VALID_PLATFORMS = ["leetcode", "codeforces", "cses", "atcoder", "other"] as const;
+
+/** Check if a string is a valid platform */
+export function isValidPlatform(platform: string): platform is Platform {
+  return VALID_PLATFORMS.includes(platform as Platform);
 }
 
 // ============================================================================
