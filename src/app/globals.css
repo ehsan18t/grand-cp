@@ -501,3 +501,23 @@ html[data-theme="dark"] {
     animation: none !important;
   }
 }
+
+/* ============================================================================
+ * Shimmer Animation Utility
+ * Used by Skeleton wave mode and full-page loading screens
+ * ============================================================================ */
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@layer utilities {
+  .animate-shimmer {
+    animation: shimmer 1.4s ease-in-out infinite;
+  }
+}

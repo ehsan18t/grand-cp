@@ -4,10 +4,11 @@
  * History Page Content - Client component that fetches paginated history.
  */
 
-import { ChevronLeft, ChevronRight, Clock, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { HistoryList } from "@/components/problems/HistoryList";
+import { Spinner } from "@/components/ui";
 import { useAppStore, useHistoryCount } from "@/stores/app-store";
 import type { HistoryEntry, Platform, ProblemStatus } from "@/types/domain";
 
@@ -167,7 +168,7 @@ export function HistoryPageContent() {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <Spinner size="lg" tone="primary" label="Loading history" />
         </div>
       ) : error ? (
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-8 text-center">

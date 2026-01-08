@@ -10,8 +10,8 @@
  * 4. Shows loading spinner until initialized
  */
 
-import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
+import { LoadingScreen } from "@/components/ui";
 import { authClient } from "@/lib/auth-client";
 import { type InitResponse, useAppStore } from "@/stores/app-store";
 
@@ -120,12 +120,11 @@ export function AppStoreInitializer({ children }: AppStoreInitializerProps) {
   // Show loading state while session is pending or store is not initialized
   if (isSessionPending || !isInitialized) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground text-sm">Loading...</p>
-        </div>
-      </div>
+      <LoadingScreen
+        density="compact"
+        title="Loading GrandCP"
+        description="Preparing the requested content..."
+      />
     );
   }
 

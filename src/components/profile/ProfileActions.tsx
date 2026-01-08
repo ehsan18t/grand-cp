@@ -1,8 +1,9 @@
 "use client";
 
-import { Check, Edit2, Loader2, Share2, X } from "lucide-react";
+import { Check, Edit2, Share2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Spinner } from "@/components/ui";
 import { useAppStore, useUser } from "@/stores/app-store";
 import { isValidUsername, USERNAME_MAX_LENGTH, USERNAME_MIN_LENGTH } from "@/types/domain";
 
@@ -164,7 +165,7 @@ export function ProfileActions({ isOwner, username, profileUrl }: ProfileActions
                   className="flex h-8 w-8 items-center justify-center rounded-md bg-status-solved text-white transition-colors hover:bg-status-solved/80 disabled:opacity-50"
                 >
                   {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Spinner size="sm" tone="inherit" label="Saving" />
                   ) : (
                     <Check className="h-4 w-4" />
                   )}
