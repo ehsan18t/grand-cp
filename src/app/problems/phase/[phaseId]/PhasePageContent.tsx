@@ -21,8 +21,16 @@ export function PhasePageContent({ phaseId }: PhasePageContentProps) {
 
   const phase = phases.find((p) => p.id === phaseId);
 
-  if (!phase) {
+  // Only call notFound if phases are loaded but phase doesn't exist
+  // This prevents 404 flash when store is still initializing
+  if (phases.length > 0 && !phase) {
     notFound();
+  }
+
+  // If phases aren't loaded yet, this shouldn't happen since AppStoreInitializer
+  // blocks rendering until initialized, but handle it gracefully
+  if (!phase) {
+    return null;
   }
 
   const phaseProblems = getProblemsWithUserData(phaseId);

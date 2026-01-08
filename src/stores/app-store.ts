@@ -582,6 +582,7 @@ export const useAppStore = create<AppStore>()(
       }),
       // Don't persist pending updates, loading state, or public data (phases/problems)
       // Public data is fetched on init, only user-specific data should be persisted
+      // IMPORTANT: Don't persist isInitialized - always fetch fresh data on mount
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
@@ -592,7 +593,7 @@ export const useAppStore = create<AppStore>()(
         historyCount: state.historyCount,
         statusCounts: state.statusCounts,
         phaseSolvedMap: state.phaseSolvedMap,
-        isInitialized: state.isInitialized,
+        // Note: isInitialized is NOT persisted - always false on page load
       }),
     },
   ),
