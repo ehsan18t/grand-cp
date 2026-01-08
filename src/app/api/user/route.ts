@@ -1,19 +1,16 @@
 import { ApiResponse, withAuth } from "@/lib/api-utils";
-import { Errors } from "@/lib/errors";
+import { RATE_LIMIT_PRESETS, withRateLimit } from "@/lib/rate-limit";
+import { updateUsernameSchema, validateBody } from "@/lib/validation";
 
 // Update username
-export const PATCH = withAuth(async (request, { services, userId }) => {
-  const body = await request.json();
-  const { username } = body as { username?: string };
+export const PATCH = withRateLimit(
+  RATE_LIMIT_PRESETS.strict,
+  withAuth(async (request, { services, userId }) => {
+    const { username } = await validateBody(request, updateUsernameSchema);
 
-  if (!username || typeof username !== "string" || username.trim().length === 0) {
-    throw Errors.badRequest("Username is required");
-  }
-
-  const normalizedUsername = username.trim().toLowerCase();
-
-  const result = await services.userService.updateUsername(userId, normalizedUsername);
-  return ApiResponse.ok({ success: true, username: result.username });
-});
+    const result = await services.userService.updateUsername(userId, username);
+    return ApiResponse.ok({ success: true, username: result.username });
+  }),
+);
 
 // Note: GET handler removed - all initial data is fetched via /api/init

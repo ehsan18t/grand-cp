@@ -10,6 +10,7 @@
 import type { Auth } from "@/lib/auth";
 import { type AppError, Errors, fromErrorMessage, isAppError } from "@/lib/errors";
 import { type ApiRequestContext, getApiContext } from "@/lib/request-context";
+import { isValidationError } from "@/lib/validation";
 
 // ============================================================================
 // Cache Headers - Reusable configurations
@@ -196,9 +197,17 @@ export function withOptionalAuth(handler: OptionalAuthHandler) {
 
 /**
  * Handle errors and convert to appropriate responses.
+ * In production, internal errors return generic messages for security.
  */
 function handleError(error: unknown): Response {
-  // Known application error
+  const isDev = process.env.NODE_ENV === "development";
+
+  // Validation errors - safe to expose
+  if (isValidationError(error)) {
+    return ApiResponse.badRequest(error.message);
+  }
+
+  // Known application error - safe to expose
   if (isAppError(error)) {
     return ApiResponse.fromError(error);
   }
@@ -209,8 +218,15 @@ function handleError(error: unknown): Response {
     return ApiResponse.fromError(appError);
   }
 
-  // Unknown error - log and return 500
+  // Unknown error - log and return generic message in production
   console.error("API Error:", error);
+
+  // In development, include error details for debugging
+  if (isDev && error instanceof Error) {
+    return ApiResponse.internal(`Internal error: ${error.message}`);
+  }
+
+  // In production, never expose internal error details
   return ApiResponse.internal();
 }
 

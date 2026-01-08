@@ -1,42 +1,24 @@
 import { ApiResponse, CACHE_HEADERS, withAuth } from "@/lib/api-utils";
-import { Errors } from "@/lib/errors";
-import { type ProblemStatus, VALID_STATUSES } from "@/types/domain";
+import { RATE_LIMIT_PRESETS, withRateLimit } from "@/lib/rate-limit";
+import { statusUpdateSchema, validateBody } from "@/lib/validation";
 
-interface StatusUpdateBody {
-  problemNumber: number;
-  status: ProblemStatus;
-}
+export const POST = withRateLimit(
+  RATE_LIMIT_PRESETS.write,
+  withAuth(async (request, { services, userId }) => {
+    const { problemNumber, status } = await validateBody(request, statusUpdateSchema);
 
-function isValidStatusUpdateBody(body: unknown): body is StatusUpdateBody {
-  if (typeof body !== "object" || body === null) return false;
-  const { problemNumber, status } = body as Record<string, unknown>;
-  return (
-    typeof problemNumber === "number" &&
-    typeof status === "string" &&
-    VALID_STATUSES.includes(status as ProblemStatus)
-  );
-}
+    const result = await services.statusService.updateStatus(userId, problemNumber, status);
 
-export const POST = withAuth(async (request, { services, userId }) => {
-  const body = await request.json();
-
-  if (!isValidStatusUpdateBody(body)) {
-    throw Errors.badRequest("Invalid body");
-  }
-
-  const { problemNumber, status } = body;
-
-  const result = await services.statusService.updateStatus(userId, problemNumber, status);
-
-  return ApiResponse.ok(
-    {
-      message: "Status updated",
-      problemNumber: result.problemNumber,
-      status: result.status,
-      previousStatus: result.previousStatus,
-    },
-    CACHE_HEADERS.private,
-  );
-});
+    return ApiResponse.ok(
+      {
+        message: "Status updated",
+        problemNumber: result.problemNumber,
+        status: result.status,
+        previousStatus: result.previousStatus,
+      },
+      CACHE_HEADERS.private,
+    );
+  }),
+);
 
 // Note: GET handler removed - all initial data is fetched via /api/init

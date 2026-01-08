@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
+import { memo } from "react";
 import type { HistoryEntry } from "@/types/domain";
 import { PlatformBadge } from "./PlatformBadge";
 import { StatusBadge } from "./StatusBadge";
@@ -39,7 +40,7 @@ function formatAbsoluteTime(date: Date): string {
   });
 }
 
-export function HistoryItem({ entry }: HistoryItemProps) {
+function HistoryItemBase({ entry }: HistoryItemProps) {
   const fromStatus = entry.fromStatus ?? "untouched";
 
   return (
@@ -82,3 +83,9 @@ export function HistoryItem({ entry }: HistoryItemProps) {
     </div>
   );
 }
+
+/**
+ * Memoized HistoryItem - prevents unnecessary re-renders in lists.
+ */
+export const HistoryItem = memo(HistoryItemBase);
+HistoryItem.displayName = "HistoryItem";

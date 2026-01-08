@@ -12,6 +12,10 @@ export {
 } from "./PlatformFilter";
 export { ProblemCard, type ProblemCardProps, problemCardVariants } from "./ProblemCard";
 export {
+  ProblemCardSkeleton,
+  type ProblemCardSkeletonProps,
+} from "./ProblemCardSkeleton";
+export {
   type FavoriteFilter,
   ProblemFilters,
   type ProblemFiltersProps,
