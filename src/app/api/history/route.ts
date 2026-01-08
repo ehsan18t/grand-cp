@@ -4,14 +4,13 @@
 
 import { ApiResponse, CACHE_HEADERS, withAuth } from "@/lib/api-utils";
 import { withRateLimit } from "@/lib/rate-limit";
+import { historyQuerySchema, validateQuery } from "@/lib/validation";
 import { HISTORY_MAX_ENTRIES, HISTORY_PAGE_SIZE } from "@/services/history.service";
 
 export const GET = withRateLimit(
   "read",
   withAuth(async (request, { services, userId }) => {
-    const url = new URL(request.url);
-    const pageParam = url.searchParams.get("page");
-    const page = pageParam ? Math.max(1, Number.parseInt(pageParam, 10) || 1) : 1;
+    const { page } = validateQuery(request, historyQuerySchema);
 
     // Calculate offset (max 200 entries = 4 pages of 50)
     const maxPage = Math.ceil(HISTORY_MAX_ENTRIES / HISTORY_PAGE_SIZE);

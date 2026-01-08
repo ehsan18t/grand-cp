@@ -8,22 +8,24 @@
  */
 
 import * as z from "zod/mini";
-import { USERNAME_MAX_LENGTH, USERNAME_MIN_LENGTH, USERNAME_REGEX } from "@/types/domain";
+import {
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+  USERNAME_REGEX,
+  VALID_STATUSES,
+} from "@/types/domain";
 
 // ============================================================================
 // Status API Schemas
 // ============================================================================
-
-/** Status values for Zod enum - matches ProblemStatus type from schema */
-const statusValues = ["untouched", "attempting", "solved", "revisit", "skipped"] as const;
 
 export const statusUpdateSchema = z.object({
   problemNumber: z.number({ error: "problemNumber must be a number" }).check(
     z.refine((val) => Number.isInteger(val), { error: "problemNumber must be an integer" }),
     z.refine((val) => val > 0, { error: "problemNumber must be positive" }),
   ),
-  status: z.enum(statusValues, {
-    error: `status must be one of: ${statusValues.join(", ")}`,
+  status: z.enum(VALID_STATUSES, {
+    error: `status must be one of: ${VALID_STATUSES.join(", ")}`,
   }),
 });
 

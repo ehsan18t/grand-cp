@@ -8,7 +8,7 @@
  */
 
 import type { Auth } from "@/lib/auth";
-import { type AppError, Errors, fromErrorMessage, isAppError } from "@/lib/errors";
+import { type AppError, fromErrorMessage, isAppError } from "@/lib/errors";
 import { type ApiRequestContext, getApiContext } from "@/lib/request-context";
 import { isValidationError } from "@/lib/validation";
 
@@ -213,36 +213,4 @@ function handleError(error: unknown): Response {
 
   // In production, never expose internal error details
   return ApiResponse.internal();
-}
-
-// ============================================================================
-// Validation Helpers
-// ============================================================================
-
-/**
- * Parse and validate a positive integer from a string.
- * Throws BadRequest error if invalid.
- */
-export function parsePositiveInt(value: string | null, fieldName = "value"): number {
-  if (!value) {
-    throw Errors.badRequest(`${fieldName} is required`);
-  }
-
-  const num = Number.parseInt(value, 10);
-  if (!Number.isInteger(num) || num <= 0) {
-    throw Errors.badRequest(`Invalid ${fieldName}`);
-  }
-
-  return num;
-}
-
-/**
- * Validate a positive integer from a parsed body.
- * Throws BadRequest error if invalid.
- */
-export function validatePositiveInt(value: unknown, fieldName = "value"): number {
-  if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) {
-    throw Errors.badRequest(`Invalid ${fieldName}`);
-  }
-  return value;
 }
