@@ -44,7 +44,7 @@
 	],
 	"ratelimits": [
 		{
-			"binding": "RATE_LIMITER",
+			"name": "RATE_LIMITER",
 			"namespace_id": "1001",
 			"simple": {
 				"limit": 100,
@@ -52,7 +52,7 @@
 			}
 		},
 		{
-			"binding": "RATE_LIMITER_STRICT",
+			"name": "RATE_LIMITER_STRICT",
 			"namespace_id": "1002",
 			"simple": {
 				"limit": 20,
@@ -60,7 +60,7 @@
 			}
 		},
 		{
-			"binding": "RATE_LIMITER_WRITE",
+			"name": "RATE_LIMITER_WRITE",
 			"namespace_id": "1003",
 			"simple": {
 				"limit": 30,
