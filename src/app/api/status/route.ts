@@ -1,9 +1,9 @@
 import { ApiResponse, CACHE_HEADERS, withAuth } from "@/lib/api-utils";
-import { RATE_LIMIT_PRESETS, withRateLimit } from "@/lib/rate-limit";
+import { withRateLimit } from "@/lib/rate-limit";
 import { statusUpdateSchema, validateBody } from "@/lib/validation";
 
 export const POST = withRateLimit(
-  RATE_LIMIT_PRESETS.write,
+  "write",
   withAuth(async (request, { services, userId }) => {
     const { problemNumber, status } = await validateBody(request, statusUpdateSchema);
 

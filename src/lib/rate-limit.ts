@@ -1,175 +1,40 @@
 /**
- * Rate Limiting - Sliding window rate limiter for API routes.
+ * Rate Limiting - Cloudflare Workers Rate Limiting API.
  *
- * Uses an in-memory sliding window algorithm with IP-based tracking.
- * For production with multiple workers, consider using Cloudflare KV or D1.
+ * Uses Cloudflare's built-in rate limiting bindings for distributed rate limiting.
+ * This is the recommended approach for Workers deployed on Cloudflare.
  *
- * Features:
- * - Sliding window algorithm for smooth rate limiting
- * - IP-based tracking with X-Forwarded-For support
- * - Configurable window size and max requests
- * - Automatic cleanup of old entries
+ * @see https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/
  */
 
-import { type ApiRequestContext, getApiContext } from "@/lib/request-context";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
 // ============================================================================
 // Types
 // ============================================================================
 
-export interface RateLimitConfig {
-  /** Time window in milliseconds */
-  windowMs: number;
-  /** Maximum requests per window */
-  maxRequests: number;
-  /** Custom key generator (defaults to IP) */
-  keyGenerator?: (request: Request, ctx: ApiRequestContext) => string;
-  /** Custom response when rate limited */
-  onRateLimited?: (request: Request) => Response;
-  /** Skip rate limiting for certain requests */
-  skip?: (request: Request, ctx: ApiRequestContext) => boolean;
-}
-
-export interface RateLimitInfo {
-  /** Number of requests remaining in current window */
-  remaining: number;
-  /** Total requests allowed per window */
-  limit: number;
-  /** Time when the rate limit resets (Unix timestamp in seconds) */
-  reset: number;
-  /** Whether the request was rate limited */
-  limited: boolean;
-}
-
-interface WindowEntry {
-  count: number;
-  startTime: number;
-}
+export type RateLimitPreset = "standard" | "strict" | "write" | "read";
 
 // ============================================================================
-// In-Memory Store
+// Rate Limit Configuration
 // ============================================================================
 
-class RateLimitStore {
-  private windows: Map<string, WindowEntry> = new Map();
-  private cleanupInterval: ReturnType<typeof setInterval> | null = null;
-  private readonly cleanupIntervalMs = 60000; // Cleanup every minute
-
-  constructor() {
-    // Start cleanup interval (only in Node.js environment)
-    if (typeof setInterval !== "undefined") {
-      this.startCleanup();
-    }
-  }
-
-  private startCleanup(): void {
-    if (this.cleanupInterval) return;
-
-    this.cleanupInterval = setInterval(() => {
-      this.cleanup();
-    }, this.cleanupIntervalMs);
-  }
-
-  private cleanup(): void {
-    const now = Date.now();
-    const maxAge = 300000; // 5 minutes
-
-    for (const [key, entry] of this.windows.entries()) {
-      if (now - entry.startTime > maxAge) {
-        this.windows.delete(key);
-      }
-    }
-  }
-
-  /**
-   * Check and increment rate limit for a key.
-   * Returns rate limit info.
-   */
-  check(key: string, windowMs: number, maxRequests: number): RateLimitInfo {
-    const now = Date.now();
-    const entry = this.windows.get(key);
-
-    // Calculate window boundaries
-    const windowStart = now - windowMs;
-
-    if (!entry || entry.startTime < windowStart) {
-      // New window or expired window
-      this.windows.set(key, { count: 1, startTime: now });
-      return {
-        remaining: maxRequests - 1,
-        limit: maxRequests,
-        reset: Math.ceil((now + windowMs) / 1000),
-        limited: false,
-      };
-    }
-
-    // Sliding window: calculate effective count
-    const windowProgress = (now - entry.startTime) / windowMs;
-    const effectiveCount = entry.count * (1 - windowProgress);
-
-    if (effectiveCount >= maxRequests) {
-      // Rate limited
-      return {
-        remaining: 0,
-        limit: maxRequests,
-        reset: Math.ceil((entry.startTime + windowMs) / 1000),
-        limited: true,
-      };
-    }
-
-    // Increment count
-    entry.count += 1;
-    this.windows.set(key, entry);
-
-    return {
-      remaining: Math.max(0, maxRequests - Math.ceil(effectiveCount) - 1),
-      limit: maxRequests,
-      reset: Math.ceil((entry.startTime + windowMs) / 1000),
-      limited: false,
-    };
-  }
-
-  /**
-   * Clear all entries (useful for testing).
-   */
-  clear(): void {
-    this.windows.clear();
-  }
-}
-
-// Global store instance
-const store = new RateLimitStore();
-
-// ============================================================================
-// Rate Limit Presets
-// ============================================================================
-
+/**
+ * Rate limit presets mapped to Cloudflare bindings.
+ * - standard: 100 requests/minute (RATE_LIMITER)
+ * - strict: 20 requests/minute (RATE_LIMITER_STRICT)
+ * - write: 30 requests/minute (RATE_LIMITER_WRITE)
+ * - read: 100 requests/minute (RATE_LIMITER)
+ */
 export const RATE_LIMIT_PRESETS = {
   /** Standard API rate limit: 100 requests per minute */
-  standard: {
-    windowMs: 60 * 1000, // 1 minute
-    maxRequests: 100,
-  },
+  standard: "RATE_LIMITER",
   /** Strict rate limit for sensitive operations: 20 requests per minute */
-  strict: {
-    windowMs: 60 * 1000,
-    maxRequests: 20,
-  },
-  /** Auth rate limit: 10 requests per minute */
-  auth: {
-    windowMs: 60 * 1000,
-    maxRequests: 10,
-  },
+  strict: "RATE_LIMITER_STRICT",
   /** Write operations: 30 requests per minute */
-  write: {
-    windowMs: 60 * 1000,
-    maxRequests: 30,
-  },
-  /** Read operations: 200 requests per minute */
-  read: {
-    windowMs: 60 * 1000,
-    maxRequests: 200,
-  },
+  write: "RATE_LIMITER_WRITE",
+  /** Read operations: uses standard limiter */
+  read: "RATE_LIMITER",
 } as const;
 
 // ============================================================================
@@ -177,55 +42,41 @@ export const RATE_LIMIT_PRESETS = {
 // ============================================================================
 
 /**
- * Extract client IP from request headers.
+ * Generate a rate limit key from request.
+ * Uses IP + pathname for consistent rate limiting per endpoint.
  */
-function getClientIp(request: Request): string {
-  // Cloudflare provides CF-Connecting-IP
-  const cfIp = request.headers.get("cf-connecting-ip");
-  if (cfIp) return cfIp;
+function generateKey(request: Request, userId?: string | null): string {
+  const pathname = new URL(request.url).pathname;
 
-  // X-Forwarded-For (first IP in the list)
-  const xff = request.headers.get("x-forwarded-for");
-  if (xff) {
-    const firstIp = xff.split(",")[0]?.trim();
-    if (firstIp) return firstIp;
+  // Prefer user ID for authenticated requests
+  if (userId) {
+    return `user:${userId}:${pathname}`;
   }
 
-  // X-Real-IP
-  const realIp = request.headers.get("x-real-ip");
-  if (realIp) return realIp;
+  // Fall back to IP address for unauthenticated requests
+  const ip =
+    request.headers.get("cf-connecting-ip") ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown";
 
-  // Fallback to unknown
-  return "unknown";
+  return `ip:${ip}:${pathname}`;
 }
 
 /**
- * Create rate limit response headers.
+ * Create rate limit exceeded response.
  */
-function createRateLimitHeaders(info: RateLimitInfo): HeadersInit {
-  return {
-    "X-RateLimit-Limit": info.limit.toString(),
-    "X-RateLimit-Remaining": info.remaining.toString(),
-    "X-RateLimit-Reset": info.reset.toString(),
-  };
-}
-
-/**
- * Default rate limit exceeded response.
- */
-function defaultRateLimitResponse(info: RateLimitInfo): Response {
+function rateLimitResponse(): Response {
   return new Response(
     JSON.stringify({
       error: "Too many requests",
       message: "Rate limit exceeded. Please try again later.",
-      retryAfter: info.reset - Math.floor(Date.now() / 1000),
     }),
     {
       status: 429,
       headers: {
         "Content-Type": "application/json",
-        "Retry-After": (info.reset - Math.floor(Date.now() / 1000)).toString(),
-        ...createRateLimitHeaders(info),
+        "Retry-After": "60",
       },
     },
   );
@@ -236,88 +87,66 @@ function defaultRateLimitResponse(info: RateLimitInfo): Response {
 // ============================================================================
 
 /**
- * Create a rate limiting wrapper for API route handlers.
+ * Apply rate limiting using Cloudflare's Rate Limiting API.
+ *
+ * @param preset - The rate limit preset to use
+ * @param handler - The handler to wrap with rate limiting
+ * @param options - Optional configuration
  *
  * @example
  * ```ts
- * // Using preset
  * export const POST = withRateLimit(
- *   RATE_LIMIT_PRESETS.write,
+ *   "write",
  *   withAuth(async (request, ctx) => {
  *     // handler code
  *   })
  * );
- *
- * // Custom config
- * export const GET = withRateLimit(
- *   { windowMs: 60000, maxRequests: 50 },
- *   handler
- * );
  * ```
  */
 export function withRateLimit(
-  config: Partial<RateLimitConfig>,
+  preset: RateLimitPreset,
   handler: (request: Request) => Promise<Response>,
+  options?: {
+    /** Custom key generator */
+    keyGenerator?: (request: Request) => string;
+    /** Skip rate limiting for certain requests */
+    skip?: (request: Request) => boolean;
+  },
 ) {
-  const {
-    windowMs = RATE_LIMIT_PRESETS.standard.windowMs,
-    maxRequests = RATE_LIMIT_PRESETS.standard.maxRequests,
-    keyGenerator = (request) => getClientIp(request),
-    onRateLimited = (_, info: RateLimitInfo) => defaultRateLimitResponse(info),
-    skip,
-  } = config as RateLimitConfig & {
-    onRateLimited?: (request: Request, info: RateLimitInfo) => Response;
-  };
-
   return async (request: Request): Promise<Response> => {
-    const ctx = await getApiContext();
-
     // Check if we should skip rate limiting
-    if (skip?.(request, ctx)) {
+    if (options?.skip?.(request)) {
       return handler(request);
     }
 
-    // Generate rate limit key
-    const key = keyGenerator(request, ctx);
+    try {
+      const { env } = await getCloudflareContext({ async: true });
 
-    // Check rate limit
-    const info = store.check(key, windowMs, maxRequests);
+      // Get the appropriate rate limiter binding
+      const bindingName = RATE_LIMIT_PRESETS[preset];
+      const rateLimiter = env[bindingName] as RateLimit | undefined;
 
-    if (info.limited) {
-      return onRateLimited(request, info);
+      if (!rateLimiter) {
+        // If rate limiter is not available (e.g., in development), skip rate limiting
+        console.warn(`Rate limiter binding ${bindingName} not available, skipping rate limit`);
+        return handler(request);
+      }
+
+      // Generate rate limit key
+      const key = options?.keyGenerator?.(request) ?? generateKey(request);
+
+      // Check rate limit using Cloudflare's API
+      const result = await rateLimiter.limit({ key });
+
+      if (!result.success) {
+        return rateLimitResponse();
+      }
+
+      return handler(request);
+    } catch (error) {
+      // If rate limiting fails, log and proceed with request
+      console.error("Rate limiting error:", error);
+      return handler(request);
     }
-
-    // Call the handler and add rate limit headers to response
-    const response = await handler(request);
-
-    // Clone response to add headers
-    const headers = new Headers(response.headers);
-    const rateLimitHeaders = createRateLimitHeaders(info);
-    for (const [headerKey, value] of Object.entries(rateLimitHeaders)) {
-      headers.set(headerKey, value);
-    }
-
-    return new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers,
-    });
   };
 }
-
-/**
- * Combine rate limit with auth wrapper.
- * Convenience function for common pattern.
- */
-export function withRateLimitedAuth(
-  config: Partial<RateLimitConfig>,
-  handler: Parameters<typeof withRateLimit>[1],
-) {
-  return withRateLimit(config, handler);
-}
-
-// ============================================================================
-// Exports
-// ============================================================================
-
-export { store as rateLimitStore };

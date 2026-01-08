@@ -9,6 +9,10 @@ declare namespace Cloudflare {
 		WORKER_SELF_REFERENCE: Fetcher /* grand-cp */;
 		IMAGES: ImagesBinding;
 		ASSETS: Fetcher;
+		// Rate Limiters
+		RATE_LIMITER: RateLimit;
+		RATE_LIMITER_STRICT: RateLimit;
+		RATE_LIMITER_WRITE: RateLimit;
 		// Auth secrets (set via wrangler secret)
 		BETTER_AUTH_SECRET: string;
 		BETTER_AUTH_URL: string;

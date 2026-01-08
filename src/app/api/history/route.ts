@@ -3,11 +3,11 @@
  */
 
 import { ApiResponse, CACHE_HEADERS, withAuth } from "@/lib/api-utils";
-import { RATE_LIMIT_PRESETS, withRateLimit } from "@/lib/rate-limit";
+import { withRateLimit } from "@/lib/rate-limit";
 import { HISTORY_MAX_ENTRIES, HISTORY_PAGE_SIZE } from "@/services/history.service";
 
 export const GET = withRateLimit(
-  RATE_LIMIT_PRESETS.read,
+  "read",
   withAuth(async (request, { services, userId }) => {
     const url = new URL(request.url);
     const pageParam = url.searchParams.get("page");

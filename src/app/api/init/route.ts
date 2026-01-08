@@ -6,10 +6,10 @@
  */
 
 import { ApiResponse, CACHE_HEADERS, withOptionalAuth } from "@/lib/api-utils";
-import { RATE_LIMIT_PRESETS, withRateLimit } from "@/lib/rate-limit";
+import { withRateLimit } from "@/lib/rate-limit";
 
 export const GET = withRateLimit(
-  RATE_LIMIT_PRESETS.read,
+  "read",
   withOptionalAuth(async (_request, { services, userId, session }) => {
     const {
       phaseService,

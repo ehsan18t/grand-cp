@@ -1,5 +1,5 @@
 import { ApiResponse, withAuth } from "@/lib/api-utils";
-import { RATE_LIMIT_PRESETS, withRateLimit } from "@/lib/rate-limit";
+import { withRateLimit } from "@/lib/rate-limit";
 import {
   addFavoriteSchema,
   removeFavoriteQuerySchema,
@@ -11,7 +11,7 @@ import {
 
 // Add a problem to favorites
 export const POST = withRateLimit(
-  RATE_LIMIT_PRESETS.write,
+  "write",
   withAuth(async (request, { services, userId }) => {
     const { problemId } = await validateBody(request, addFavoriteSchema);
 
@@ -22,7 +22,7 @@ export const POST = withRateLimit(
 
 // Remove a problem from favorites
 export const DELETE = withRateLimit(
-  RATE_LIMIT_PRESETS.write,
+  "write",
   withAuth(async (request, { services, userId }) => {
     const { problemId } = validateQuery(request, removeFavoriteQuerySchema);
 

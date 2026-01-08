@@ -17,30 +17,15 @@ import { isValidationError } from "@/lib/validation";
 // ============================================================================
 
 export const CACHE_HEADERS = {
-  /** Vary by Cookie for all API responses */
-  vary: { Vary: "Cookie" } as const,
-
   /** Private, no caching - for authenticated user data */
   private: {
     Vary: "Cookie",
     "Cache-Control": "private, no-store",
   } as const,
 
-  /** Public, short cache - for semi-dynamic data (still varies by cookie) */
-  publicShort: {
-    Vary: "Cookie",
-    "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
-  } as const,
-
   /** Public, short cache - for guest-only data (no cookie variance, truly cacheable) */
   publicGuest: {
     "Cache-Control": "public, max-age=0, s-maxage=300, stale-while-revalidate=3600",
-  } as const,
-
-  /** Public, long cache - for mostly static data */
-  publicLong: {
-    Vary: "Cookie",
-    "Cache-Control": "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400",
   } as const,
 } as const;
 

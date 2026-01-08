@@ -1,38 +1,29 @@
 /**
- * API Validation Schemas - Centralized input validation using Zod 4.
+ * API Validation Schemas - Centralized input validation using Zod Mini.
  *
- * Features:
- * - Runtime type validation
- * - Detailed error messages
- * - Type inference for handlers
+ * Uses zod/mini for smaller bundle size (85% smaller than full Zod).
+ * Zod Mini uses .check() method with validation functions and z.pipe() for transforms.
  *
- * Note: Zod 4 uses unified `error` parameter instead of
- * `required_error` and `invalid_type_error`.
+ * @see https://zod.dev/v4#introducing-zod-mini
  */
 
-import { z } from "zod";
+import * as z from "zod/mini";
 import { USERNAME_MAX_LENGTH, USERNAME_MIN_LENGTH, USERNAME_REGEX } from "@/types/domain";
 
 // ============================================================================
 // Status API Schemas
 // ============================================================================
 
-/** Status values for Zod enum - matches ProblemStatus type */
+/** Status values for Zod enum - matches ProblemStatus type from schema */
 const statusValues = ["untouched", "attempting", "solved", "revisit", "skipped"] as const;
 
 export const statusUpdateSchema = z.object({
-  problemNumber: z
-    .number({
-      error: (issue) =>
-        issue.input === undefined ? "problemNumber is required" : "problemNumber must be a number",
-    })
-    .int({ error: "problemNumber must be an integer" })
-    .positive({ error: "problemNumber must be positive" }),
+  problemNumber: z.number({ error: "problemNumber must be a number" }).check(
+    z.refine((val) => Number.isInteger(val), { error: "problemNumber must be an integer" }),
+    z.refine((val) => val > 0, { error: "problemNumber must be positive" }),
+  ),
   status: z.enum(statusValues, {
-    error: (issue) =>
-      issue.input === undefined
-        ? "status is required"
-        : `status must be one of: ${statusValues.join(", ")}`,
+    error: `status must be one of: ${statusValues.join(", ")}`,
   }),
 });
 
@@ -43,26 +34,21 @@ export type StatusUpdateInput = z.infer<typeof statusUpdateSchema>;
 // ============================================================================
 
 export const addFavoriteSchema = z.object({
-  problemId: z
-    .number({
-      error: (issue) =>
-        issue.input === undefined ? "problemId is required" : "problemId must be a number",
-    })
-    .int({ error: "problemId must be an integer" })
-    .positive({ error: "problemId must be positive" }),
+  problemId: z.number({ error: "problemId must be a number" }).check(
+    z.refine((val) => Number.isInteger(val), { error: "problemId must be an integer" }),
+    z.refine((val) => val > 0, { error: "problemId must be positive" }),
+  ),
 });
 
 export type AddFavoriteInput = z.infer<typeof addFavoriteSchema>;
 
 export const removeFavoriteQuerySchema = z.object({
-  problemId: z
-    .string({
-      error: (issue) =>
-        issue.input === undefined ? "problemId is required" : "problemId must be a string",
-    })
-    .regex(/^\d+$/, { error: "problemId must be a number" })
-    .transform((val) => Number.parseInt(val, 10))
-    .refine((val) => val > 0, { error: "problemId must be positive" }),
+  problemId: z.pipe(
+    z
+      .string({ error: "problemId is required" })
+      .check(z.refine((val) => /^\d+$/.test(val), { error: "problemId must be a number" })),
+    z.transform((val: string) => Number.parseInt(val, 10)),
+  ),
 });
 
 // ============================================================================
@@ -70,21 +56,20 @@ export const removeFavoriteQuerySchema = z.object({
 // ============================================================================
 
 export const updateUsernameSchema = z.object({
-  username: z
-    .string({
-      error: (issue) =>
-        issue.input === undefined ? "username is required" : "username must be a string",
-    })
-    .min(USERNAME_MIN_LENGTH, {
-      error: `Username must be at least ${USERNAME_MIN_LENGTH} characters`,
-    })
-    .max(USERNAME_MAX_LENGTH, {
-      error: `Username must be at most ${USERNAME_MAX_LENGTH} characters`,
-    })
-    .regex(USERNAME_REGEX, {
-      error: "Username can only contain letters, numbers, and underscores",
-    })
-    .transform((val) => val.trim().toLowerCase()),
+  username: z.pipe(
+    z.string({ error: "username is required" }).check(
+      z.minLength(USERNAME_MIN_LENGTH, {
+        error: `Username must be at least ${USERNAME_MIN_LENGTH} characters`,
+      }),
+      z.maxLength(USERNAME_MAX_LENGTH, {
+        error: `Username must be at most ${USERNAME_MAX_LENGTH} characters`,
+      }),
+      z.refine((val) => USERNAME_REGEX.test(val), {
+        error: "Username can only contain letters, numbers, and underscores",
+      }),
+    ),
+    z.transform((val: string) => val.trim().toLowerCase()),
+  ),
 });
 
 export type UpdateUsernameInput = z.infer<typeof updateUsernameSchema>;
@@ -94,32 +79,23 @@ export type UpdateUsernameInput = z.infer<typeof updateUsernameSchema>;
 // ============================================================================
 
 export const historyQuerySchema = z.object({
-  page: z
-    .string()
-    .optional()
-    .transform((val) => (val ? Math.max(1, Number.parseInt(val, 10) || 1) : 1)),
+  page: z.pipe(
+    z.optional(z.string()),
+    z.transform((val: string | undefined) =>
+      val ? Math.max(1, Number.parseInt(val, 10) || 1) : 1,
+    ),
+  ),
 });
 
 // ============================================================================
 // Validation Utilities
 // ============================================================================
 
-export interface ValidationResult<T> {
-  success: true;
-  data: T;
-}
-
-export interface ValidationError {
-  success: false;
-  error: string;
-  issues?: Array<{ path: string; message: string }>;
-}
-
 /**
  * Validate JSON body against a schema.
  * Returns a validated object or throws a BadRequest error.
  */
-export async function validateBody<T extends z.ZodType>(
+export async function validateBody<T extends z.ZodMiniType>(
   request: Request,
   schema: T,
 ): Promise<z.infer<T>> {
@@ -153,7 +129,7 @@ export async function validateBody<T extends z.ZodType>(
 /**
  * Validate query parameters against a schema.
  */
-export function validateQuery<T extends z.ZodType>(request: Request, schema: T): z.infer<T> {
+export function validateQuery<T extends z.ZodMiniType>(request: Request, schema: T): z.infer<T> {
   const url = new URL(request.url);
   const params = Object.fromEntries(url.searchParams.entries());
 

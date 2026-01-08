@@ -1,10 +1,10 @@
 import { ApiResponse, withAuth } from "@/lib/api-utils";
-import { RATE_LIMIT_PRESETS, withRateLimit } from "@/lib/rate-limit";
+import { withRateLimit } from "@/lib/rate-limit";
 import { updateUsernameSchema, validateBody } from "@/lib/validation";
 
 // Update username
 export const PATCH = withRateLimit(
-  RATE_LIMIT_PRESETS.strict,
+  "strict",
   withAuth(async (request, { services, userId }) => {
     const { username } = await validateBody(request, updateUsernameSchema);
 
