@@ -29,15 +29,18 @@ interface UseGoogleSignInResult {
  * ```
  */
 export function useGoogleSignIn({
-  callbackURL = "/problems",
+  callbackURL,
 }: UseGoogleSignInOptions = {}): UseGoogleSignInResult {
   const { addToast } = useToast();
 
   const signIn = useCallback(async () => {
     try {
+      const redirectUrl =
+        callbackURL ?? (typeof window !== "undefined" ? window.location.href : "/problems");
+
       const result = await authClient.signIn.social({
         provider: "google",
-        callbackURL,
+        callbackURL: redirectUrl,
       });
 
       // Check if result contains an error
