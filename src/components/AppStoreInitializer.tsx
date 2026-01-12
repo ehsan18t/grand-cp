@@ -10,6 +10,7 @@
  * 4. Shows loading spinner until initialized
  */
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef } from "react";
 import { LoadingScreen } from "@/components/ui";
 import { authClient } from "@/lib/auth-client";
@@ -20,6 +21,7 @@ interface AppStoreInitializerProps {
 }
 
 export function AppStoreInitializer({ children }: AppStoreInitializerProps) {
+  const router = useRouter();
   const isInitialized = useAppStore((s) => s.isInitialized);
   const initialize = useAppStore((s) => s.initialize);
   const clearUserData = useAppStore((s) => s.clearUserData);
@@ -75,14 +77,18 @@ export function AppStoreInitializer({ children }: AppStoreInitializerProps) {
       lastUserIdRef.current = currentUserId;
 
       if (wasLogout) {
-        // On logout, clear user data but keep public data
+        // On logout, clear user data and refresh public data
         clearUserData();
+        fetchAndInitialize();
       } else {
         // On login, fetch fresh data with user context
         fetchAndInitialize();
       }
+
+      // Ensure all server components re-render with the new auth context
+      router.refresh();
     }
-  }, [session, isSessionPending, fetchAndInitialize, clearUserData]);
+  }, [session, isSessionPending, fetchAndInitialize, clearUserData, router]);
 
   // Sync session user to store if it changes (e.g., profile update)
   useEffect(() => {
