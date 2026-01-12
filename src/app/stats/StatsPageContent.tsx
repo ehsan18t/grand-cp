@@ -4,7 +4,7 @@
  * Stats Page Content - Client component that reads from the app store.
  */
 
-import { BarChart3, Clock, LogIn, Target, TrendingUp, Trophy } from "lucide-react";
+import { BarChart3, Clock, Target, TrendingUp, Trophy } from "lucide-react";
 import { LoginButton } from "@/components/auth/LoginButton";
 import { ShareButton } from "@/components/ui";
 import { useAppStore } from "@/stores/app-store";
@@ -57,7 +57,6 @@ export function StatsPageContent() {
               </p>
             </div>
             <LoginButton className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-all hover:bg-primary/90">
-              <LogIn className="h-4 w-4" />
               Sign in with Google
             </LoginButton>
           </div>
