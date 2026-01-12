@@ -23,9 +23,10 @@ export const CACHE_HEADERS = {
     "Cache-Control": "private, no-store",
   } as const,
 
-  /** Public guest responses: disable caching to avoid serving stale guest data after auth */
+  /** Public guest responses: cacheable but keyed by Cookie so auth hits bypass guest cache */
   publicGuest: {
-    "Cache-Control": "no-store",
+    Vary: "Cookie",
+    "Cache-Control": "public, s-maxage=300, stale-while-revalidate=3600",
   } as const,
 } as const;
 
