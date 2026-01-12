@@ -82,49 +82,69 @@ const STATUS_OPTIONS: {
   { value: "untouched", label: "Untouched", icon: <Circle className="h-3.5 w-3.5" /> },
 ];
 
-export interface ProblemFiltersProps {
+type ProblemFiltersBaseProps = {
   search: string;
   onSearchChange: (value: string) => void;
   platform: PlatformFilter;
   onPlatformChange: (value: PlatformFilter) => void;
   status: StatusFilter;
   onStatusChange: (value: StatusFilter) => void;
-  favorite: FavoriteFilter;
-  onFavoriteChange: (value: FavoriteFilter) => void;
   /** Hide status/favorite filters for guests */
   isGuest?: boolean;
   className?: string;
-}
+};
+
+type ProblemFiltersWithFavorite = {
+  showFavoriteFilter?: true;
+  favorite: FavoriteFilter;
+  onFavoriteChange: (value: FavoriteFilter) => void;
+};
+
+type ProblemFiltersWithoutFavorite = {
+  showFavoriteFilter: false;
+  favorite?: undefined;
+  onFavoriteChange?: undefined;
+};
+
+export type ProblemFiltersProps = ProblemFiltersBaseProps &
+  (ProblemFiltersWithFavorite | ProblemFiltersWithoutFavorite);
 
 export const ProblemFilters = forwardRef<HTMLDivElement, ProblemFiltersProps>(
-  function ProblemFilters(
-    {
+  function ProblemFilters(props, ref) {
+    const {
       search,
       onSearchChange,
       platform,
       onPlatformChange,
       status,
       onStatusChange,
-      favorite,
-      onFavoriteChange,
       isGuest = false,
       className,
-    },
-    ref,
-  ) {
+    } = props;
+
+    const showFavoriteFilter = !isGuest && props.showFavoriteFilter !== false;
+    const favorite = showFavoriteFilter && "favorite" in props ? props.favorite : "all";
+    const onFavoriteChange =
+      showFavoriteFilter && "onFavoriteChange" in props ? props.onFavoriteChange : undefined;
+
     const styles = filterVariants();
     const inputRef = useRef<HTMLInputElement>(null);
 
     const hasActiveFilters =
-      platform !== "all" || status !== "all" || favorite !== "all" || search !== "";
+      platform !== "all" ||
+      status !== "all" ||
+      (showFavoriteFilter && favorite !== "all") ||
+      search !== "";
 
     const handleClearAll = useCallback(() => {
       onSearchChange("");
       onPlatformChange("all");
       onStatusChange("all");
-      onFavoriteChange("all");
+      if (showFavoriteFilter) {
+        onFavoriteChange?.("all");
+      }
       inputRef.current?.focus();
-    }, [onSearchChange, onPlatformChange, onStatusChange, onFavoriteChange]);
+    }, [onSearchChange, onPlatformChange, onStatusChange, showFavoriteFilter, onFavoriteChange]);
 
     return (
       <div ref={ref} className={cn(styles.root(), className)}>
@@ -202,8 +222,8 @@ export const ProblemFilters = forwardRef<HTMLDivElement, ProblemFiltersProps>(
             </>
           )}
 
-          {/* Favorite Filter - only show for authenticated users */}
-          {!isGuest && (
+          {/* Favorite Filter - only show for authenticated users when enabled */}
+          {!isGuest && showFavoriteFilter && onFavoriteChange && (
             <>
               <div className={styles.divider()} />
               <div className={styles.filterGroup()}>
