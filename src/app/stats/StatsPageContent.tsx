@@ -5,7 +5,7 @@
  */
 
 import { BarChart3, Clock, LogIn, Target, TrendingUp, Trophy } from "lucide-react";
-import Link from "next/link";
+import { LoginButton } from "@/components/auth/LoginButton";
 import { ShareButton } from "@/components/ui";
 import { useAppStore } from "@/stores/app-store";
 
@@ -56,13 +56,10 @@ export function StatsPageContent() {
                 Sign in to see your personal statistics and track your problem-solving journey.
               </p>
             </div>
-            <Link
-              href="/api/auth/signin"
-              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-all hover:bg-primary/90"
-            >
+            <LoginButton className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2.5 font-medium text-primary-foreground transition-all hover:bg-primary/90">
               <LogIn className="h-4 w-4" />
               Sign in with Google
-            </Link>
+            </LoginButton>
           </div>
         </div>
       )}

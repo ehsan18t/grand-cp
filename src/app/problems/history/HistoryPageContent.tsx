@@ -5,8 +5,8 @@
  */
 
 import { ChevronLeft, ChevronRight, Clock } from "lucide-react";
-import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { LoginButton } from "@/components/auth/LoginButton";
 import { HistoryList } from "@/components/problems/HistoryList";
 import { Spinner } from "@/components/ui";
 import { useAppStore, useHistoryCount } from "@/stores/app-store";
@@ -108,12 +108,9 @@ export function HistoryPageContent() {
           <p className="mb-4 text-muted-foreground">
             Create an account to track your problem-solving progress over time.
           </p>
-          <Link
-            href="/api/auth/signin"
-            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
+          <LoginButton className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90">
             Sign In
-          </Link>
+          </LoginButton>
         </div>
       </main>
     );

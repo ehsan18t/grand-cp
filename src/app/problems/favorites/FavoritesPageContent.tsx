@@ -6,6 +6,7 @@
 
 import { Heart } from "lucide-react";
 import Link from "next/link";
+import { LoginButton } from "@/components/auth/LoginButton";
 import { FavoritesList } from "@/components/problems/FavoritesList";
 import { useAppStore } from "@/stores/app-store";
 
@@ -36,12 +37,9 @@ export function FavoritesPageContent() {
           <p className="mb-4 text-muted-foreground">
             Create an account to save problems to your favorites list and track your progress.
           </p>
-          <Link
-            href="/api/auth/signin"
-            className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
+          <LoginButton className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 font-medium text-primary-foreground transition-colors hover:bg-primary/90">
             Sign In
-          </Link>
+          </LoginButton>
         </div>
       ) : favorites.length === 0 ? (
         <div className="rounded-lg border border-border bg-card p-8 text-center">
