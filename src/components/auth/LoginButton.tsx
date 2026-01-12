@@ -34,13 +34,15 @@ export interface LoginButtonProps
   extends React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof loginButtonVariants> {
   showIcon?: boolean;
+  /** Optional callback URL; defaults to current page (fallback /problems on SSR). */
+  callbackURL?: string;
 }
 
 export const LoginButton = forwardRef<HTMLButtonElement, LoginButtonProps>(function LoginButton(
-  { className, variant, size, showIcon = true, children, ...props },
+  { className, variant, size, showIcon = true, callbackURL, children, ...props },
   ref,
 ) {
-  const { signIn } = useGoogleSignIn({ callbackURL: "/problems" });
+  const { signIn } = useGoogleSignIn({ callbackURL });
 
   return (
     <button
