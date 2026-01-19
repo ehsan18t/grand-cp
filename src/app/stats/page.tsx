@@ -7,6 +7,11 @@ export const metadata: Metadata = buildMetadata({
   description: "Track your competitive programming progress",
   path: "/stats",
   noIndex: true,
+  ogImage: {
+    title: "Stats",
+    subtitle: "Your competitive programming progress",
+    eyebrow: "Competitive Programming",
+  },
 });
 
 export default function StatsPage() {

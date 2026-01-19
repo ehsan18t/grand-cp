@@ -7,6 +7,11 @@ export const metadata: Metadata = buildMetadata({
   description: "Your favorited competitive programming problems",
   path: "/problems/favorites",
   noIndex: true,
+  ogImage: {
+    title: "Favorites",
+    subtitle: "Saved CP problems for focused review",
+    eyebrow: "Competitive Programming",
+  },
 });
 
 export default function FavoritesPage() {

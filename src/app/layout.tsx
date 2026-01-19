@@ -7,6 +7,7 @@ import { ToastProvider } from "@/components/ui";
 import { ThemeProvider, themeScript } from "@/context";
 import ProgressProvider from "@/context/ProgressProvider";
 import { geistMono, geistSans } from "@/lib/fonts";
+import { buildOgImageUrl } from "@/lib/seo";
 import { getSiteUrlFromProcessEnv, siteConfig } from "@/lib/site";
 import "./globals.css";
 
@@ -46,7 +47,11 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     images: [
       {
-        url: `${siteUrl}/opengraph-image`,
+        url: buildOgImageUrl({
+          title: "CP Progress Tracker",
+          subtitle: "Competitive programming roadmap and progress",
+          eyebrow: "Competitive Programming",
+        }),
         width: 1200,
         height: 630,
         alt: siteConfig.name,
@@ -57,7 +62,13 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${siteConfig.name} - Master Competitive Programming`,
     description: siteConfig.description,
-    images: [`${siteUrl}/twitter-image`],
+    images: [
+      buildOgImageUrl({
+        title: "CP Progress Tracker",
+        subtitle: "Competitive programming roadmap and progress",
+        eyebrow: "Competitive Programming",
+      }),
+    ],
     creator: siteConfig.twitterHandle,
   },
   alternates: {

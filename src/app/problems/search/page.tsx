@@ -10,6 +10,11 @@ export const metadata: Metadata = buildMetadata({
   description: "Search across all 655+ competitive programming problems",
   path: "/problems/search",
   noIndex: true,
+  ogImage: {
+    title: "Search Problems",
+    subtitle: "Find CP problems fast",
+    eyebrow: "Competitive Programming",
+  },
 });
 
 export default function SearchPage() {
