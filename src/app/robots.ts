@@ -13,9 +13,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/u/*/edit"],
+        disallow: ["/api/", "/u/*/edit", "/stats"],
       },
     ],
+    host: siteUrl,
     sitemap: `${siteUrl}/sitemap.xml`,
   };
 }

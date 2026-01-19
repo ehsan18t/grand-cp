@@ -14,6 +14,7 @@ const siteUrl = getSiteUrlFromProcessEnv();
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
+  applicationName: siteConfig.name,
   title: {
     default: `${siteConfig.name} - Master Competitive Programming`,
     template: `%s | ${siteConfig.name}`,
@@ -23,6 +24,8 @@ export const metadata: Metadata = {
   authors: [{ name: siteConfig.author }],
   creator: siteConfig.author,
   publisher: siteConfig.author,
+  category: "education",
+  referrer: "origin-when-cross-origin",
   robots: {
     index: true,
     follow: true,
@@ -43,7 +46,7 @@ export const metadata: Metadata = {
     description: siteConfig.description,
     images: [
       {
-        url: `${siteUrl}/og-image.png`,
+        url: `${siteUrl}/opengraph-image`,
         width: 1200,
         height: 630,
         alt: siteConfig.name,
@@ -54,15 +57,11 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: `${siteConfig.name} - Master Competitive Programming`,
     description: siteConfig.description,
-    images: [`${siteUrl}/og-image.png`],
+    images: [`${siteUrl}/twitter-image`],
     creator: siteConfig.twitterHandle,
   },
   alternates: {
     canonical: siteUrl,
-  },
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-touch-icon.png",
   },
 };
 
@@ -76,24 +75,49 @@ export const viewport: Viewport = {
 };
 
 // JSON-LD structured data for SEO
-const jsonLd = {
-  "@context": "https://schema.org",
-  "@type": "WebApplication",
-  name: siteConfig.name,
-  description: siteConfig.description,
-  url: siteUrl,
-  applicationCategory: "EducationalApplication",
-  operatingSystem: "Web",
-  offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
-  },
-  author: {
+const jsonLd = [
+  {
+    "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": `${siteUrl}#organization`,
     name: siteConfig.author,
+    url: siteUrl,
   },
-};
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "@id": `${siteUrl}#website`,
+    name: siteConfig.name,
+    description: siteConfig.description,
+    url: siteUrl,
+    publisher: {
+      "@id": `${siteUrl}#organization`,
+    },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${siteUrl}/problems/search?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "@id": `${siteUrl}#app`,
+    name: siteConfig.name,
+    description: siteConfig.description,
+    url: siteUrl,
+    applicationCategory: "EducationalApplication",
+    operatingSystem: "Web",
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "USD",
+    },
+    author: {
+      "@id": `${siteUrl}#organization`,
+    },
+  },
+];
 
 export default async function RootLayout({
   children,

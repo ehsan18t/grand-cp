@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buildMetadata } from "@/lib/seo";
 import { PhasePageContent } from "./PhasePageContent";
 
 interface PageProps {
@@ -8,10 +9,11 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { phaseId } = await params;
 
-  return {
-    title: `Phase ${phaseId} | Grand CP`,
+  return buildMetadata({
+    title: `Phase ${phaseId}`,
     description: `Competitive programming problems for Phase ${phaseId}`,
-  };
+    path: `/problems/phase/${phaseId}`,
+  });
 }
 
 export default async function PhasePage({ params }: PageProps) {

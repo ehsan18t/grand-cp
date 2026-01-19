@@ -4,6 +4,7 @@ import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { ProfileActions } from "@/components/profile";
 import { getRequestContext } from "@/lib/request-context";
+import { buildMetadata } from "@/lib/seo";
 import { getSiteUrlFromEnv } from "@/lib/site";
 
 interface PageProps {
@@ -13,10 +14,12 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
 
-  return {
-    title: `${username}'s Profile | Grand CP`,
+  return buildMetadata({
+    title: `${username}'s Profile`,
     description: `View ${username}'s competitive programming progress on Grand CP`,
-  };
+    path: `/u/${username}`,
+    openGraphType: "profile",
+  });
 }
 
 export default async function ProfilePage({ params }: PageProps) {
@@ -56,6 +59,14 @@ export default async function ProfilePage({ params }: PageProps) {
   // Build profile URL from environment
   const siteUrl = getSiteUrlFromEnv(env);
   const profileUrl = `${siteUrl}/u/${user.username ?? user.id}`;
+  const profileJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    name: user.name,
+    url: profileUrl,
+    identifier: user.username ?? user.id,
+    image: user.image ?? undefined,
+  };
 
   // Determine current phase (first incomplete phase)
   const { currentPhase, targetRating } = phaseService.determineCurrentPhase(
@@ -66,6 +77,11 @@ export default async function ProfilePage({ params }: PageProps) {
 
   return (
     <main className="container mx-auto px-4 py-8">
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: Required for JSON-LD
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(profileJsonLd) }}
+      />
       {/* Profile Header */}
       <header className="mb-8 rounded-lg border border-border bg-card p-6">
         <div className="flex flex-wrap items-start gap-6">

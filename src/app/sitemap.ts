@@ -58,5 +58,21 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticPages, ...phasePages];
+  // Public user profiles
+  let userPages: MetadataRoute.Sitemap = [];
+  try {
+    if (services) {
+      const users = await services.userService.getAllUsersWithUsernames();
+      userPages = users.map((user) => ({
+        url: `${siteUrl}/u/${user.username}`,
+        lastModified: user.updatedAt,
+        changeFrequency: "monthly" as const,
+        priority: 0.4,
+      }));
+    }
+  } catch {
+    // Ignore profile sitemap generation errors to avoid build failures.
+  }
+
+  return [...staticPages, ...phasePages, ...userPages];
 }

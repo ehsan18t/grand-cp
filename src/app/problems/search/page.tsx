@@ -1,12 +1,16 @@
 import { ArrowLeft, Search } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Button } from "@/components/ui";
+import { buildMetadata } from "@/lib/seo";
 import { SearchPageClient } from "./SearchPageClient";
 
-export const metadata = {
-  title: "Search Problems | Grand CP",
+export const metadata: Metadata = buildMetadata({
+  title: "Search Problems",
   description: "Search across all 655+ competitive programming problems",
-};
+  path: "/problems/search",
+  noIndex: true,
+});
 
 export default function SearchPage() {
   return (
