@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import { ProfileActions } from "@/components/profile";
-import { getRequestContext } from "@/lib/request-context";
+import { getRequestContext, getServicesOnly } from "@/lib/request-context";
 import { buildMetadata } from "@/lib/seo";
 import { getSiteUrlFromEnv } from "@/lib/site";
 
@@ -13,13 +13,38 @@ interface PageProps {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { username } = await params;
+  const services = await getServicesOnly();
+  const user = await services.userService.getUserByUsernameOrId(username);
 
-  return buildMetadata({
+  const baseMetadata = buildMetadata({
     title: `${username}'s Profile`,
     description: `View ${username}'s competitive programming progress on Grand CP`,
     path: `/u/${username}`,
     openGraphType: "profile",
   });
+
+  if (!user?.image) {
+    return baseMetadata;
+  }
+
+  return {
+    ...baseMetadata,
+    openGraph: {
+      ...baseMetadata.openGraph,
+      images: [
+        {
+          url: user.image,
+          width: 400,
+          height: 400,
+          alt: `${user.name}'s profile picture`,
+        },
+      ],
+    },
+    twitter: {
+      ...baseMetadata.twitter,
+      images: [user.image],
+    },
+  };
 }
 
 export default async function ProfilePage({ params }: PageProps) {
