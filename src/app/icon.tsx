@@ -1,6 +1,9 @@
 import { ImageResponse } from "next/og";
 import { siteConfig } from "@/lib/site";
 
+export const runtime = "nodejs";
+export const revalidate = 86400;
+
 export const size = {
   width: 32,
   height: 32,

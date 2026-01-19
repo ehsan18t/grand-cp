@@ -32,6 +32,12 @@
 			"service": "grand-cp"
 		}
 	],
+	"kv_namespaces": [
+		{
+			"binding": "NEXT_INC_CACHE_KV",
+			"id": "7290beb3d5664c3a8d19cf78451ca348"
+		}
+	],
 	"observability": {
 		"enabled": true
 	},

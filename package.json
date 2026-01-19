@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev": "dotenv -e .env.dev -- next dev --turbopack",
 		"build": "next build",
+		"postinstall": "bun scripts/patch-next-og.ts",
 		"start": "next start",
 		"generate:problems": "bun scripts/parse-problems.ts",
 		"lint": "biome check --fix .",
