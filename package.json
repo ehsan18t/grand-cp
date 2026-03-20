@@ -15,10 +15,10 @@
 		"preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
 		"cf-typegen": "wrangler types --env-interface CloudflareEnv ./cloudflare-env.d.ts",
 		"db:seed:generate": "pnpm scripts/generate-seed-sql.ts",
-		"db:seed:local": "pnpm db:seed:generate && pnpx  wrangler d1 execute grand-cp-db --local --file=./scripts/seed.sql",
-		"db:seed:remote": "pnpm db:seed:generate && pnpx  wrangler d1 execute grand-cp-db --remote --file=./scripts/seed.sql",
-		"db:reset:local": "pnpx  wrangler d1 execute grand-cp-db --local --command=\"DROP TABLE IF EXISTS verifications; DROP TABLE IF EXISTS sessions; DROP TABLE IF EXISTS accounts; DROP TABLE IF EXISTS status_history; DROP TABLE IF EXISTS user_problems; DROP TABLE IF EXISTS user_favorites; DROP TABLE IF EXISTS problems; DROP TABLE IF EXISTS phases; DROP TABLE IF EXISTS users;\" && pnpx  wrangler d1 execute grand-cp-db --local --file=./drizzle/0000_public_surge.sql && pnpm db:seed:local",
-		"db:reset:remote": "pnpx  wrangler d1 execute grand-cp-db --remote --command=\"DROP TABLE IF EXISTS verifications; DROP TABLE IF EXISTS sessions; DROP TABLE IF EXISTS accounts; DROP TABLE IF EXISTS status_history; DROP TABLE IF EXISTS user_problems; DROP TABLE IF EXISTS user_favorites; DROP TABLE IF EXISTS problems; DROP TABLE IF EXISTS phases; DROP TABLE IF EXISTS users;\" && pnpx  wrangler d1 execute grand-cp-db --remote --file=./drizzle/0000_public_surge.sql && pnpm db:seed:remote"
+		"db:seed:local": "pnpm db:seed:generate && pnpx wrangler d1 execute grand-cp-db --local --file=./scripts/seed.sql",
+		"db:seed:remote": "pnpm db:seed:generate && pnpx wrangler d1 execute grand-cp-db --remote --file=./scripts/seed.sql",
+		"db:reset:local": "pnpx wrangler d1 execute grand-cp-db --local --command=\"DROP TABLE IF EXISTS verifications; DROP TABLE IF EXISTS sessions; DROP TABLE IF EXISTS accounts; DROP TABLE IF EXISTS status_history; DROP TABLE IF EXISTS user_problems; DROP TABLE IF EXISTS user_favorites; DROP TABLE IF EXISTS problems; DROP TABLE IF EXISTS phases; DROP TABLE IF EXISTS users;\" && pnpx wrangler d1 execute grand-cp-db --local --file=./drizzle/0000_public_surge.sql && pnpm db:seed:local",
+		"db:reset:remote": "pnpx wrangler d1 execute grand-cp-db --remote --command=\"DROP TABLE IF EXISTS verifications; DROP TABLE IF EXISTS sessions; DROP TABLE IF EXISTS accounts; DROP TABLE IF EXISTS status_history; DROP TABLE IF EXISTS user_problems; DROP TABLE IF EXISTS user_favorites; DROP TABLE IF EXISTS problems; DROP TABLE IF EXISTS phases; DROP TABLE IF EXISTS users;\" && pnpx wrangler d1 execute grand-cp-db --remote --file=./drizzle/0000_public_surge.sql && pnpm db:seed:remote"
 	},
 	"dependencies": {
 		"@bprogress/next": "^3.2.12",
