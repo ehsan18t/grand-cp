@@ -92,6 +92,13 @@ const ensureFontFile = async () => {
 	}
 };
 
-await patchIndexEdge();
-await patchNextServer();
-await ensureFontFile();
+const main = async () => {
+	await patchIndexEdge();
+	await patchNextServer();
+	await ensureFontFile();
+};
+
+main().catch((error) => {
+	console.error("patch-next-og: failed", error);
+	process.exitCode = 1;
+});
