@@ -2,6 +2,9 @@ services:
   auth:
     image: node:22-bookworm
     working_dir: /app
+    env_file:
+      - path: .env.local
+        required: false
     environment:
       WRANGLER_LOG_PATH: /tmp/wrangler-logs
       COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
@@ -22,8 +25,7 @@ services:
       corepack enable;
       corepack prepare pnpm@10.32.1 --activate;
       pnpm config set store-dir /pnpm-store;
-      pnpm install --no-frozen-lockfile;
-      pnpm approve-builds;
+      pnpm install --frozen-lockfile --ignore-scripts;
       pnpm exec wrangler whoami;
       pnpm exec wrangler kv namespace list > /dev/null"
 
@@ -53,7 +55,7 @@ services:
       corepack enable;
       corepack prepare pnpm@10.32.1 --activate;
       pnpm config set store-dir /pnpm-store;
-      pnpm install --no-frozen-lockfile;
+      pnpm install --frozen-lockfile --ignore-scripts;
       pnpm run deploy"
 
 volumes:
