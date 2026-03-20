@@ -10,7 +10,7 @@ services:
       - app_pnpm_store:/pnpm-store
     command: >-
       /bin/sh -lc "corepack enable && pnpm config set store-dir /pnpm-store &&
-      pnpm install --no-frozen-lockfile && pnpm exec opennextjs-cloudflare build &&
+      pnpm install --no-frozen-lockfile && pnpm approve-builds && pnpm exec opennextjs-cloudflare build &&
       pnpm exec wrangler dev --config wrangler.jsonc --ip 0.0.0.0 --port 8787"
 
 volumes:
