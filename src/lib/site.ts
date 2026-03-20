@@ -41,7 +41,7 @@ export function getSiteUrlFromEnv(env: CloudflareEnv): string {
  * (e.g. static metadata evaluation).
  */
 export function getSiteUrlFromProcessEnv(): string {
-  const url = process.env.SITE_URL;
+  const url = process.env.SITE_URL || process.env.NEXT_PUBLIC_SITE_URL;
   if (!url) {
     throw new Error("SITE_URL environment variable is required");
   }

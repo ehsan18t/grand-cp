@@ -1,0 +1,62 @@
+services:
+  auth:
+    image: node:22-bookworm
+    working_dir: /app
+    environment:
+      WRANGLER_LOG_PATH: /tmp/wrangler-logs
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+      CI: "1"
+      COREPACK_HOME: /corepack
+    volumes:
+      - ./:/app
+      - app_node_modules:/app/node_modules
+      - app_pnpm_store:/pnpm-store
+      - app_corepack_cache:/corepack
+    command: >-
+      /bin/sh -lc "set -eu;
+      if [ -z \"$${CLOUDFLARE_API_TOKEN:-}$${CF_API_TOKEN:-}\" ]; then
+      echo 'Missing Cloudflare auth. Set CLOUDFLARE_API_TOKEN or CF_API_TOKEN in .env.local.';
+      exit 1;
+      fi;
+      mkdir -p /tmp/wrangler-logs;
+      corepack enable;
+      corepack prepare pnpm@10.32.1 --activate;
+      pnpm config set store-dir /pnpm-store;
+      pnpm install --no-frozen-lockfile;
+      pnpm approve-builds;
+      pnpm exec wrangler whoami;
+      pnpm exec wrangler kv namespace list > /dev/null"
+
+  deploy:
+    image: node:22-bookworm
+    working_dir: /app
+    env_file:
+      - path: .env.local
+        required: false
+    environment:
+      WRANGLER_LOG_PATH: /tmp/wrangler-logs
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+      CI: "1"
+      COREPACK_HOME: /corepack
+    volumes:
+      - ./:/app
+      - app_node_modules:/app/node_modules
+      - app_pnpm_store:/pnpm-store
+      - app_corepack_cache:/corepack
+    command: >-
+      /bin/sh -lc "set -eu;
+      if [ -z \"$${CLOUDFLARE_API_TOKEN:-}$${CF_API_TOKEN:-}\" ]; then
+      echo 'Missing Cloudflare auth. Set CLOUDFLARE_API_TOKEN or CF_API_TOKEN in .env.local.';
+      exit 1;
+      fi;
+      mkdir -p /tmp/wrangler-logs;
+      corepack enable;
+      corepack prepare pnpm@10.32.1 --activate;
+      pnpm config set store-dir /pnpm-store;
+      pnpm install --no-frozen-lockfile;
+      pnpm run deploy"
+
+volumes:
+  app_node_modules:
+  app_pnpm_store:
+  app_corepack_cache:

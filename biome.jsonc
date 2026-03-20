@@ -32,14 +32,14 @@
       "suspicious": {
         "noExplicitAny": "off", // Turned off to reduce noise, consider enabling in the future
         "noArrayIndexKey": "off", // Turned off to allow flexibility in list rendering,
-        "useIterableCallbackReturn": "off" // Turned off due to false positives with certain array methods
+        "useIterableCallbackReturn": "off", // Turned off due to false positives with certain array methods
+        "noDeprecatedImports": "error"
       },
       "complexity": {
         "noBannedTypes": "off", // Turned off to allow flexibility in type definitions
         "noImportantStyles": "off"
       },
       "nursery": {
-        "noDeprecatedImports": "error",
         // Enable auto class sorting to maintain consistent class name ordering
         // It is analogous to prettier-plugin-tailwindcss.
         "useSortedClasses": {
